@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Invoices from "./pages/Invoices";
+import InvoiceCreate from "./pages/InvoiceCreate";
 import BalanceSheet from "./pages/BalanceSheet";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Invoices />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <InvoiceCreate />
                 </AppLayout>
               </ProtectedRoute>
             }
