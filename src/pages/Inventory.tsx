@@ -31,8 +31,11 @@ type Product = {
 
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -48,8 +51,29 @@ const Inventory = () => {
       toast.error("Error fetching products");
     } else {
       setProducts(data || []);
+      setFilteredProducts(data || []);
     }
   };
+
+  useEffect(() => {
+    let filtered = products;
+
+    if (searchTerm) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (categoryFilter) {
+      filtered = filtered.filter(product => product.category === categoryFilter);
+    }
+
+    setFilteredProducts(filtered);
+  }, [searchTerm, categoryFilter, products]);
+
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
 
   useEffect(() => {
     fetchProducts();
@@ -227,6 +251,37 @@ const Inventory = () => {
           <CardTitle>Products</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="flex gap-4 mb-4">
+            <Input
+              placeholder="Search by name, SKU, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-2 border rounded-md bg-background"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category || ""}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            {(searchTerm || categoryFilter) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -240,7 +295,7 @@ const Inventory = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.sku || "-"}</TableCell>

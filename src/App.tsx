@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Invoices from "./pages/Invoices";
 import InvoiceCreate from "./pages/InvoiceCreate";
+import Bills from "./pages/Bills";
+import BillCreate from "./pages/BillCreate";
 import BalanceSheet from "./pages/BalanceSheet";
 import NotFound from "./pages/NotFound";
 
@@ -76,6 +78,26 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <InvoiceCreate />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bills"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Bills />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bills/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <BillCreate />
                 </AppLayout>
               </ProtectedRoute>
             }
