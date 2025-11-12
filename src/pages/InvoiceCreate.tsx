@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+type Product = {
+  id: string;
+  name: string;
+  description: string | null;
+  unit_price: number;
+  sku: string | null;
+};
+
 const invoiceSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
   customer_email: z.string().email("Invalid email").optional().or(z.literal("")),
@@ -25,6 +33,7 @@ const invoiceSchema = z.object({
 type InvoiceFormData = z.infer<typeof invoiceSchema>;
 
 type InvoiceItem = {
+  product_id: string;
   description: string;
   quantity: number;
   unit_price: number;
@@ -33,9 +42,10 @@ type InvoiceItem = {
 const InvoiceCreate = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<InvoiceItem[]>([
-    { description: "", quantity: 1, unit_price: 0 },
+    { product_id: "", description: "", quantity: 1, unit_price: 0 },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
@@ -49,8 +59,40 @@ const InvoiceCreate = () => {
     },
   });
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, description, unit_price, sku")
+      .order("name");
+
+    if (error) {
+      toast.error("Failed to load products");
+      return;
+    }
+
+    setProducts(data || []);
+  };
+
   const addItem = () => {
-    setItems([...items, { description: "", quantity: 1, unit_price: 0 }]);
+    setItems([...items, { product_id: "", description: "", quantity: 1, unit_price: 0 }]);
+  };
+
+  const selectProduct = (index: number, productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      const newItems = [...items];
+      newItems[index] = {
+        ...newItems[index],
+        product_id: productId,
+        description: product.name,
+        unit_price: Number(product.unit_price),
+      };
+      setItems(newItems);
+    }
   };
 
   const removeItem = (index: number) => {
@@ -114,6 +156,7 @@ const InvoiceCreate = () => {
         .filter(item => item.description && item.quantity > 0 && item.unit_price > 0)
         .map(item => ({
           invoice_id: invoice.id,
+          product_id: item.product_id || null,
           description: item.description,
           quantity: item.quantity,
           unit_price: item.unit_price,
@@ -270,47 +313,68 @@ const InvoiceCreate = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {items.map((item, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <div className="flex-1 space-y-2">
-                    <Input
-                      placeholder="Description"
-                      value={item.description}
-                      onChange={(e) => updateItem(index, "description", e.target.value)}
-                    />
+                <div key={index} className="space-y-2 p-4 border rounded-lg">
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-1">
+                      <Select
+                        value={item.product_id}
+                        onValueChange={(value) => selectProduct(index, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select from inventory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products.map((product) => (
+                            <SelectItem key={product.id} value={product.id}>
+                              {product.name} {product.sku ? `(${product.sku})` : ""} - ${Number(product.unit_price).toFixed(2)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeItem(index)}
+                      disabled={items.length === 1}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="w-24">
-                    <Input
-                      type="number"
-                      placeholder="Qty"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                    />
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Description"
+                        value={item.description}
+                        onChange={(e) => updateItem(index, "description", e.target.value)}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        placeholder="Qty"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="w-32">
+                      <Input
+                        type="number"
+                        placeholder="Price"
+                        min="0"
+                        step="0.01"
+                        value={item.unit_price}
+                        onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="w-32 flex items-center justify-end">
+                      <span className="text-sm font-medium">
+                        ${(item.quantity * item.unit_price).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-32">
-                    <Input
-                      type="number"
-                      placeholder="Price"
-                      min="0"
-                      step="0.01"
-                      value={item.unit_price}
-                      onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="w-32 flex items-center justify-end">
-                    <span className="text-sm font-medium">
-                      ${(item.quantity * item.unit_price).toFixed(2)}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(index)}
-                    disabled={items.length === 1}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               ))}
 
