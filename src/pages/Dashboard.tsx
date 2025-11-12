@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, FileText, TrendingUp, DollarSign } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -11,9 +14,13 @@ const Dashboard = () => {
     pendingInvoices: 0,
     totalRevenue: 0,
   });
+  const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
+  const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
+  const [outstandingInvoices, setOutstandingInvoices] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
+      // Fetch basic stats
       const { data: products } = await supabase.from("products").select("*", { count: "exact" });
       const { data: invoices } = await supabase.from("invoices").select("*");
       
@@ -28,28 +35,78 @@ const Dashboard = () => {
         pendingInvoices,
         totalRevenue,
       });
+
+      // Calculate revenue trends by month
+      if (invoices && invoices.length > 0) {
+        const revenueByMonth = invoices.reduce((acc: any, inv) => {
+          const month = format(new Date(inv.issue_date), "MMM yyyy");
+          if (!acc[month]) {
+            acc[month] = 0;
+          }
+          acc[month] += Number(inv.total) || 0;
+          return acc;
+        }, {});
+
+        const sortedRevenue = Object.entries(revenueByMonth)
+          .map(([month, revenue]) => ({ month, revenue: revenue as number }))
+          .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+          .slice(-6); // Last 6 months
+
+        setRevenueData(sortedRevenue);
+      }
+
+      // Fetch top products by revenue
+      const { data: invoiceItems } = await supabase
+        .from("invoice_items")
+        .select("product_id, amount, products(name)");
+
+      if (invoiceItems) {
+        const productRevenue = invoiceItems.reduce((acc: any, item) => {
+          const productName = (item.products as any)?.name || "Unknown";
+          if (!acc[productName]) {
+            acc[productName] = 0;
+          }
+          acc[productName] += Number(item.amount) || 0;
+          return acc;
+        }, {});
+
+        const sortedProducts = Object.entries(productRevenue)
+          .map(([name, revenue]) => ({ name, revenue: revenue as number }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5); // Top 5 products
+
+        setTopProducts(sortedProducts);
+      }
+
+      // Fetch outstanding invoices
+      const { data: outstanding } = await supabase
+        .from("invoices")
+        .select("*")
+        .neq("status", "paid")
+        .order("due_date", { ascending: true })
+        .limit(5);
+
+      setOutstandingInvoices(outstanding || []);
     };
 
-    fetchStats();
+    fetchDashboardData();
   }, []);
 
-  const revenueData = [
-    { name: "Jan", value: 4000 },
-    { name: "Feb", value: 3000 },
-    { name: "Mar", value: 5000 },
-    { name: "Apr", value: 4500 },
-    { name: "May", value: 6000 },
-    { name: "Jun", value: 5500 },
-  ];
+  const revenueChartConfig = {
+    revenue: {
+      label: "Revenue",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
 
-  const categoryData = [
-    { name: "Electronics", value: 400 },
-    { name: "Clothing", value: 300 },
-    { name: "Food", value: 200 },
-    { name: "Books", value: 100 },
-  ];
+  const productsChartConfig = {
+    revenue: {
+      label: "Revenue",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig;
 
-  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
+  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
   return (
     <div className="p-8 space-y-8">
@@ -107,48 +164,77 @@ const Dashboard = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle>Revenue Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData}>
+            <ChartContainer config={revenueChartConfig} className="h-[300px]">
+              <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="hsl(var(--chart-1))" 
+                  strokeWidth={2}
+                  dot={{ fill: "hsl(var(--chart-1))" }}
+                />
+              </LineChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Product Categories</CardTitle>
+            <CardTitle>Top Products by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <ChartContainer config={productsChartConfig} className="h-[300px]">
+              <BarChart data={topProducts} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={100} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Outstanding Invoices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {outstandingInvoices.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No outstanding invoices</p>
+            ) : (
+              outstandingInvoices.map((invoice) => (
+                <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{invoice.customer_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Invoice #{invoice.invoice_number}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Due: {format(new Date(invoice.due_date), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold">${Number(invoice.total).toFixed(2)}</p>
+                    <Badge variant={invoice.status === "overdue" ? "destructive" : "secondary"}>
+                      {invoice.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
