@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, DollarSign, Download } from "lucide-react";
+import { Package, FileText, TrendingUp, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { exportToCSV, exportDashboardToPDF } from "@/lib/exportUtils";
-import { toast } from "sonner";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -111,62 +108,11 @@ const Dashboard = () => {
 
   const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
-  const handleExportPDF = async () => {
-    try {
-      await exportDashboardToPDF(stats, revenueData, topProducts, outstandingInvoices);
-      toast.success("PDF exported successfully");
-    } catch (error) {
-      toast.error("Failed to export PDF");
-    }
-  };
-
-  const handleExportCSV = () => {
-    try {
-      // Export revenue data
-      if (revenueData.length > 0) {
-        exportToCSV(revenueData, `revenue-trends-${new Date().toISOString().split("T")[0]}`);
-      }
-      
-      // Export top products
-      if (topProducts.length > 0) {
-        exportToCSV(topProducts, `top-products-${new Date().toISOString().split("T")[0]}`);
-      }
-      
-      // Export outstanding invoices
-      if (outstandingInvoices.length > 0) {
-        const invoiceData = outstandingInvoices.map((inv) => ({
-          customer_name: inv.customer_name,
-          invoice_number: inv.invoice_number,
-          due_date: format(new Date(inv.due_date), "MMM dd, yyyy"),
-          total: Number(inv.total).toFixed(2),
-          status: inv.status,
-        }));
-        exportToCSV(invoiceData, `outstanding-invoices-${new Date().toISOString().split("T")[0]}`);
-      }
-      
-      toast.success("CSV files exported successfully");
-    } catch (error) {
-      toast.error("Failed to export CSV");
-    }
-  };
-
   return (
     <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExportCSV} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={handleExportPDF}>
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -221,7 +167,7 @@ const Dashboard = () => {
             <CardTitle>Revenue Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={revenueChartConfig} className="h-[300px]" data-chart="revenue">
+            <ChartContainer config={revenueChartConfig} className="h-[300px]">
               <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -244,7 +190,7 @@ const Dashboard = () => {
             <CardTitle>Top Products by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={productsChartConfig} className="h-[300px]" data-chart="products">
+            <ChartContainer config={productsChartConfig} className="h-[300px]">
               <BarChart data={topProducts} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
