@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -97,6 +98,19 @@ const Invoices = () => {
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleStatusChange = async (invoiceId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status: newStatus })
+      .eq("id", invoiceId);
+
+    if (error) {
+      toast.error("Failed to update invoice status");
+    } else {
+      toast.success("Invoice status updated");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusColors = {
       draft: "secondary",
@@ -155,7 +169,22 @@ const Invoices = () => {
                   <TableCell>
                     {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "-"}
                   </TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Select
+                      value={invoice.status}
+                      onValueChange={(value) => handleStatusChange(invoice.id, value)}
+                    >
+                      <SelectTrigger className="w-[130px] h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="font-semibold">${invoice.total.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
@@ -168,6 +197,9 @@ const Invoices = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="print:mb-8">
             <DialogTitle className="text-2xl">Invoice Details</DialogTitle>
+            <DialogDescription className="sr-only">
+              View and manage invoice details, print or share via WhatsApp
+            </DialogDescription>
           </DialogHeader>
           
           {selectedInvoice && (
