@@ -198,4 +198,25 @@ All colors MUST be HSL.
   svg {
     max-width: 100%;
   }
+
+  /* Invoice print styles */
+  [id="invoice-print-area"] {
+    padding: 2rem;
+  }
+
+  /* Hide dialog overlay and borders when printing */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  [data-state="open"] {
+    background: white !important;
+  }
 }
