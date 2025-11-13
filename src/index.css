@@ -121,3 +121,81 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Print Styles */
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Hide interactive elements */
+  .print\:hidden,
+  button,
+  [data-sidebar],
+  nav,
+  aside {
+    display: none !important;
+  }
+
+  /* Reset page background for print */
+  body,
+  .bg-background {
+    background: white !important;
+  }
+
+  /* Ensure text is black for better print readability */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    color: #000 !important;
+  }
+
+  /* Card styles for print */
+  .grid {
+    page-break-inside: avoid;
+  }
+
+  /* Prevent page breaks inside cards */
+  [class*="card"] {
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Chart containers */
+  [class*="recharts"] {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure proper spacing */
+  .space-y-8 > * {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Table and list styling */
+  table {
+    page-break-inside: avoid;
+  }
+
+  /* Badge styles */
+  [class*="badge"] {
+    border: 1px solid #ddd !important;
+    background: white !important;
+    color: #000 !important;
+  }
+
+  /* Remove unnecessary padding */
+  .p-8 {
+    padding: 0.5rem !important;
+  }
+
+  /* Ensure charts are visible */
+  svg {
+    max-width: 100%;
+  }
+}
