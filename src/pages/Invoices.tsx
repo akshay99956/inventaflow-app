@@ -206,6 +206,11 @@ const Invoices = () => {
             <div id="invoice-print-area" className="space-y-6">
               <div className="flex justify-between items-start print:mb-6">
                 <div>
+                  <div className="mb-4 pb-4 border-b">
+                    <h2 className="text-2xl font-bold text-foreground">Your Company Name</h2>
+                    <p className="text-sm text-muted-foreground">123 Business Street, City, Country</p>
+                    <p className="text-sm text-muted-foreground">Phone: +1 234 567 890 | Email: info@company.com</p>
+                  </div>
                   <h2 className="text-3xl font-bold text-foreground">INVOICE</h2>
                   <p className="text-xl font-semibold text-muted-foreground mt-2">
                     {selectedInvoice.invoice_number}

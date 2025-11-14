@@ -30,7 +30,10 @@ type Transaction = {
 
 const BalanceSheet = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [formData, setFormData] = useState({
     type: "income" as "income" | "expense",
     category: "",
@@ -49,8 +52,23 @@ const BalanceSheet = () => {
       toast.error("Error fetching transactions");
     } else {
       setTransactions(data || []);
+      setFilteredTransactions(data || []);
     }
   };
+
+  useEffect(() => {
+    let filtered = transactions;
+
+    if (startDate) {
+      filtered = filtered.filter(t => t.transaction_date >= startDate);
+    }
+
+    if (endDate) {
+      filtered = filtered.filter(t => t.transaction_date <= endDate);
+    }
+
+    setFilteredTransactions(filtered);
+  }, [startDate, endDate, transactions]);
 
   useEffect(() => {
     fetchTransactions();
@@ -101,11 +119,11 @@ const BalanceSheet = () => {
     });
   };
 
-  const totalIncome = transactions
+  const totalIncome = filteredTransactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const totalExpenses = transactions
+  const totalExpenses = filteredTransactions
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
@@ -225,7 +243,43 @@ const BalanceSheet = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <CardTitle>Transaction History</CardTitle>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">From Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full md:w-auto"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">To Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full md:w-auto"
+                />
+              </div>
+              {(startDate || endDate) && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                  className="self-end"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -239,7 +293,7 @@ const BalanceSheet = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((transaction) => (
+              {filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>{new Date(transaction.transaction_date).toLocaleDateString()}</TableCell>
                   <TableCell>
