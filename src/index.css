@@ -199,9 +199,50 @@ All colors MUST be HSL.
     max-width: 100%;
   }
 
-  /* Invoice print styles */
-  [id="invoice-print-area"] {
+  /* Invoice and Inventory print styles */
+  [id="invoice-print-area"], [id="inventory-print-area"] {
     padding: 2rem;
+  }
+
+  /* Show print areas */
+  #invoice-print-area, #inventory-print-area {
+    display: block !important;
+  }
+
+  /* Hide everything else */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the print area and its children */
+  #invoice-print-area, #invoice-print-area *,
+  #inventory-print-area, #inventory-print-area * {
+    visibility: visible;
+  }
+
+  /* Position print area */
+  #invoice-print-area, #inventory-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Print specific utilities */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:mb-8 {
+    margin-bottom: 2rem !important;
+  }
+
+  .print\:mb-6 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .print\:gap-4 {
+    gap: 1rem !important;
   }
 
   /* Hide dialog overlay and borders when printing */

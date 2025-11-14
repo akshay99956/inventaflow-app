@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -33,6 +33,7 @@ const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -164,6 +165,19 @@ const Inventory = () => {
     setEditingProduct(null);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleWhatsAppShare = () => {
+    const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
+    const message = `Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Inventory Value: $${totalValue.toFixed(2)}\n\n${filteredProducts.map(p => `${p.name} - Qty: ${p.quantity} - $${(p.quantity * p.unit_price).toFixed(2)}`).join('\n')}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex justify-between items-center">
@@ -171,16 +185,23 @@ const Inventory = () => {
           <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
           <p className="text-muted-foreground">Manage your products and stock levels</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" /> Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-            </DialogHeader>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsPrintDialogOpen(true)}>
+            <Printer className="mr-2 h-4 w-4" /> Print Stock
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="mr-2 h-4 w-4" /> Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+                <DialogDescription className="sr-only">
+                  {editingProduct ? "Edit product details" : "Add a new product to inventory"}
+                </DialogDescription>
+              </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
@@ -244,7 +265,156 @@ const Inventory = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="print:mb-8">
+            <DialogTitle className="text-2xl">Inventory Stock Report</DialogTitle>
+            <DialogDescription className="sr-only">
+              View and print inventory stock report or share via WhatsApp
+            </DialogDescription>
+          </DialogHeader>
+
+          <div id="inventory-print-area" className="space-y-6">
+            <div className="flex justify-between items-start print:mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground">INVENTORY REPORT</h2>
+                <p className="text-muted-foreground mt-2">
+                  Generated on {new Date().toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex gap-2 print:hidden">
+                <Button onClick={handlePrint} variant="outline" size="sm">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button onClick={handleWhatsAppShare} variant="outline" size="sm">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Total Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.sku || "-"}</TableCell>
+                      <TableCell>{product.category || "-"}</TableCell>
+                      <TableCell className="text-right">{product.quantity}</TableCell>
+                      <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        ${(product.quantity * product.unit_price).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <div className="w-64 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Products:</span>
+                  <span className="text-foreground font-medium">{filteredProducts.length}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span className="text-foreground">Total Inventory Value:</span>
+                  <span className="text-foreground">${totalInventoryValue.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="print:mb-8">
+            <DialogTitle className="text-2xl">Inventory Stock Report</DialogTitle>
+            <DialogDescription className="sr-only">
+              View and print inventory stock report or share via WhatsApp
+            </DialogDescription>
+          </DialogHeader>
+
+          <div id="inventory-print-area" className="space-y-6">
+            <div className="flex justify-between items-start print:mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground">INVENTORY REPORT</h2>
+                <p className="text-muted-foreground mt-2">
+                  Generated on {new Date().toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex gap-2 print:hidden">
+                <Button onClick={handlePrint} variant="outline" size="sm">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button onClick={handleWhatsAppShare} variant="outline" size="sm">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Total Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.sku || "-"}</TableCell>
+                      <TableCell>{product.category || "-"}</TableCell>
+                      <TableCell className="text-right">{product.quantity}</TableCell>
+                      <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        ${(product.quantity * product.unit_price).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <div className="w-64 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Products:</span>
+                  <span className="text-foreground font-medium">{filteredProducts.length}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span className="text-foreground">Total Inventory Value:</span>
+                  <span className="text-foreground">${totalInventoryValue.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
