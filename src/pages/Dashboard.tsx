@@ -15,6 +15,7 @@ const Dashboard = () => {
     totalInvoices: 0,
     pendingInvoices: 0,
     totalRevenue: 0,
+    totalStockValue: 0,
   });
   const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
@@ -30,12 +31,14 @@ const Dashboard = () => {
       const totalInvoices = invoices?.length || 0;
       const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
       const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
+      const totalStockValue = products?.reduce((sum, product) => sum + (product.quantity * product.unit_price), 0) || 0;
 
       setStats({
         totalProducts,
         totalInvoices,
         pendingInvoices,
         totalRevenue,
+        totalStockValue,
       });
 
       // Calculate revenue trends by month
@@ -191,12 +194,12 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvoices}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <div className="text-2xl font-bold">${stats.totalStockValue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Inventory value</p>
           </CardContent>
         </Card>
 
@@ -218,7 +221,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From invoices</p>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
       </div>

@@ -419,7 +419,12 @@ const Inventory = () => {
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <CardTitle>Products</CardTitle>
+            <div>
+              <CardTitle>Products</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Total Stock Value: <span className="font-bold text-foreground">${totalInventoryValue.toFixed(2)}</span>
+              </p>
+            </div>
             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
               <Input
                 placeholder="Search products..."
