@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Printer, Share2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,6 +19,7 @@ const productSchema = z.object({
   quantity: z.number().min(0, "Quantity must be positive"),
   unit_price: z.number().min(0, "Price must be positive"),
   category: z.string().max(100).optional(),
+  low_stock_threshold: z.number().min(0, "Threshold must be positive"),
 });
 
 type Product = {
@@ -27,6 +30,7 @@ type Product = {
   quantity: number;
   unit_price: number;
   category: string | null;
+  low_stock_threshold: number;
 };
 
 const Inventory = () => {
@@ -44,6 +48,7 @@ const Inventory = () => {
     quantity: 0,
     unit_price: 0,
     category: "",
+    low_stock_threshold: 10,
   });
 
   const fetchProducts = async () => {
@@ -75,6 +80,8 @@ const Inventory = () => {
   }, [searchTerm, categoryFilter, products]);
 
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+
+  const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold);
 
   useEffect(() => {
     fetchProducts();
@@ -149,6 +156,7 @@ const Inventory = () => {
       quantity: product.quantity,
       unit_price: product.unit_price,
       category: product.category || "",
+      low_stock_threshold: product.low_stock_threshold,
     });
     setIsDialogOpen(true);
   };
@@ -161,6 +169,7 @@ const Inventory = () => {
       quantity: 0,
       unit_price: 0,
       category: "",
+      low_stock_threshold: 10,
     });
     setEditingProduct(null);
   };
@@ -177,6 +186,8 @@ const Inventory = () => {
   };
 
   const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
+
+  const isLowStock = (product: Product) => product.quantity <= product.low_stock_threshold;
 
   return (
     <div className="p-8 space-y-8">
@@ -252,6 +263,16 @@ const Inventory = () => {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
+                <Input
+                  id="low_stock_threshold"
+                  type="number"
+                  value={formData.low_stock_threshold}
+                  onChange={(e) => setFormData({ ...formData, low_stock_threshold: Number(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground">Alert when quantity falls below this number</p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Input
                   id="description"
@@ -268,79 +289,15 @@ const Inventory = () => {
         </div>
       </div>
 
-      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="print:mb-8">
-            <DialogTitle className="text-2xl">Inventory Stock Report</DialogTitle>
-            <DialogDescription className="sr-only">
-              View and print inventory stock report or share via WhatsApp
-            </DialogDescription>
-          </DialogHeader>
-
-          <div id="inventory-print-area" className="space-y-6">
-            <div className="flex justify-between items-start print:mb-6">
-              <div>
-                <h2 className="text-3xl font-bold text-foreground">INVENTORY REPORT</h2>
-                <p className="text-muted-foreground mt-2">
-                  Generated on {new Date().toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex gap-2 print:hidden">
-                <Button onClick={handlePrint} variant="outline" size="sm">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-                <Button onClick={handleWhatsAppShare} variant="outline" size="sm">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  WhatsApp
-                </Button>
-              </div>
-            </div>
-
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.sku || "-"}</TableCell>
-                      <TableCell>{product.category || "-"}</TableCell>
-                      <TableCell className="text-right">{product.quantity}</TableCell>
-                      <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-semibold">
-                        ${(product.quantity * product.unit_price).toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t">
-              <div className="w-64 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Products:</span>
-                  <span className="text-foreground font-medium">{filteredProducts.length}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                  <span className="text-foreground">Total Inventory Value:</span>
-                  <span className="text-foreground">${totalInventoryValue.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {lowStockProducts.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Low Stock Alert</AlertTitle>
+          <AlertDescription>
+            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock: {lowStockProducts.map(p => p.name).join(", ")}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -423,6 +380,11 @@ const Inventory = () => {
               <CardTitle>Products</CardTitle>
               <p className="text-sm text-muted-foreground mt-2">
                 Total Stock Value: <span className="font-bold text-foreground">${totalInventoryValue.toFixed(2)}</span>
+                {lowStockProducts.length > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {lowStockProducts.length} Low Stock
+                  </Badge>
+                )}
               </p>
             </div>
             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -454,27 +416,38 @@ const Inventory = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Unit Price</TableHead>
-                <TableHead>Total Value</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-right">Threshold</TableHead>
+                <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
+                <TableRow key={product.id} className={isLowStock(product) ? "bg-destructive/10" : ""}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {product.name}
+                      {isLowStock(product) && (
+                        <Badge variant="destructive" className="text-xs">
+                          Low Stock
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{product.sku || "-"}</TableCell>
                   <TableCell>{product.category || "-"}</TableCell>
-                  <TableCell>{product.quantity}</TableCell>
-                  <TableCell>${product.unit_price.toFixed(2)}</TableCell>
-                  <TableCell>${(product.quantity * product.unit_price).toFixed(2)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(product)}>
+                  <TableCell className={`text-right ${isLowStock(product) ? "text-destructive font-bold" : ""}`}>
+                    {product.quantity}
+                  </TableCell>
+                  <TableCell className="text-right">{product.low_stock_threshold}</TableCell>
+                  <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
