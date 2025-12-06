@@ -19,6 +19,7 @@ type Product = {
   description: string | null;
   unit_price: number;
   sku: string | null;
+  quantity: number;
 };
 
 const invoiceSchema = z.object({
@@ -66,7 +67,7 @@ const InvoiceCreate = () => {
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, description, unit_price, sku")
+      .select("id, name, description, unit_price, sku, quantity")
       .order("name");
 
     if (error) {
@@ -169,6 +170,23 @@ const InvoiceCreate = () => {
           .insert(itemsToInsert);
 
         if (itemsError) throw itemsError;
+
+        // Decrease product quantities in inventory
+        for (const item of itemsToInsert) {
+          if (item.product_id) {
+            const product = products.find(p => p.id === item.product_id);
+            if (product) {
+              const { error: updateError } = await supabase
+                .from("products")
+                .update({ quantity: Math.max(0, (product as any).quantity - item.quantity) })
+                .eq("id", item.product_id);
+
+              if (updateError) {
+                console.error("Failed to update product quantity:", updateError);
+              }
+            }
+          }
+        }
       }
 
       toast.success("Invoice created successfully");
