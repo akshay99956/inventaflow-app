@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, DollarSign, TrendingDown, Boxes } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -193,22 +193,22 @@ const Inventory = () => {
     <div className="p-8 space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
+          <h1 className="text-3xl font-bold text-gradient">Inventory Management</h1>
           <p className="text-muted-foreground">Manage your products and stock levels</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsPrintDialogOpen(true)}>
-            <Printer className="mr-2 h-4 w-4" /> Print Stock
+          <Button variant="outline" onClick={() => setIsPrintDialogOpen(true)} className="border-secondary hover:bg-secondary/10">
+            <Printer className="mr-2 h-4 w-4 text-secondary" /> Print Stock
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm}>
+              <Button onClick={resetForm} className="bg-gradient-primary shadow-colorful hover:shadow-glow-md">
                 <Plus className="mr-2 h-4 w-4" /> Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md border-2 border-primary/20">
               <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+                <DialogTitle className="text-gradient">{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 <DialogDescription className="sr-only">
                   {editingProduct ? "Edit product details" : "Add a new product to inventory"}
                 </DialogDescription>
@@ -221,6 +221,7 @@ const Inventory = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
+                  className="border-primary/20 focus:border-primary"
                 />
               </div>
               <div className="space-y-2">
@@ -229,6 +230,7 @@ const Inventory = () => {
                   id="sku"
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                  className="border-primary/20 focus:border-primary"
                 />
               </div>
               <div className="space-y-2">
@@ -237,6 +239,7 @@ const Inventory = () => {
                   id="category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="border-primary/20 focus:border-primary"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -248,6 +251,7 @@ const Inventory = () => {
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
                     required
+                    className="border-primary/20 focus:border-primary"
                   />
                 </div>
                 <div className="space-y-2">
@@ -259,6 +263,7 @@ const Inventory = () => {
                     value={formData.unit_price}
                     onChange={(e) => setFormData({ ...formData, unit_price: Number(e.target.value) })}
                     required
+                    className="border-primary/20 focus:border-primary"
                   />
                 </div>
               </div>
@@ -269,6 +274,7 @@ const Inventory = () => {
                   type="number"
                   value={formData.low_stock_threshold}
                   onChange={(e) => setFormData({ ...formData, low_stock_threshold: Number(e.target.value) })}
+                  className="border-warning/20 focus:border-warning"
                 />
                 <p className="text-xs text-muted-foreground">Alert when quantity falls below this number</p>
               </div>
@@ -278,9 +284,10 @@ const Inventory = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="border-primary/20 focus:border-primary"
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-gradient-primary shadow-colorful hover:shadow-glow-md">
                 {editingProduct ? "Update Product" : "Add Product"}
               </Button>
             </form>
@@ -289,12 +296,74 @@ const Inventory = () => {
         </div>
       </div>
 
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="border-2 border-primary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                <p className="text-2xl font-bold text-gradient">{products.length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center">
+                <Package className="h-6 w-6 text-primary-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-success/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Stock Value</p>
+                <p className="text-2xl font-bold text-success">${totalInventoryValue.toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-success-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-secondary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Units</p>
+                <p className="text-2xl font-bold text-secondary">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-gradient-secondary flex items-center justify-center">
+                <Boxes className="h-6 w-6 text-secondary-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={`border-2 shadow-colorful hover:shadow-glow-sm transition-shadow ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20'}`}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
+                <p className={`text-2xl font-bold ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>
+                  {lowStockProducts.length}
+                </p>
+              </div>
+              <div className={`h-12 w-12 rounded-full flex items-center justify-center ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
+                <TrendingDown className="h-6 w-6 text-destructive-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {lowStockProducts.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Low Stock Alert</AlertTitle>
-          <AlertDescription>
-            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock: {lowStockProducts.map(p => p.name).join(", ")}
+        <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <AlertTitle className="text-destructive font-bold">Low Stock Alert</AlertTitle>
+          <AlertDescription className="text-destructive/80">
+            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock: 
+            <span className="font-semibold"> {lowStockProducts.map(p => p.name).join(", ")}</span>
           </AlertDescription>
         </Alert>
       )}
@@ -373,15 +442,15 @@ const Inventory = () => {
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-2 border-accent/20 shadow-colorful">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle>Products</CardTitle>
+              <CardTitle className="text-gradient">Products</CardTitle>
               <p className="text-sm text-muted-foreground mt-2">
-                Total Stock Value: <span className="font-bold text-foreground">${totalInventoryValue.toFixed(2)}</span>
+                Total Stock Value: <span className="font-bold text-success">${totalInventoryValue.toFixed(2)}</span>
                 {lowStockProducts.length > 0 && (
-                  <Badge variant="destructive" className="ml-2">
+                  <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
                     {lowStockProducts.length} Low Stock
                   </Badge>
                 )}
@@ -392,12 +461,12 @@ const Inventory = () => {
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="md:w-64"
+                className="md:w-64 border-primary/20 focus:border-primary"
               />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="flex h-10 w-full md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-10 w-full md:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -409,45 +478,68 @@ const Inventory = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Threshold</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+              <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/15 hover:to-accent/15">
+                <TableHead className="font-bold">Name</TableHead>
+                <TableHead className="font-bold">SKU</TableHead>
+                <TableHead className="font-bold">Category</TableHead>
+                <TableHead className="text-right font-bold">Quantity</TableHead>
+                <TableHead className="text-right font-bold">Threshold</TableHead>
+                <TableHead className="text-right font-bold">Unit Price</TableHead>
+                <TableHead className="text-right font-bold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id} className={isLowStock(product) ? "bg-destructive/10" : ""}>
+              {filteredProducts.map((product, index) => (
+                <TableRow 
+                  key={product.id} 
+                  className={`transition-colors ${
+                    isLowStock(product) 
+                      ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" 
+                      : index % 2 === 0 ? "bg-card" : "bg-muted/20"
+                  }`}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      {product.name}
+                      <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
                       {isLowStock(product) && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge className="text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground animate-pulse">
                           Low Stock
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{product.sku || "-"}</TableCell>
-                  <TableCell>{product.category || "-"}</TableCell>
-                  <TableCell className={`text-right ${isLowStock(product) ? "text-destructive font-bold" : ""}`}>
+                  <TableCell className="text-muted-foreground">{product.sku || "-"}</TableCell>
+                  <TableCell>
+                    {product.category ? (
+                      <Badge variant="outline" className="border-secondary/30 text-secondary">
+                        {product.category}
+                      </Badge>
+                    ) : "-"}
+                  </TableCell>
+                  <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
                     {product.quantity}
                   </TableCell>
-                  <TableCell className="text-right">{product.low_stock_threshold}</TableCell>
-                  <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-warning">{product.low_stock_threshold}</TableCell>
+                  <TableCell className="text-right font-medium text-success">${product.unit_price.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleEdit(product)}
+                        className="hover:bg-primary/10 hover:text-primary"
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(product.id)}
+                        className="hover:bg-destructive/10 hover:text-destructive"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
