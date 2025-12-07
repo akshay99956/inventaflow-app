@@ -15,6 +15,7 @@ import InvoiceCreate from "./pages/InvoiceCreate";
 import Bills from "./pages/Bills";
 import BillCreate from "./pages/BillCreate";
 import BalanceSheet from "./pages/BalanceSheet";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -108,6 +109,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <BalanceSheet />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Settings />
                 </AppLayout>
               </ProtectedRoute>
             }
