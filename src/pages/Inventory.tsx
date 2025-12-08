@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, DollarSign, TrendingDown, Boxes } from "lucide-react";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -320,7 +320,7 @@ const Inventory = () => {
                 <p className="text-2xl font-bold text-success">₹{totalInventoryValue.toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-success-foreground" />
+                <IndianRupee className="h-6 w-6 text-success-foreground" />
               </div>
             </div>
           </CardContent>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, DollarSign, Download, Printer, AlertTriangle } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
@@ -240,7 +240,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{stats.totalStockValue.toFixed(2)}</div>
@@ -262,7 +262,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{stats.totalRevenue.toFixed(2)}</div>
