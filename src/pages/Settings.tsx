@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2 } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X } from "lucide-react";
 
 interface CompanyProfile {
   id?: string;
@@ -27,6 +27,8 @@ const Settings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<CompanyProfile>({
     company_name: "",
     address: "",
@@ -79,6 +81,83 @@ const Settings = () => {
       console.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Error", description: "Please select an image file", variant: "destructive" });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Image size should be less than 2MB", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
+        return;
+      }
+
+      // Create a unique file name
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/logo-${Date.now()}.${fileExt}`;
+
+      // Delete old logo if exists
+      if (profile.logo_url) {
+        const oldPath = profile.logo_url.split("/").slice(-2).join("/");
+        await supabase.storage.from("company-logos").remove([oldPath]);
+      }
+
+      // Upload new logo
+      const { error: uploadError } = await supabase.storage
+        .from("company-logos")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("company-logos")
+        .getPublicUrl(fileName);
+
+      setProfile((prev) => ({ ...prev, logo_url: publicUrl }));
+      toast({ title: "Success", description: "Logo uploaded successfully!" });
+    } catch (error: any) {
+      console.error("Error uploading logo:", error);
+      toast({ title: "Error", description: error.message || "Failed to upload logo", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!profile.logo_url) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const oldPath = profile.logo_url.split("/").slice(-2).join("/");
+      await supabase.storage.from("company-logos").remove([oldPath]);
+
+      setProfile((prev) => ({ ...prev, logo_url: "" }));
+      toast({ title: "Success", description: "Logo removed" });
+    } catch (error: any) {
+      console.error("Error removing logo:", error);
+      toast({ title: "Error", description: "Failed to remove logo", variant: "destructive" });
     }
   };
 
@@ -157,6 +236,74 @@ const Settings = () => {
             </div>
           ) : (
             <div className="max-w-3xl space-y-6">
+              {/* Logo Upload Card */}
+              <Card className="shadow-colorful border-2 border-accent/20 bg-gradient-to-br from-card to-accent/5">
+                <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-gradient">
+                    <Image className="h-5 w-5 text-accent" />
+                    Company Logo
+                  </CardTitle>
+                  <CardDescription>Upload your company logo (max 2MB, JPG/PNG)</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-6">
+                    <div className="relative">
+                      {profile.logo_url ? (
+                        <div className="relative">
+                          <img
+                            src={profile.logo_url}
+                            alt="Company Logo"
+                            className="h-24 w-24 rounded-lg object-cover border-2 border-primary/20 shadow-colorful"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                            onClick={handleRemoveLogo}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="h-24 w-24 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/20">
+                          <Image className="h-8 w-8 text-muted-foreground/50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="border-primary/30 hover:bg-primary/10"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Logo
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        This logo will appear on invoices and bills
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Company Info Card */}
               <Card className="shadow-colorful border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5">
                 <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg">

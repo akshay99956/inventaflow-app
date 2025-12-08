@@ -243,7 +243,7 @@ const Dashboard = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalStockValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{stats.totalStockValue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Inventory value</p>
           </CardContent>
         </Card>
@@ -265,7 +265,7 @@ const Dashboard = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{stats.totalRevenue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
@@ -334,7 +334,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold">${Number(invoice.total).toFixed(2)}</p>
+                    <p className="text-lg font-bold">₹{Number(invoice.total).toFixed(2)}</p>
                     <Badge variant={invoice.status === "overdue" ? "destructive" : "secondary"}>
                       {invoice.status}
                     </Badge>

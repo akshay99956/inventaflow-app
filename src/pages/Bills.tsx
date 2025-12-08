@@ -48,7 +48,7 @@ const Bills = () => {
   }, []);
 
   const handleShare = async (bill: Bill) => {
-    const shareText = `Bill ${bill.bill_number}\nCustomer: ${bill.customer_name}\nTotal: $${bill.total.toFixed(2)}`;
+    const shareText = `Bill ${bill.bill_number}\nCustomer: ${bill.customer_name}\nTotal: ₹${bill.total.toFixed(2)}`;
     
     if (navigator.share) {
       try {
@@ -101,7 +101,7 @@ const Bills = () => {
                   <TableCell className="font-medium">{bill.bill_number}</TableCell>
                   <TableCell>{bill.customer_name}</TableCell>
                   <TableCell>{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
-                  <TableCell className="font-semibold">${bill.total.toFixed(2)}</TableCell>
+                  <TableCell className="font-semibold">₹{bill.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"

@@ -215,7 +215,7 @@ const BalanceSheet = () => {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">${totalIncome.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-success">₹{totalIncome.toFixed(2)}</div>
           </CardContent>
         </Card>
 
@@ -225,7 +225,7 @@ const BalanceSheet = () => {
             <TrendingDown className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">${totalExpenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-destructive">₹{totalExpenses.toFixed(2)}</div>
           </CardContent>
         </Card>
 
@@ -235,7 +235,7 @@ const BalanceSheet = () => {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${netBalance >= 0 ? "text-success" : "text-destructive"}`}>
-              ${netBalance.toFixed(2)}
+              ₹{netBalance.toFixed(2)}
             </div>
           </CardContent>
         </Card>
@@ -317,7 +317,7 @@ const BalanceSheet = () => {
                       transaction.type === "income" ? "text-success" : "text-destructive"
                     }`}
                   >
-                    {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                    {transaction.type === "income" ? "+" : "-"}₹{transaction.amount.toFixed(2)}
                   </TableCell>
                 </TableRow>
               ))}
