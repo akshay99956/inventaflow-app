@@ -94,7 +94,7 @@ const Invoices = () => {
   const handleWhatsAppShare = () => {
     if (!selectedInvoice) return;
     
-    const message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}\nAmount: $${selectedInvoice.total.toFixed(2)}\nStatus: ${selectedInvoice.status}\n\nThank you for your business!`;
+    const message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}\nAmount: ₹${selectedInvoice.total.toFixed(2)}\nStatus: ${selectedInvoice.status}\n\nThank you for your business!`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -250,7 +250,7 @@ const Invoices = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold text-success">${totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-success">₹{totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -265,7 +265,7 @@ const Invoices = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending Amount</p>
-                <p className="text-2xl font-bold text-warning">${pendingAmount.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-warning">₹{pendingAmount.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -340,7 +340,7 @@ const Invoices = () => {
                   </TableCell>
                   <TableCell className="font-semibold text-right">
                     <span className={invoice.status === "paid" ? "text-success" : ""}>
-                      ${invoice.total.toFixed(2)}
+                      ₹{invoice.total.toFixed(2)}
                     </span>
                   </TableCell>
                 </TableRow>
@@ -431,8 +431,8 @@ const Invoices = () => {
                       <TableRow key={item.id} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-medium">${item.amount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -443,15 +443,15 @@ const Invoices = () => {
                 <div className="w-72 space-y-2 p-4 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal:</span>
-                    <span className="text-foreground font-medium">${selectedInvoice.subtotal.toFixed(2)}</span>
+                    <span className="text-foreground font-medium">₹{selectedInvoice.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax:</span>
-                    <span className="text-foreground font-medium">${selectedInvoice.tax.toFixed(2)}</span>
+                    <span className="text-foreground font-medium">₹{selectedInvoice.tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-xl font-bold pt-2 border-t border-primary/20">
                     <span className="text-gradient">Total:</span>
-                    <span className="text-gradient">${selectedInvoice.total.toFixed(2)}</span>
+                    <span className="text-gradient">₹{selectedInvoice.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

@@ -251,7 +251,7 @@ const BillCreate = () => {
                   </div>
                   <div className="w-32 flex items-center justify-end">
                     <span className="text-sm font-medium">
-                      ${(item.quantity * item.unit_price).toFixed(2)}
+                      ₹{(item.quantity * item.unit_price).toFixed(2)}
                     </span>
                   </div>
                   <Button
@@ -269,15 +269,15 @@ const BillCreate = () => {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax (10%):</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+                  <span className="font-medium">₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>

@@ -180,7 +180,7 @@ const Inventory = () => {
 
   const handleWhatsAppShare = () => {
     const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
-    const message = `Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Inventory Value: $${totalValue.toFixed(2)}\n\n${filteredProducts.map(p => `${p.name} - Qty: ${p.quantity} - $${(p.quantity * p.unit_price).toFixed(2)}`).join('\n')}`;
+    const message = `Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Inventory Value: ₹${totalValue.toFixed(2)}\n\n${filteredProducts.map(p => `${p.name} - Qty: ${p.quantity} - ₹${(p.quantity * p.unit_price).toFixed(2)}`).join('\n')}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -317,7 +317,7 @@ const Inventory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Stock Value</p>
-                <p className="text-2xl font-bold text-success">${totalInventoryValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-success">₹{totalInventoryValue.toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-success-foreground" />
@@ -416,9 +416,9 @@ const Inventory = () => {
                       <TableCell>{product.sku || "-"}</TableCell>
                       <TableCell>{product.category || "-"}</TableCell>
                       <TableCell className="text-right">{product.quantity}</TableCell>
-                      <TableCell className="text-right">${product.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">₹{product.unit_price.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-semibold">
-                        ${(product.quantity * product.unit_price).toFixed(2)}
+                        ₹{(product.quantity * product.unit_price).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -434,7 +434,7 @@ const Inventory = () => {
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span className="text-foreground">Total Inventory Value:</span>
-                  <span className="text-foreground">${totalInventoryValue.toFixed(2)}</span>
+                  <span className="text-foreground">₹{totalInventoryValue.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -448,7 +448,7 @@ const Inventory = () => {
             <div>
               <CardTitle className="text-gradient">Products</CardTitle>
               <p className="text-sm text-muted-foreground mt-2">
-                Total Stock Value: <span className="font-bold text-success">${totalInventoryValue.toFixed(2)}</span>
+                Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toFixed(2)}</span>
                 {lowStockProducts.length > 0 && (
                   <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
                     {lowStockProducts.length} Low Stock
@@ -523,7 +523,7 @@ const Inventory = () => {
                     {product.quantity}
                   </TableCell>
                   <TableCell className="text-right text-warning">{product.low_stock_threshold}</TableCell>
-                  <TableCell className="text-right font-medium text-success">${product.unit_price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button 
