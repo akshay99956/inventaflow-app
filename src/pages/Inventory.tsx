@@ -17,7 +17,8 @@ const productSchema = z.object({
   sku: z.string().max(100).optional(),
   description: z.string().max(1000).optional(),
   quantity: z.number().min(0, "Quantity must be positive"),
-  unit_price: z.number().min(0, "Price must be positive"),
+  purchase_price: z.number().min(0, "Purchase price must be positive"),
+  unit_price: z.number().min(0, "Sale price must be positive"),
   category: z.string().max(100).optional(),
   low_stock_threshold: z.number().min(0, "Threshold must be positive"),
 });
@@ -28,6 +29,7 @@ type Product = {
   sku: string | null;
   description: string | null;
   quantity: number;
+  purchase_price: number;
   unit_price: number;
   category: string | null;
   low_stock_threshold: number;
@@ -46,6 +48,7 @@ const Inventory = () => {
     sku: "",
     description: "",
     quantity: 0,
+    purchase_price: 0,
     unit_price: 0,
     category: "",
     low_stock_threshold: 10,
@@ -154,6 +157,7 @@ const Inventory = () => {
       sku: product.sku || "",
       description: product.description || "",
       quantity: product.quantity,
+      purchase_price: product.purchase_price || 0,
       unit_price: product.unit_price,
       category: product.category || "",
       low_stock_threshold: product.low_stock_threshold,
@@ -167,6 +171,7 @@ const Inventory = () => {
       sku: "",
       description: "",
       quantity: 0,
+      purchase_price: 0,
       unit_price: 0,
       category: "",
       low_stock_threshold: 10,
@@ -255,7 +260,21 @@ const Inventory = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="unit_price">Unit Price *</Label>
+                  <Label htmlFor="purchase_price">Purchase Price *</Label>
+                  <Input
+                    id="purchase_price"
+                    type="number"
+                    step="0.01"
+                    value={formData.purchase_price}
+                    onChange={(e) => setFormData({ ...formData, purchase_price: Number(e.target.value) })}
+                    required
+                    className="border-warning/20 focus:border-warning"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="unit_price">Sale Price *</Label>
                   <Input
                     id="unit_price"
                     type="number"

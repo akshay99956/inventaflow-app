@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { CompanyBranding } from "@/components/CompanyBranding";
+import { DocumentFilters, FilterState } from "@/components/DocumentFilters";
 
 type Invoice = {
   id: string;
@@ -22,6 +24,7 @@ type Invoice = {
   subtotal: number;
   tax: number;
   notes: string | null;
+  client_id: string | null;
 };
 
 type InvoiceItem = {
@@ -33,11 +36,26 @@ type InvoiceItem = {
   product_id: string | null;
 };
 
+const invoiceStatusOptions = [
+  { value: "draft", label: "Draft" },
+  { value: "sent", label: "Sent" },
+  { value: "paid", label: "Paid" },
+  { value: "overdue", label: "Overdue" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 const Invoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    dateFrom: "",
+    dateTo: "",
+    clientId: "",
+    status: "",
+  });
   const navigate = useNavigate();
 
   const fetchInvoices = async () => {
@@ -67,6 +85,26 @@ const Invoices = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Apply filters
+  useEffect(() => {
+    let result = [...invoices];
+
+    if (filters.dateFrom) {
+      result = result.filter(inv => inv.issue_date >= filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      result = result.filter(inv => inv.issue_date <= filters.dateTo);
+    }
+    if (filters.clientId) {
+      result = result.filter(inv => inv.client_id === filters.clientId);
+    }
+    if (filters.status) {
+      result = result.filter(inv => inv.status === filters.status);
+    }
+
+    setFilteredInvoices(result);
+  }, [invoices, filters]);
 
   const fetchInvoiceItems = async (invoiceId: string) => {
     const { data, error } = await supabase
@@ -100,7 +138,6 @@ const Invoices = () => {
   };
 
   const restoreStock = async (invoiceId: string) => {
-    // Get invoice items with product_id
     const { data: items, error: itemsError } = await supabase
       .from("invoice_items")
       .select("product_id, quantity")
@@ -111,10 +148,8 @@ const Invoices = () => {
       return false;
     }
 
-    // Restore stock for each item
     for (const item of items || []) {
       if (item.product_id) {
-        // Get current product quantity
         const { data: product, error: productError } = await supabase
           .from("products")
           .select("quantity")
@@ -126,7 +161,6 @@ const Invoices = () => {
           continue;
         }
 
-        // Restore the quantity
         const { error: updateError } = await supabase
           .from("products")
           .update({ quantity: product.quantity + item.quantity })
@@ -142,7 +176,6 @@ const Invoices = () => {
   };
 
   const handleStatusChange = async (invoiceId: string, newStatus: string, currentStatus: string) => {
-    // If changing to cancelled, restore stock
     if (newStatus === "cancelled" && currentStatus !== "cancelled") {
       const restored = await restoreStock(invoiceId);
       if (restored) {
@@ -165,27 +198,22 @@ const Invoices = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { 
-        variant: "secondary" as const, 
         className: "bg-muted text-muted-foreground border-muted-foreground/20",
         icon: FileText 
       },
       sent: { 
-        variant: "default" as const, 
         className: "bg-info text-info-foreground",
         icon: Clock 
       },
       paid: { 
-        variant: "default" as const, 
         className: "bg-success text-success-foreground",
         icon: IndianRupee 
       },
       overdue: { 
-        variant: "destructive" as const, 
         className: "bg-warning text-warning-foreground",
         icon: Clock 
       },
       cancelled: { 
-        variant: "destructive" as const, 
         className: "bg-destructive/10 text-destructive border border-destructive/20",
         icon: XCircle 
       },
@@ -202,10 +230,10 @@ const Invoices = () => {
     );
   };
 
-  // Calculate summary stats
-  const totalInvoices = invoices.length;
-  const paidInvoices = invoices.filter(inv => inv.status === "paid");
-  const pendingInvoices = invoices.filter(inv => inv.status === "sent" || inv.status === "draft");
+  // Calculate summary stats from filtered invoices
+  const totalInvoices = filteredInvoices.length;
+  const paidInvoices = filteredInvoices.filter(inv => inv.status === "paid");
+  const pendingInvoices = filteredInvoices.filter(inv => inv.status === "sent" || inv.status === "draft");
   const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.total, 0);
   const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.total, 0);
 
@@ -223,6 +251,13 @@ const Invoices = () => {
           <Plus className="mr-2 h-4 w-4" /> Create Invoice
         </Button>
       </div>
+
+      {/* Filters */}
+      <DocumentFilters
+        onFiltersChange={setFilters}
+        statusOptions={invoiceStatusOptions}
+        showClientFilter={true}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -307,7 +342,7 @@ const Invoices = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice, index) => (
+              {filteredInvoices.map((invoice, index) => (
                 <TableRow 
                   key={invoice.id} 
                   className={`cursor-pointer hover:bg-muted/50 transition-colors ${
@@ -363,11 +398,7 @@ const Invoices = () => {
             <div id="invoice-print-area" className="space-y-6">
               <div className="flex justify-between items-start print:mb-6">
                 <div>
-                  <div className="mb-4 pb-4 border-b">
-                    <h2 className="text-2xl font-bold text-foreground">Your Company Name</h2>
-                    <p className="text-sm text-muted-foreground">123 Business Street, City, Country</p>
-                    <p className="text-sm text-muted-foreground">Phone: +1 234 567 890 | Email: info@company.com</p>
-                  </div>
+                  <CompanyBranding />
                   <h2 className="text-3xl font-bold text-gradient">INVOICE</h2>
                   <p className="text-xl font-semibold text-muted-foreground mt-2">
                     {selectedInvoice.invoice_number}
