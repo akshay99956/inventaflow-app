@@ -51,6 +51,7 @@ export type Database = {
         Row: {
           bill_date: string
           bill_number: string
+          client_id: string | null
           created_at: string
           customer_email: string | null
           customer_name: string
@@ -66,6 +67,7 @@ export type Database = {
         Insert: {
           bill_date?: string
           bill_number: string
+          client_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name: string
@@ -81,6 +83,7 @@ export type Database = {
         Update: {
           bill_date?: string
           bill_number?: string
+          client_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string
@@ -90,6 +93,47 @@ export type Database = {
           subtotal?: number
           tax?: number
           total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -187,6 +231,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          client_id: string | null
           created_at: string
           customer_email: string | null
           customer_name: string
@@ -203,6 +248,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name: string
@@ -219,6 +265,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string
@@ -234,7 +281,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -244,6 +299,7 @@ export type Database = {
           id: string
           low_stock_threshold: number
           name: string
+          purchase_price: number
           quantity: number
           sku: string | null
           unit_price: number
@@ -257,6 +313,7 @@ export type Database = {
           id?: string
           low_stock_threshold?: number
           name: string
+          purchase_price?: number
           quantity?: number
           sku?: string | null
           unit_price?: number
@@ -270,6 +327,7 @@ export type Database = {
           id?: string
           low_stock_threshold?: number
           name?: string
+          purchase_price?: number
           quantity?: number
           sku?: string | null
           unit_price?: number
