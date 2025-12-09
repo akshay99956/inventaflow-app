@@ -56,6 +56,7 @@ export type Database = {
           customer_name: string
           id: string
           notes: string | null
+          status: string
           subtotal: number
           tax: number
           total: number
@@ -70,6 +71,7 @@ export type Database = {
           customer_name: string
           id?: string
           notes?: string | null
+          status?: string
           subtotal?: number
           tax?: number
           total?: number
@@ -84,6 +86,7 @@ export type Database = {
           customer_name?: string
           id?: string
           notes?: string | null
+          status?: string
           subtotal?: number
           tax?: number
           total?: number
