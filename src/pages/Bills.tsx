@@ -103,7 +103,7 @@ const Bills = () => {
 
     const { error } = await supabase
       .from("bills")
-      .update({ status: newStatus })
+      .update({ status: newStatus } as any)
       .eq("id", billId);
 
     if (error) {
