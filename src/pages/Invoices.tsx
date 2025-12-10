@@ -251,15 +251,20 @@ const Invoices = () => {
       inv.total.toFixed(2)
     ]);
     
+    const dateRange = filters.dateFrom || filters.dateTo 
+      ? `_${filters.dateFrom || 'start'}_to_${filters.dateTo || 'end'}`
+      : `_${new Date().toISOString().split('T')[0]}`;
+    
     const csvContent = [
+      filters.dateFrom || filters.dateTo ? `Date Range: ${filters.dateFrom || 'All'} to ${filters.dateTo || 'All'}` : '',
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+    ].filter(Boolean).join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `invoices_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `invoices${dateRange}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
     toast.success('Invoices exported to CSV');
