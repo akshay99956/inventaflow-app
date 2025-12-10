@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Printer, Share2, Receipt, IndianRupee, XCircle, CheckCircle } from "lucide-react";
+import { Plus, Printer, Share2, Receipt, IndianRupee, XCircle, CheckCircle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
@@ -219,6 +219,33 @@ const Bills = () => {
   const activeBills = filteredBills.filter(b => (b.status || "active") === "active");
   const totalAmount = activeBills.reduce((sum, b) => sum + b.total, 0);
 
+  const handleCSVExport = () => {
+    const headers = ['Bill #', 'Customer', 'Email', 'Date', 'Status', 'Subtotal', 'Tax', 'Total'];
+    const rows = filteredBills.map(bill => [
+      bill.bill_number,
+      bill.customer_name,
+      bill.customer_email || '',
+      bill.bill_date,
+      bill.status || 'active',
+      bill.subtotal.toFixed(2),
+      bill.tax.toFixed(2),
+      bill.total.toFixed(2)
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `bills_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success('Bills exported to CSV');
+  };
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex justify-between items-center">
@@ -226,12 +253,21 @@ const Bills = () => {
           <h1 className="text-3xl font-bold text-gradient">Bills</h1>
           <p className="text-muted-foreground">Create and manage customer bills</p>
         </div>
-        <Button 
-          onClick={() => navigate("/bills/new")}
-          className="gradient-primary text-primary-foreground shadow-colorful"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create Bill
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleCSVExport}
+            className="border-success hover:bg-success/10"
+          >
+            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+          </Button>
+          <Button 
+            onClick={() => navigate("/bills/new")}
+            className="gradient-primary text-primary-foreground shadow-colorful"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create Bill
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

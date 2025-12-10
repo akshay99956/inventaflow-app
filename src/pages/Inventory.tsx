@@ -185,7 +185,12 @@ const Inventory = () => {
 
   const handleWhatsAppShare = () => {
     const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
-    const message = `Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Inventory Value: ₹${totalValue.toFixed(2)}\n\n${filteredProducts.map(p => `${p.name} - Qty: ${p.quantity} - ₹${(p.quantity * p.unit_price).toFixed(2)}`).join('\n')}`;
+    const totalProfit = filteredProducts.reduce((sum, p) => sum + ((p.unit_price - p.purchase_price) * p.quantity), 0);
+    const message = `📦 Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Stock Value: ₹${totalValue.toFixed(2)}\nTotal Profit Margin: ₹${totalProfit.toFixed(2)}\n\n${filteredProducts.map(p => {
+      const margin = p.unit_price - p.purchase_price;
+      const marginPct = p.purchase_price > 0 ? ((margin / p.purchase_price) * 100).toFixed(1) : '0';
+      return `• ${p.name}\n  Qty: ${p.quantity} | Sale: ₹${p.unit_price.toFixed(2)} | Profit: ₹${margin.toFixed(2)} (${marginPct}%)`;
+    }).join('\n')}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -475,9 +480,10 @@ const Inventory = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>SKU</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead className="text-right">Purchase</TableHead>
+                    <TableHead className="text-right">Sale</TableHead>
+                    <TableHead className="text-right">Profit</TableHead>
                     <TableHead className="text-right">Total Value</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -486,9 +492,12 @@ const Inventory = () => {
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.sku || "-"}</TableCell>
-                      <TableCell>{product.category || "-"}</TableCell>
                       <TableCell className="text-right">{product.quantity}</TableCell>
+                      <TableCell className="text-right">₹{product.purchase_price.toFixed(2)}</TableCell>
                       <TableCell className="text-right">₹{product.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right text-info">
+                        ₹{getProfitMargin(product).toFixed(2)} ({getProfitPercentage(product).toFixed(1)}%)
+                      </TableCell>
                       <TableCell className="text-right font-semibold">
                         ₹{(product.quantity * product.unit_price).toFixed(2)}
                       </TableCell>
@@ -499,14 +508,18 @@ const Inventory = () => {
             </div>
 
             <div className="flex justify-end pt-4 border-t">
-              <div className="w-64 space-y-2">
+              <div className="w-72 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Products:</span>
                   <span className="text-foreground font-medium">{filteredProducts.length}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                  <span className="text-foreground">Total Inventory Value:</span>
-                  <span className="text-foreground">₹{totalInventoryValue.toFixed(2)}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Inventory Value:</span>
+                  <span className="text-foreground font-medium">₹{totalInventoryValue.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t text-info">
+                  <span>Total Profit Margin:</span>
+                  <span>₹{totalProfitMargin.toFixed(2)}</span>
                 </div>
               </div>
             </div>

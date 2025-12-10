@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle } from "lucide-react";
+import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
@@ -237,6 +237,34 @@ const Invoices = () => {
   const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.total, 0);
   const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.total, 0);
 
+  const handleCSVExport = () => {
+    const headers = ['Invoice #', 'Customer', 'Email', 'Issue Date', 'Due Date', 'Status', 'Subtotal', 'Tax', 'Total'];
+    const rows = filteredInvoices.map(inv => [
+      inv.invoice_number,
+      inv.customer_name,
+      inv.customer_email || '',
+      inv.issue_date,
+      inv.due_date || '',
+      inv.status,
+      inv.subtotal.toFixed(2),
+      inv.tax.toFixed(2),
+      inv.total.toFixed(2)
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `invoices_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success('Invoices exported to CSV');
+  };
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex justify-between items-center">
@@ -244,12 +272,21 @@ const Invoices = () => {
           <h1 className="text-3xl font-bold text-gradient">Invoices</h1>
           <p className="text-muted-foreground">Manage customer invoices and payments</p>
         </div>
-        <Button 
-          onClick={() => navigate("/invoices/new")}
-          className="gradient-primary text-primary-foreground shadow-colorful hover:opacity-90 transition-opacity"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create Invoice
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleCSVExport}
+            className="border-success hover:bg-success/10"
+          >
+            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+          </Button>
+          <Button 
+            onClick={() => navigate("/invoices/new")}
+            className="gradient-primary text-primary-foreground shadow-colorful hover:opacity-90 transition-opacity"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create Invoice
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
