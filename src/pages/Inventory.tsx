@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes } from "lucide-react";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -191,8 +191,44 @@ const Inventory = () => {
   };
 
   const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
+  const totalProfitMargin = filteredProducts.reduce((sum, p) => sum + ((p.unit_price - p.purchase_price) * p.quantity), 0);
 
   const isLowStock = (product: Product) => product.quantity <= product.low_stock_threshold;
+
+  const getProfitMargin = (product: Product) => product.unit_price - product.purchase_price;
+  const getProfitPercentage = (product: Product) => {
+    if (product.purchase_price === 0) return 0;
+    return ((product.unit_price - product.purchase_price) / product.purchase_price) * 100;
+  };
+
+  const handleCSVExport = () => {
+    const headers = ['Name', 'SKU', 'Category', 'Quantity', 'Purchase Price', 'Sale Price', 'Profit Margin', 'Profit %', 'Total Value', 'Total Profit'];
+    const rows = filteredProducts.map(p => [
+      p.name,
+      p.sku || '',
+      p.category || '',
+      p.quantity,
+      p.purchase_price.toFixed(2),
+      p.unit_price.toFixed(2),
+      getProfitMargin(p).toFixed(2),
+      getProfitPercentage(p).toFixed(2) + '%',
+      (p.quantity * p.unit_price).toFixed(2),
+      (getProfitMargin(p) * p.quantity).toFixed(2)
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success('Inventory exported to CSV');
+  };
 
   return (
     <div className="p-8 space-y-8">
@@ -202,6 +238,9 @@ const Inventory = () => {
           <p className="text-muted-foreground">Manage your products and stock levels</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleCSVExport} className="border-success hover:bg-success/10">
+            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+          </Button>
           <Button variant="outline" onClick={() => setIsPrintDialogOpen(true)} className="border-secondary hover:bg-secondary/10">
             <Printer className="mr-2 h-4 w-4 text-secondary" /> Print Stock
           </Button>
@@ -316,7 +355,7 @@ const Inventory = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card className="border-2 border-primary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -354,6 +393,20 @@ const Inventory = () => {
               </div>
               <div className="h-12 w-12 rounded-full bg-gradient-secondary flex items-center justify-center">
                 <Boxes className="h-6 w-6 text-secondary-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-info/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Profit Margin</p>
+                <p className="text-2xl font-bold text-info">₹{totalProfitMargin.toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-info-foreground" />
               </div>
             </div>
           </CardContent>
@@ -505,8 +558,9 @@ const Inventory = () => {
                 <TableHead className="font-bold">SKU</TableHead>
                 <TableHead className="font-bold">Category</TableHead>
                 <TableHead className="text-right font-bold">Quantity</TableHead>
-                <TableHead className="text-right font-bold">Threshold</TableHead>
-                <TableHead className="text-right font-bold">Unit Price</TableHead>
+                <TableHead className="text-right font-bold">Purchase</TableHead>
+                <TableHead className="text-right font-bold">Sale</TableHead>
+                <TableHead className="text-right font-bold">Profit</TableHead>
                 <TableHead className="text-right font-bold">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -541,8 +595,16 @@ const Inventory = () => {
                   <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
                     {product.quantity}
                   </TableCell>
-                  <TableCell className="text-right text-warning">{product.low_stock_threshold}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">₹{product.purchase_price.toFixed(2)}</TableCell>
                   <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex flex-col items-end">
+                      <span className="font-medium text-info">₹{getProfitMargin(product).toFixed(2)}</span>
+                      <span className={`text-xs ${getProfitPercentage(product) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {getProfitPercentage(product).toFixed(1)}%
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button 
