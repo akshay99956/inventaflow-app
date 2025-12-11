@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -35,6 +36,18 @@ type Product = {
   low_stock_threshold: number;
 };
 
+type PrintColumn = 'name' | 'sku' | 'quantity' | 'purchase_price' | 'unit_price' | 'profit' | 'total_value';
+
+const printColumnLabels: Record<PrintColumn, string> = {
+  name: 'Name',
+  sku: 'SKU',
+  quantity: 'Quantity',
+  purchase_price: 'Purchase Price',
+  unit_price: 'Sale Price',
+  profit: 'Profit',
+  total_value: 'Total Value',
+};
+
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -43,6 +56,8 @@ const Inventory = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [selectedPrintColumns, setSelectedPrintColumns] = useState<PrintColumn[]>(['name', 'quantity', 'unit_price']);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -186,13 +201,35 @@ const Inventory = () => {
   const handleWhatsAppShare = () => {
     const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
     const totalProfit = filteredProducts.reduce((sum, p) => sum + ((p.unit_price - p.purchase_price) * p.quantity), 0);
-    const message = `📦 Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}\nTotal Stock Value: ₹${totalValue.toFixed(2)}\nTotal Profit Margin: ₹${totalProfit.toFixed(2)}\n\n${filteredProducts.map(p => {
-      const margin = p.unit_price - p.purchase_price;
-      const marginPct = p.purchase_price > 0 ? ((margin / p.purchase_price) * 100).toFixed(1) : '0';
-      return `• ${p.name}\n  Qty: ${p.quantity} | Sale: ₹${p.unit_price.toFixed(2)} | Profit: ₹${margin.toFixed(2)} (${marginPct}%)`;
-    }).join('\n')}`;
+    
+    let message = `📦 Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}`;
+    if (selectedPrintColumns.includes('total_value')) message += `\nTotal Stock Value: ₹${totalValue.toFixed(2)}`;
+    if (selectedPrintColumns.includes('profit')) message += `\nTotal Profit Margin: ₹${totalProfit.toFixed(2)}`;
+    message += `\n\n`;
+    
+    message += filteredProducts.map(p => {
+      let line = `• ${p.name}`;
+      const details: string[] = [];
+      if (selectedPrintColumns.includes('quantity')) details.push(`Qty: ${p.quantity}`);
+      if (selectedPrintColumns.includes('purchase_price')) details.push(`Purchase: ₹${p.purchase_price.toFixed(2)}`);
+      if (selectedPrintColumns.includes('unit_price')) details.push(`Sale: ₹${p.unit_price.toFixed(2)}`);
+      if (selectedPrintColumns.includes('profit')) {
+        const margin = p.unit_price - p.purchase_price;
+        const marginPct = p.purchase_price > 0 ? ((margin / p.purchase_price) * 100).toFixed(1) : '0';
+        details.push(`Profit: ₹${margin.toFixed(2)} (${marginPct}%)`);
+      }
+      if (details.length > 0) line += `\n  ${details.join(' | ')}`;
+      return line;
+    }).join('\n');
+    
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const togglePrintColumn = (col: PrintColumn) => {
+    setSelectedPrintColumns(prev => 
+      prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]
+    );
   };
 
   const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
@@ -235,6 +272,73 @@ const Inventory = () => {
     toast.success('Inventory exported to CSV');
   };
 
+  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+        
+        const nameIdx = headers.findIndex(h => h === 'name' || h === 'product name');
+        const skuIdx = headers.findIndex(h => h === 'sku');
+        const categoryIdx = headers.findIndex(h => h === 'category');
+        const quantityIdx = headers.findIndex(h => h === 'quantity' || h === 'qty');
+        const purchasePriceIdx = headers.findIndex(h => h.includes('purchase') || h.includes('cost'));
+        const salePriceIdx = headers.findIndex(h => h.includes('sale') || h.includes('unit') || h === 'price');
+
+        if (nameIdx === -1) {
+          toast.error("CSV must have a 'Name' column");
+          return;
+        }
+
+        const productsToImport = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+          const name = values[nameIdx];
+          if (!name) continue;
+
+          productsToImport.push({
+            user_id: user.id,
+            name,
+            sku: skuIdx >= 0 ? values[skuIdx] || null : null,
+            category: categoryIdx >= 0 ? values[categoryIdx] || null : null,
+            quantity: quantityIdx >= 0 ? parseInt(values[quantityIdx]) || 0 : 0,
+            purchase_price: purchasePriceIdx >= 0 ? parseFloat(values[purchasePriceIdx]) || 0 : 0,
+            unit_price: salePriceIdx >= 0 ? parseFloat(values[salePriceIdx]) || 0 : 0,
+            low_stock_threshold: 10,
+          });
+        }
+
+        if (productsToImport.length === 0) {
+          toast.error("No valid products found in CSV");
+          return;
+        }
+
+        const { error } = await supabase.from("products").insert(productsToImport);
+        if (error) {
+          toast.error("Error importing products: " + error.message);
+        } else {
+          toast.success(`Successfully imported ${productsToImport.length} products`);
+          fetchProducts();
+        }
+      } catch (error) {
+        toast.error("Error parsing CSV file");
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex justify-between items-center">
@@ -243,6 +347,16 @@ const Inventory = () => {
           <p className="text-muted-foreground">Manage your products and stock levels</p>
         </div>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleCSVImport}
+            accept=".csv"
+            className="hidden"
+          />
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="border-info hover:bg-info/10">
+            <Upload className="mr-2 h-4 w-4 text-info" /> Import CSV
+          </Button>
           <Button variant="outline" onClick={handleCSVExport} className="border-success hover:bg-success/10">
             <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
           </Button>
@@ -455,6 +569,25 @@ const Inventory = () => {
           </DialogHeader>
 
           <div id="inventory-print-area" className="space-y-6">
+            {/* Column Selection - Hidden on Print */}
+            <div className="print:hidden p-4 bg-muted/30 rounded-lg">
+              <Label className="text-sm font-medium mb-3 block">Select columns to include:</Label>
+              <div className="flex flex-wrap gap-4">
+                {(Object.keys(printColumnLabels) as PrintColumn[]).map(col => (
+                  <div key={col} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`col-${col}`}
+                      checked={selectedPrintColumns.includes(col)}
+                      onCheckedChange={() => togglePrintColumn(col)}
+                    />
+                    <Label htmlFor={`col-${col}`} className="text-sm cursor-pointer">
+                      {printColumnLabels[col]}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-between items-start print:mb-6">
               <div>
                 <h2 className="text-3xl font-bold text-foreground">INVENTORY REPORT</h2>
@@ -478,29 +611,33 @@ const Inventory = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Purchase</TableHead>
-                    <TableHead className="text-right">Sale</TableHead>
-                    <TableHead className="text-right">Profit</TableHead>
-                    <TableHead className="text-right">Total Value</TableHead>
+                    {selectedPrintColumns.includes('name') && <TableHead>Name</TableHead>}
+                    {selectedPrintColumns.includes('sku') && <TableHead>SKU</TableHead>}
+                    {selectedPrintColumns.includes('quantity') && <TableHead className="text-right">Qty</TableHead>}
+                    {selectedPrintColumns.includes('purchase_price') && <TableHead className="text-right">Purchase</TableHead>}
+                    {selectedPrintColumns.includes('unit_price') && <TableHead className="text-right">Sale</TableHead>}
+                    {selectedPrintColumns.includes('profit') && <TableHead className="text-right">Profit</TableHead>}
+                    {selectedPrintColumns.includes('total_value') && <TableHead className="text-right">Total Value</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.sku || "-"}</TableCell>
-                      <TableCell className="text-right">{product.quantity}</TableCell>
-                      <TableCell className="text-right">₹{product.purchase_price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">₹{product.unit_price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right text-info">
-                        ₹{getProfitMargin(product).toFixed(2)} ({getProfitPercentage(product).toFixed(1)}%)
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        ₹{(product.quantity * product.unit_price).toFixed(2)}
-                      </TableCell>
+                      {selectedPrintColumns.includes('name') && <TableCell className="font-medium">{product.name}</TableCell>}
+                      {selectedPrintColumns.includes('sku') && <TableCell>{product.sku || "-"}</TableCell>}
+                      {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{product.quantity}</TableCell>}
+                      {selectedPrintColumns.includes('purchase_price') && <TableCell className="text-right">₹{product.purchase_price.toFixed(2)}</TableCell>}
+                      {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right">₹{product.unit_price.toFixed(2)}</TableCell>}
+                      {selectedPrintColumns.includes('profit') && (
+                        <TableCell className="text-right text-info">
+                          ₹{getProfitMargin(product).toFixed(2)} ({getProfitPercentage(product).toFixed(1)}%)
+                        </TableCell>
+                      )}
+                      {selectedPrintColumns.includes('total_value') && (
+                        <TableCell className="text-right font-semibold">
+                          ₹{(product.quantity * product.unit_price).toFixed(2)}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -513,14 +650,18 @@ const Inventory = () => {
                   <span className="text-muted-foreground">Total Products:</span>
                   <span className="text-foreground font-medium">{filteredProducts.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Inventory Value:</span>
-                  <span className="text-foreground font-medium">₹{totalInventoryValue.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t text-info">
-                  <span>Total Profit Margin:</span>
-                  <span>₹{totalProfitMargin.toFixed(2)}</span>
-                </div>
+                {selectedPrintColumns.includes('total_value') && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Inventory Value:</span>
+                    <span className="text-foreground font-medium">₹{totalInventoryValue.toFixed(2)}</span>
+                  </div>
+                )}
+                {selectedPrintColumns.includes('profit') && (
+                  <div className="flex justify-between text-lg font-bold pt-2 border-t text-info">
+                    <span>Total Profit Margin:</span>
+                    <span>₹{totalProfitMargin.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

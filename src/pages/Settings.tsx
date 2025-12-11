@@ -10,6 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X } from "lucide-react";
+import { z } from "zod";
+
+const profileSchema = z.object({
+  company_name: z.string().max(200, "Company name must be less than 200 characters").optional().or(z.literal("")),
+  address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal("")),
+  phone: z.string().max(20, "Phone must be less than 20 characters").optional().or(z.literal("")),
+  email: z.string().email("Invalid email format").max(255).optional().or(z.literal("")),
+  logo_url: z.string().url("Invalid URL").optional().or(z.literal("")),
+  gst_number: z.string().max(20, "GST number must be less than 20 characters").optional().or(z.literal("")),
+  website: z.string().url("Invalid website URL").max(255).optional().or(z.literal("")),
+});
 
 interface CompanyProfile {
   id?: string;
@@ -28,6 +39,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<CompanyProfile>({
     company_name: "",
@@ -162,6 +174,21 @@ const Settings = () => {
   };
 
   const handleSave = async () => {
+    setFormErrors({});
+    
+    const validation = profileSchema.safeParse(profile);
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      validation.error.errors.forEach(err => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFormErrors(errors);
+      toast({ title: "Validation Error", description: validation.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -171,7 +198,6 @@ const Settings = () => {
       }
 
       if (profile.id) {
-        // Update existing profile
         const { error } = await supabase
           .from("company_profile")
           .update({
@@ -187,7 +213,6 @@ const Settings = () => {
 
         if (error) throw error;
       } else {
-        // Insert new profile
         const { error } = await supabase
           .from("company_profile")
           .insert({
@@ -324,8 +349,9 @@ const Settings = () => {
                       value={profile.company_name}
                       onChange={(e) => handleChange("company_name", e.target.value)}
                       placeholder="Your Company Name"
-                      className="border-primary/30 focus:border-primary"
+                      className={`border-primary/30 focus:border-primary ${formErrors.company_name ? "border-destructive" : ""}`}
                     />
+                    {formErrors.company_name && <p className="text-xs text-destructive">{formErrors.company_name}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -338,8 +364,9 @@ const Settings = () => {
                       value={profile.gst_number}
                       onChange={(e) => handleChange("gst_number", e.target.value)}
                       placeholder="GST123456789"
-                      className="border-secondary/30 focus:border-secondary"
+                      className={`border-secondary/30 focus:border-secondary ${formErrors.gst_number ? "border-destructive" : ""}`}
                     />
+                    {formErrors.gst_number && <p className="text-xs text-destructive">{formErrors.gst_number}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -352,8 +379,9 @@ const Settings = () => {
                       value={profile.address}
                       onChange={(e) => handleChange("address", e.target.value)}
                       placeholder="123 Business Street, City, State, PIN"
-                      className="border-accent/30 focus:border-accent"
+                      className={`border-accent/30 focus:border-accent ${formErrors.address ? "border-destructive" : ""}`}
                     />
+                    {formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
                   </div>
                 </CardContent>
               </Card>
@@ -379,8 +407,9 @@ const Settings = () => {
                         value={profile.phone}
                         onChange={(e) => handleChange("phone", e.target.value)}
                         placeholder="+91 9876543210"
-                        className="border-success/30 focus:border-success"
+                        className={`border-success/30 focus:border-success ${formErrors.phone ? "border-destructive" : ""}`}
                       />
+                      {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -394,8 +423,9 @@ const Settings = () => {
                         value={profile.email}
                         onChange={(e) => handleChange("email", e.target.value)}
                         placeholder="contact@company.com"
-                        className="border-info/30 focus:border-info"
+                        className={`border-info/30 focus:border-info ${formErrors.email ? "border-destructive" : ""}`}
                       />
+                      {formErrors.email && <p className="text-xs text-destructive">{formErrors.email}</p>}
                     </div>
                   </div>
 
@@ -409,8 +439,9 @@ const Settings = () => {
                       value={profile.website}
                       onChange={(e) => handleChange("website", e.target.value)}
                       placeholder="https://www.yourcompany.com"
-                      className="border-primary/30 focus:border-primary"
+                      className={`border-primary/30 focus:border-primary ${formErrors.website ? "border-destructive" : ""}`}
                     />
+                    {formErrors.website && <p className="text-xs text-destructive">{formErrors.website}</p>}
                   </div>
                 </CardContent>
               </Card>
