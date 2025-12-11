@@ -9,6 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Users, Search } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const clientSchema = z.object({
+  name: z.string().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
+  email: z.string().email("Invalid email format").max(255).optional().or(z.literal("")),
+  phone: z.string().max(20, "Phone must be less than 20 characters").optional().or(z.literal("")),
+  address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal("")),
+});
 
 interface Client {
   id: string;
@@ -25,6 +33,7 @@ const Clients = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -77,6 +86,20 @@ const Clients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors({});
+
+    const validation = clientSchema.safeParse(formData);
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      validation.error.errors.forEach(err => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFormErrors(errors);
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -144,6 +167,7 @@ const Clients = () => {
   const resetForm = () => {
     setFormData({ name: "", email: "", phone: "", address: "" });
     setEditingClient(null);
+    setFormErrors({});
   };
 
   return (
@@ -176,8 +200,10 @@ const Clients = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter client name"
+                  className={formErrors.name ? "border-destructive" : ""}
                   required
                 />
+                {formErrors.name && <p className="text-xs text-destructive">{formErrors.name}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -187,7 +213,9 @@ const Clients = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="client@example.com"
+                  className={formErrors.email ? "border-destructive" : ""}
                 />
+                {formErrors.email && <p className="text-xs text-destructive">{formErrors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
@@ -196,7 +224,9 @@ const Clients = () => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+91 9876543210"
+                  className={formErrors.phone ? "border-destructive" : ""}
                 />
+                {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
@@ -205,7 +235,9 @@ const Clients = () => {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder="Enter client address"
+                  className={formErrors.address ? "border-destructive" : ""}
                 />
+                {formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
               </div>
               <Button type="submit" className="w-full gradient-primary text-primary-foreground">
                 {editingClient ? "Update Client" : "Add Client"}

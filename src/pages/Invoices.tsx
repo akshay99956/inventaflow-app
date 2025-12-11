@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +38,15 @@ type InvoiceItem = {
   product_id: string | null;
 };
 
+type InvoicePrintColumn = 'description' | 'quantity' | 'unit_price' | 'amount';
+
+const invoicePrintColumnLabels: Record<InvoicePrintColumn, string> = {
+  description: 'Description',
+  quantity: 'Quantity',
+  unit_price: 'Unit Price',
+  amount: 'Amount',
+};
+
 const invoiceStatusOptions = [
   { value: "draft", label: "Draft" },
   { value: "sent", label: "Sent" },
@@ -50,6 +61,7 @@ const Invoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPrintColumns, setSelectedPrintColumns] = useState<InvoicePrintColumn[]>(['description', 'quantity', 'unit_price', 'amount']);
   const [filters, setFilters] = useState<FilterState>({
     dateFrom: "",
     dateTo: "",
@@ -57,6 +69,12 @@ const Invoices = () => {
     status: "",
   });
   const navigate = useNavigate();
+
+  const togglePrintColumn = (col: InvoicePrintColumn) => {
+    setSelectedPrintColumns(prev => 
+      prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]
+    );
+  };
 
   const fetchInvoices = async () => {
     const { data, error } = await supabase
@@ -132,7 +150,22 @@ const Invoices = () => {
   const handleWhatsAppShare = () => {
     if (!selectedInvoice) return;
     
-    const message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}\nAmount: ₹${selectedInvoice.total.toFixed(2)}\nStatus: ${selectedInvoice.status}\n\nThank you for your business!`;
+    let message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}`;
+    
+    if (invoiceItems.length > 0) {
+      message += `\n\nItems:`;
+      invoiceItems.forEach(item => {
+        let itemLine = `\n• ${item.description}`;
+        const details: string[] = [];
+        if (selectedPrintColumns.includes('quantity')) details.push(`Qty: ${item.quantity}`);
+        if (selectedPrintColumns.includes('unit_price')) details.push(`Price: ₹${item.unit_price.toFixed(2)}`);
+        if (selectedPrintColumns.includes('amount')) details.push(`Amount: ₹${item.amount.toFixed(2)}`);
+        if (details.length > 0) itemLine += ` (${details.join(', ')})`;
+        message += itemLine;
+      });
+    }
+    
+    message += `\n\nTotal: ₹${selectedInvoice.total.toFixed(2)}\nStatus: ${selectedInvoice.status}\n\nThank you for your business!`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -438,6 +471,25 @@ const Invoices = () => {
           
           {selectedInvoice && (
             <div id="invoice-print-area" className="space-y-6">
+              {/* Column Selection - Hidden on Print */}
+              <div className="print:hidden p-4 bg-muted/30 rounded-lg">
+                <Label className="text-sm font-medium mb-3 block">Select columns for print/share:</Label>
+                <div className="flex flex-wrap gap-4">
+                  {(Object.keys(invoicePrintColumnLabels) as InvoicePrintColumn[]).map(col => (
+                    <div key={col} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`inv-col-${col}`}
+                        checked={selectedPrintColumns.includes(col)}
+                        onCheckedChange={() => togglePrintColumn(col)}
+                      />
+                      <Label htmlFor={`inv-col-${col}`} className="text-sm cursor-pointer">
+                        {invoicePrintColumnLabels[col]}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex justify-between items-start print:mb-6">
                 <div>
                   <CompanyBranding />
@@ -487,6 +539,29 @@ const Invoices = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="border rounded-lg overflow-hidden shadow-sm">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10">
+                      {selectedPrintColumns.includes('description') && <TableHead className="font-semibold">Description</TableHead>}
+                      {selectedPrintColumns.includes('quantity') && <TableHead className="text-right font-semibold">Quantity</TableHead>}
+                      {selectedPrintColumns.includes('unit_price') && <TableHead className="text-right font-semibold">Unit Price</TableHead>}
+                      {selectedPrintColumns.includes('amount') && <TableHead className="text-right font-semibold">Amount</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoiceItems.map((item, index) => (
+                      <TableRow key={item.id} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
+                        {selectedPrintColumns.includes('description') && <TableCell className="font-medium">{item.description}</TableCell>}
+                        {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{item.quantity}</TableCell>}
+                        {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>}
+                        {selectedPrintColumns.includes('amount') && <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
 
               <div className="border rounded-lg overflow-hidden shadow-sm">
