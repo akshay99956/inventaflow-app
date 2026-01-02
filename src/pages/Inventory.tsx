@@ -340,13 +340,13 @@ const Inventory = () => {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">Inventory Management</h1>
-          <p className="text-muted-foreground">Manage your products and stock levels</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gradient">Inventory</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage your products and stock</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             type="file"
             ref={fileInputRef}
@@ -354,19 +354,23 @@ const Inventory = () => {
             accept=".csv"
             className="hidden"
           />
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="border-info hover:bg-info/10">
-            <Upload className="mr-2 h-4 w-4 text-info" /> Import CSV
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="border-info hover:bg-info/10 flex-1 sm:flex-none">
+            <Upload className="h-4 w-4 sm:mr-2 text-info" />
+            <span className="hidden sm:inline">Import</span>
           </Button>
-          <Button variant="outline" onClick={handleCSVExport} className="border-success hover:bg-success/10">
-            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+          <Button variant="outline" size="sm" onClick={handleCSVExport} className="border-success hover:bg-success/10 flex-1 sm:flex-none">
+            <Download className="h-4 w-4 sm:mr-2 text-success" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button variant="outline" onClick={() => setIsPrintDialogOpen(true)} className="border-secondary hover:bg-secondary/10">
-            <Printer className="mr-2 h-4 w-4 text-secondary" /> Print Stock
+          <Button variant="outline" size="sm" onClick={() => setIsPrintDialogOpen(true)} className="border-secondary hover:bg-secondary/10 flex-1 sm:flex-none">
+            <Printer className="h-4 w-4 sm:mr-2 text-secondary" />
+            <span className="hidden sm:inline">Print</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm} className="bg-gradient-primary shadow-colorful hover:shadow-glow-md">
-                <Plus className="mr-2 h-4 w-4" /> Add Product
+              <Button onClick={resetForm} size="sm" className="bg-gradient-primary shadow-colorful hover:shadow-glow-md flex-1 sm:flex-none">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add Product</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md border-2 border-primary/20">
@@ -474,74 +478,74 @@ const Inventory = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5">
         <Card className="border-2 border-primary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-                <p className="text-2xl font-bold text-gradient">{products.length}</p>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Products</p>
+                <p className="text-xl md:text-2xl font-bold text-gradient">{products.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary-foreground" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
+                <Package className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-success/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Stock Value</p>
-                <p className="text-2xl font-bold text-success">₹{totalInventoryValue.toFixed(2)}</p>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Stock Value</p>
+                <p className="text-lg md:text-2xl font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
-                <IndianRupee className="h-6 w-6 text-success-foreground" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center flex-shrink-0">
+                <IndianRupee className="h-5 w-5 md:h-6 md:w-6 text-success-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-secondary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Units</p>
-                <p className="text-2xl font-bold text-secondary">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Units</p>
+                <p className="text-xl md:text-2xl font-bold text-secondary">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-gradient-secondary flex items-center justify-center">
-                <Boxes className="h-6 w-6 text-secondary-foreground" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0">
+                <Boxes className="h-5 w-5 md:h-6 md:w-6 text-secondary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-info/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Profit Margin</p>
-                <p className="text-2xl font-bold text-info">₹{totalProfitMargin.toFixed(2)}</p>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Profit</p>
+                <p className="text-lg md:text-2xl font-bold text-info">₹{totalProfitMargin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-info-foreground" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-info-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={`border-2 shadow-colorful hover:shadow-glow-sm transition-shadow ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20'}`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
-                <p className={`text-2xl font-bold ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>
+        <Card className={`col-span-2 lg:col-span-1 border-2 shadow-colorful hover:shadow-glow-sm transition-shadow ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20'}`}>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Low Stock</p>
+                <p className={`text-xl md:text-2xl font-bold ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>
                   {lowStockProducts.length}
                 </p>
               </div>
-              <div className={`h-12 w-12 rounded-full flex items-center justify-center ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
-                <TrendingDown className="h-6 w-6 text-destructive-foreground" />
+              <div className={`h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center flex-shrink-0 ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
+                <TrendingDown className="h-5 w-5 md:h-6 md:w-6 text-destructive-foreground" />
               </div>
             </div>
           </CardContent>
@@ -550,11 +554,11 @@ const Inventory = () => {
 
       {lowStockProducts.length > 0 && (
         <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10">
-          <AlertTriangle className="h-5 w-5 text-destructive" />
-          <AlertTitle className="text-destructive font-bold">Low Stock Alert</AlertTitle>
-          <AlertDescription className="text-destructive/80">
-            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock: 
-            <span className="font-semibold"> {lowStockProducts.map(p => p.name).join(", ")}</span>
+          <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
+          <AlertTitle className="text-destructive font-bold text-sm md:text-base">Low Stock Alert</AlertTitle>
+          <AlertDescription className="text-destructive/80 text-xs md:text-sm">
+            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low: 
+            <span className="font-semibold"> {lowStockProducts.slice(0, 3).map(p => p.name).join(", ")}{lowStockProducts.length > 3 ? ` +${lowStockProducts.length - 3} more` : ''}</span>
           </AlertDescription>
         </Alert>
       )}

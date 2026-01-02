@@ -304,25 +304,30 @@ const Invoices = () => {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">Invoices</h1>
-          <p className="text-muted-foreground">Manage customer invoices and payments</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gradient">Invoices</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage invoices and payments</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline"
+            size="sm"
             onClick={handleCSVExport}
-            className="border-success hover:bg-success/10"
+            className="border-success hover:bg-success/10 flex-1 sm:flex-none"
           >
-            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+            <Download className="h-4 w-4 sm:mr-2 text-success" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
           <Button 
+            size="sm"
             onClick={() => navigate("/invoices/new")}
-            className="gradient-primary text-primary-foreground shadow-colorful hover:opacity-90 transition-opacity"
+            className="gradient-primary text-primary-foreground shadow-colorful hover:opacity-90 transition-opacity flex-1 sm:flex-none"
           >
-            <Plus className="mr-2 h-4 w-4" /> Create Invoice
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Create Invoice</span>
+            <span className="sm:hidden">New</span>
           </Button>
         </div>
       </div>
@@ -335,17 +340,17 @@ const Invoices = () => {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-primary" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <FileText className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 md:pt-4 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                <FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Invoices</p>
-                <p className="text-2xl font-bold">{totalInvoices}</p>
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm text-muted-foreground">Invoices</p>
+                <p className="text-lg md:text-2xl font-bold">{totalInvoices}</p>
               </div>
             </div>
           </CardContent>
@@ -353,14 +358,14 @@ const Invoices = () => {
 
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-secondary" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <IndianRupee className="h-5 w-5 text-success" />
+          <CardContent className="p-3 md:pt-4 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-2 rounded-lg bg-success/10 flex-shrink-0">
+                <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-success" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold text-success">₹{totalRevenue.toFixed(2)}</p>
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm text-muted-foreground">Revenue</p>
+                <p className="text-lg md:text-2xl font-bold text-success">₹{totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
               </div>
             </div>
           </CardContent>
@@ -368,14 +373,14 @@ const Invoices = () => {
 
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-warm" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/10">
-                <Clock className="h-5 w-5 text-warning" />
+          <CardContent className="p-3 md:pt-4 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-2 rounded-lg bg-warning/10 flex-shrink-0">
+                <Clock className="h-4 w-4 md:h-5 md:w-5 text-warning" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Amount</p>
-                <p className="text-2xl font-bold text-warning">₹{pendingAmount.toFixed(2)}</p>
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm text-muted-foreground">Pending</p>
+                <p className="text-lg md:text-2xl font-bold text-warning">₹{pendingAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
               </div>
             </div>
           </CardContent>
@@ -383,21 +388,71 @@ const Invoices = () => {
 
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-cool" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-info/10">
-                <FileText className="h-5 w-5 text-info" />
+          <CardContent className="p-3 md:pt-4 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-2 rounded-lg bg-info/10 flex-shrink-0">
+                <FileText className="h-4 w-4 md:h-5 md:w-5 text-info" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Invoices</p>
-                <p className="text-2xl font-bold text-info">{pendingInvoices.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs md:text-sm text-muted-foreground">Pending</p>
+                <p className="text-lg md:text-2xl font-bold text-info">{pendingInvoices.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-0 shadow-colorful">
+      {/* Mobile Invoice Cards */}
+      <div className="md:hidden space-y-3">
+        {filteredInvoices.map((invoice) => (
+          <Card 
+            key={invoice.id} 
+            className={`border shadow-sm cursor-pointer active:scale-[0.98] transition-transform ${invoice.status === "cancelled" ? "opacity-60" : ""}`}
+            onClick={() => handleInvoiceClick(invoice)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-base truncate">{invoice.customer_name}</p>
+                  <p className="text-sm text-primary font-medium">{invoice.invoice_number}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(invoice.issue_date).toLocaleDateString()}
+                    {invoice.due_date && ` • Due: ${new Date(invoice.due_date).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className={`text-lg font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
+                    ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                  </p>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Select
+                      value={invoice.status}
+                      onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
+                    >
+                      <SelectTrigger className="w-[110px] h-7 text-xs border-0 bg-transparent p-0 justify-end">
+                        {getStatusBadge(invoice.status)}
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {filteredInvoices.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">No invoices found</p>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="border-0 shadow-colorful hidden md:block">
         <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />

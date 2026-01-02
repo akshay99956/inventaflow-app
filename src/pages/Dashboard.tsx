@@ -175,20 +175,22 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Welcome back! Here's your business overview.</p>
         </div>
         <div className="flex gap-2 print:hidden">
-          <Button onClick={handleExportCSV} variant="outline">
+          <Button onClick={handleExportCSV} variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">Export</span>
           </Button>
-          <Button onClick={handlePrint} variant="outline">
+          <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Printer className="h-4 w-4 mr-2" />
-            Print Report
+            <span className="hidden sm:inline">Print Report</span>
+            <span className="sm:hidden">Print</span>
           </Button>
         </div>
       </div>
@@ -212,76 +214,76 @@ const Dashboard = () => {
         </Alert>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5">
+        <Card className="col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Products</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground">In inventory</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold">{stats.totalProducts}</div>
+            <p className="text-xs text-muted-foreground hidden sm:block">In inventory</p>
           </CardContent>
         </Card>
 
-        <Card className={lowStockProducts.length > 0 ? "border-destructive" : ""}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+        <Card className={`col-span-1 ${lowStockProducts.length > 0 ? "border-destructive" : ""}`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Low Stock</CardTitle>
             <AlertTriangle className={`h-4 w-4 ${lowStockProducts.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
           </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${lowStockProducts.length > 0 ? "text-destructive" : ""}`}>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className={`text-xl md:text-2xl font-bold ${lowStockProducts.length > 0 ? "text-destructive" : ""}`}>
               {lowStockProducts.length}
             </div>
-            <p className="text-xs text-muted-foreground">Need restocking</p>
+            <p className="text-xs text-muted-foreground hidden sm:block">Need restocking</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
+        <Card className="col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Stock Value</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{stats.totalStockValue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Inventory value</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold">₹{stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+            <p className="text-xs text-muted-foreground hidden sm:block">Inventory value</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invoices</CardTitle>
+        <Card className="col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Pending</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingInvoices}</div>
-            <p className="text-xs text-muted-foreground">Awaiting payment</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold">{stats.pendingInvoices}</div>
+            <p className="text-xs text-muted-foreground hidden sm:block">Awaiting payment</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+        <Card className="col-span-2 lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold">₹{stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+            <p className="text-xs text-muted-foreground hidden sm:block">All time</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Revenue Trends</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Revenue Trends</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={revenueChartConfig} className="h-[300px]">
+          <CardContent className="p-2 md:p-6 pt-0">
+            <ChartContainer config={revenueChartConfig} className="h-[200px] md:h-[300px]">
               <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} width={50} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Line 
                   type="monotone" 
@@ -296,15 +298,15 @@ const Dashboard = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Top Products by Revenue</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Top Products</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={productsChartConfig} className="h-[300px]">
+          <CardContent className="p-2 md:p-6 pt-0">
+            <ChartContainer config={productsChartConfig} className="h-[200px] md:h-[300px]">
               <BarChart data={topProducts} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" width={70} tick={{ fontSize: 10 }} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -314,28 +316,28 @@ const Dashboard = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Outstanding Invoices</CardTitle>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg">Outstanding Invoices</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="space-y-3">
             {outstandingInvoices.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No outstanding invoices</p>
+              <p className="text-muted-foreground text-center py-4 text-sm">No outstanding invoices</p>
             ) : (
               outstandingInvoices.map((invoice) => (
-                <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{invoice.customer_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Invoice #{invoice.invoice_number}
+                <div key={invoice.id} className="flex items-center justify-between p-3 md:p-4 border rounded-lg gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm md:text-base truncate">{invoice.customer_name}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      #{invoice.invoice_number}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Due: {format(new Date(invoice.due_date), "MMM dd, yyyy")}
+                    <p className="text-xs text-muted-foreground">
+                      Due: {format(new Date(invoice.due_date), "MMM dd")}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">₹{Number(invoice.total).toFixed(2)}</p>
-                    <Badge variant={invoice.status === "overdue" ? "destructive" : "secondary"}>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm md:text-lg font-bold">₹{Number(invoice.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                    <Badge variant={invoice.status === "overdue" ? "destructive" : "secondary"} className="text-xs">
                       {invoice.status}
                     </Badge>
                   </div>
