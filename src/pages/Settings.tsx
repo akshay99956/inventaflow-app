@@ -11,6 +11,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X } from "lucide-react";
 import { z } from "zod";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const profileSchema = z.object({
   company_name: z.string().max(200, "Company name must be less than 200 characters").optional().or(z.literal("")),
@@ -41,6 +42,7 @@ const Settings = () => {
   const [uploading, setUploading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const [profile, setProfile] = useState<CompanyProfile>({
     company_name: "",
     address: "",
@@ -246,12 +248,12 @@ const Settings = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/20">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="flex items-center gap-4 mb-8">
+        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
+          <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
             <SidebarTrigger />
             <div>
-              <h1 className="text-3xl font-bold text-gradient">Company Settings</h1>
-              <p className="text-muted-foreground">Manage your company profile and branding</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gradient">Company Settings</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Manage your company profile and branding</p>
             </div>
           </div>
 
@@ -260,25 +262,25 @@ const Settings = () => {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="max-w-3xl space-y-6">
+            <div className="max-w-3xl space-y-4 md:space-y-6">
               {/* Logo Upload Card */}
               <Card className="shadow-colorful border-2 border-accent/20 bg-gradient-to-br from-card to-accent/5">
-                <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2 text-gradient">
-                    <Image className="h-5 w-5 text-accent" />
+                <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg px-4 md:px-6 py-4">
+                  <CardTitle className="flex items-center gap-2 text-gradient text-lg md:text-xl">
+                    <Image className="h-4 w-4 md:h-5 md:w-5 text-accent" />
                     Company Logo
                   </CardTitle>
-                  <CardDescription>Upload your company logo (max 2MB, JPG/PNG)</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">Upload your company logo (max 2MB, JPG/PNG)</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-6">
+                <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
                     <div className="relative">
                       {profile.logo_url ? (
                         <div className="relative">
                           <img
                             src={profile.logo_url}
                             alt="Company Logo"
-                            className="h-24 w-24 rounded-lg object-cover border-2 border-primary/20 shadow-colorful"
+                            className="h-20 w-20 md:h-24 md:w-24 rounded-lg object-cover border-2 border-primary/20 shadow-colorful"
                           />
                           <Button
                             variant="destructive"
@@ -290,12 +292,12 @@ const Settings = () => {
                           </Button>
                         </div>
                       ) : (
-                        <div className="h-24 w-24 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/20">
-                          <Image className="h-8 w-8 text-muted-foreground/50" />
+                        <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/20">
+                          <Image className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground/50" />
                         </div>
                       )}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-center sm:text-left">
                       <input
                         type="file"
                         ref={fileInputRef}
@@ -308,6 +310,7 @@ const Settings = () => {
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
                         className="border-primary/30 hover:bg-primary/10"
+                        size={isMobile ? "sm" : "default"}
                       >
                         {uploading ? (
                           <>
@@ -331,16 +334,16 @@ const Settings = () => {
 
               {/* Company Info Card */}
               <Card className="shadow-colorful border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5">
-                <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2 text-gradient">
-                    <Building2 className="h-5 w-5 text-primary" />
+                <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg px-4 md:px-6 py-4">
+                  <CardTitle className="flex items-center gap-2 text-gradient text-lg md:text-xl">
+                    <Building2 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     Company Information
                   </CardTitle>
-                  <CardDescription>Basic details about your business</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">Basic details about your business</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 pt-6">
+                <CardContent className="space-y-4 pt-4 md:pt-6 px-4 md:px-6">
                   <div className="space-y-2">
-                    <Label htmlFor="company_name" className="flex items-center gap-2">
+                    <Label htmlFor="company_name" className="flex items-center gap-2 text-sm">
                       <Building2 className="h-4 w-4 text-primary" />
                       Company Name
                     </Label>
@@ -355,7 +358,7 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="gst_number" className="flex items-center gap-2">
+                    <Label htmlFor="gst_number" className="flex items-center gap-2 text-sm">
                       <FileText className="h-4 w-4 text-secondary" />
                       GST Number
                     </Label>
@@ -370,7 +373,7 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address" className="flex items-center gap-2">
+                    <Label htmlFor="address" className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-accent" />
                       Address
                     </Label>
@@ -379,7 +382,7 @@ const Settings = () => {
                       value={profile.address}
                       onChange={(e) => handleChange("address", e.target.value)}
                       placeholder="123 Business Street, City, State, PIN"
-                      className={`border-accent/30 focus:border-accent ${formErrors.address ? "border-destructive" : ""}`}
+                      className={`border-accent/30 focus:border-accent min-h-[80px] ${formErrors.address ? "border-destructive" : ""}`}
                     />
                     {formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
                   </div>
@@ -388,17 +391,17 @@ const Settings = () => {
 
               {/* Contact Info Card */}
               <Card className="shadow-colorful border-2 border-secondary/20 bg-gradient-to-br from-card to-secondary/5">
-                <CardHeader className="bg-gradient-to-r from-secondary/10 to-success/10 rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2 text-gradient">
-                    <Phone className="h-5 w-5 text-secondary" />
+                <CardHeader className="bg-gradient-to-r from-secondary/10 to-success/10 rounded-t-lg px-4 md:px-6 py-4">
+                  <CardTitle className="flex items-center gap-2 text-gradient text-lg md:text-xl">
+                    <Phone className="h-4 w-4 md:h-5 md:w-5 text-secondary" />
                     Contact Information
                   </CardTitle>
-                  <CardDescription>How customers can reach you</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">How customers can reach you</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 pt-6">
+                <CardContent className="space-y-4 pt-4 md:pt-6 px-4 md:px-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
                         <Phone className="h-4 w-4 text-success" />
                         Phone Number
                       </Label>
@@ -413,7 +416,7 @@ const Settings = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
+                      <Label htmlFor="email" className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-info" />
                         Email Address
                       </Label>
@@ -430,7 +433,7 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="website" className="flex items-center gap-2">
+                    <Label htmlFor="website" className="flex items-center gap-2 text-sm">
                       <Globe className="h-4 w-4 text-primary" />
                       Website
                     </Label>
@@ -447,11 +450,12 @@ const Settings = () => {
               </Card>
 
               {/* Save Button */}
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-2">
                 <Button
                   onClick={handleSave}
                   disabled={saving}
-                  className="bg-gradient-primary text-primary-foreground shadow-colorful hover:shadow-glow-md px-8"
+                  className="gradient-primary text-primary-foreground shadow-colorful w-full sm:w-auto"
+                  size={isMobile ? "default" : "lg"}
                 >
                   {saving ? (
                     <>
@@ -461,7 +465,7 @@ const Settings = () => {
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Save Profile
+                      Save Changes
                     </>
                   )}
                 </Button>

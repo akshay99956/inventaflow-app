@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Trash2, Share2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const billSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
@@ -29,6 +30,7 @@ type BillItem = {
 
 const BillCreate = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<BillItem[]>([
     { description: "", quantity: 1, unit_price: 0 },
   ]);
@@ -130,22 +132,38 @@ const BillCreate = () => {
   const { subtotal, tax, total } = calculateTotals();
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Create Bill</h1>
-          <p className="text-muted-foreground">Create a new customer bill</p>
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/bills")}
+            className="md:hidden"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Create Bill</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Create a new customer bill</p>
+          </div>
         </div>
-        <Button variant="outline" onClick={() => navigate("/bills")}>
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/bills")}
+          className="hidden md:flex"
+        >
           Cancel
         </Button>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+          {/* Customer Information */}
           <Card>
-            <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
+            <CardHeader className="pb-3 md:pb-6">
+              <CardTitle className="text-lg md:text-xl">Customer Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -153,7 +171,7 @@ const BillCreate = () => {
                 name="customer_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
+                    <FormLabel className="text-sm">Customer Name</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Enter customer name" />
                     </FormControl>
@@ -166,7 +184,7 @@ const BillCreate = () => {
                 name="customer_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Customer Email (Optional)</FormLabel>
+                    <FormLabel className="text-sm">Customer Email (Optional)</FormLabel>
                     <FormControl>
                       <Input {...field} type="email" placeholder="customer@example.com" />
                     </FormControl>
@@ -177,9 +195,10 @@ const BillCreate = () => {
             </CardContent>
           </Card>
 
+          {/* Bill Details */}
           <Card>
-            <CardHeader>
-              <CardTitle>Bill Details</CardTitle>
+            <CardHeader className="pb-3 md:pb-6">
+              <CardTitle className="text-lg md:text-xl">Bill Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -187,7 +206,7 @@ const BillCreate = () => {
                 name="bill_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bill Date</FormLabel>
+                    <FormLabel className="text-sm">Bill Date</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>
@@ -200,9 +219,9 @@ const BillCreate = () => {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes (Optional)</FormLabel>
+                    <FormLabel className="text-sm">Notes (Optional)</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Additional notes" />
+                      <Textarea {...field} placeholder="Additional notes" className="min-h-[80px]" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,61 +230,118 @@ const BillCreate = () => {
             </CardContent>
           </Card>
 
+          {/* Bill Items */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3 md:pb-6">
               <div className="flex justify-between items-center">
-                <CardTitle>Bill Items</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Bill Items</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Item
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Add Item</span>
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {items.map((item, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <div className="flex-1 space-y-2">
-                    <Input
-                      placeholder="Description"
-                      value={item.description}
-                      onChange={(e) => updateItem(index, "description", e.target.value)}
-                    />
-                  </div>
-                  <div className="w-24">
-                    <Input
-                      type="number"
-                      placeholder="Qty"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                  <div className="w-32">
-                    <Input
-                      type="number"
-                      placeholder="Price"
-                      min="0"
-                      step="0.01"
-                      value={item.unit_price}
-                      onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="w-32 flex items-center justify-end">
-                    <span className="text-sm font-medium">
-                      ₹{(item.quantity * item.unit_price).toFixed(2)}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(index)}
-                    disabled={items.length === 1}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div key={index} className="space-y-3 p-3 md:p-4 border rounded-lg bg-muted/20">
+                  {/* Mobile Layout */}
+                  {isMobile ? (
+                    <>
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeItem(index)}
+                          disabled={items.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Input
+                        placeholder="Description"
+                        value={item.description}
+                        onChange={(e) => updateItem(index, "description", e.target.value)}
+                      />
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Qty</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Price</label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.unit_price}
+                            onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Amount</label>
+                          <div className="h-10 flex items-center justify-end font-medium text-sm">
+                            ₹{(item.quantity * item.unit_price).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Desktop Layout */
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          placeholder="Description"
+                          value={item.description}
+                          onChange={(e) => updateItem(index, "description", e.target.value)}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Input
+                          type="number"
+                          placeholder="Qty"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                      <div className="w-32">
+                        <Input
+                          type="number"
+                          placeholder="Price"
+                          min="0"
+                          step="0.01"
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div className="w-32 flex items-center justify-end">
+                        <span className="text-sm font-medium">
+                          ₹{(item.quantity * item.unit_price).toFixed(2)}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeItem(index)}
+                        disabled={items.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
 
+              {/* Totals */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal:</span>
@@ -283,11 +359,21 @@ const BillCreate = () => {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => navigate("/bills")}>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate("/bills")}
+              className="order-2 sm:order-1"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="order-1 sm:order-2 gradient-primary"
+            >
               {isSubmitting ? "Creating..." : "Create Bill"}
             </Button>
           </div>

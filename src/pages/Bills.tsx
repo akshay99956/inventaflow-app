@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { DocumentFilters, FilterState } from "@/components/DocumentFilters";
+import { SwipeableCard } from "@/components/SwipeableCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Bill = {
   id: string;
@@ -52,6 +54,7 @@ const Bills = () => {
     status: "",
   });
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchBills = async () => {
     const { data, error } = await supabase
@@ -178,6 +181,34 @@ const Bills = () => {
     }
   };
 
+  const handleDeleteBill = async (billId: string) => {
+    const bill = bills.find(b => b.id === billId);
+    if (bill && bill.status !== "cancelled") {
+      await restoreStock(billId);
+    }
+
+    const { error: itemsError } = await supabase
+      .from("bill_items")
+      .delete()
+      .eq("bill_id", billId);
+
+    if (itemsError) {
+      toast.error("Failed to delete bill items");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("bills")
+      .delete()
+      .eq("id", billId);
+
+    if (error) {
+      toast.error("Failed to delete bill");
+    } else {
+      toast.success("Bill deleted successfully");
+    }
+  };
+
   const getStatusBadge = (status: string | undefined) => {
     const statusConfig = {
       active: { 
@@ -252,25 +283,30 @@ const Bills = () => {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">Bills</h1>
-          <p className="text-muted-foreground">Create and manage customer bills</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gradient">Bills</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Create and manage customer bills</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button 
             variant="outline"
             onClick={handleCSVExport}
-            className="border-success hover:bg-success/10"
+            className="border-success hover:bg-success/10 flex-1 sm:flex-none"
+            size={isMobile ? "sm" : "default"}
           >
-            <Download className="mr-2 h-4 w-4 text-success" /> Export CSV
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Export CSV</span>
           </Button>
           <Button 
             onClick={() => navigate("/bills/new")}
-            className="gradient-primary text-primary-foreground shadow-colorful"
+            className="gradient-primary text-primary-foreground shadow-colorful flex-1 sm:flex-none"
+            size={isMobile ? "sm" : "default"}
           >
-            <Plus className="mr-2 h-4 w-4" /> Create Bill
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">Create Bill</span>
           </Button>
         </div>
       </div>
@@ -283,17 +319,17 @@ const Bills = () => {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-primary" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Receipt className="h-5 w-5 text-primary" />
+          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 rounded-lg bg-primary/10">
+                <Receipt className="h-4 w-4 md:h-5 md:w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Bills</p>
-                <p className="text-2xl font-bold">{totalBills}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Total Bills</p>
+                <p className="text-lg md:text-2xl font-bold">{totalBills}</p>
               </div>
             </div>
           </CardContent>
@@ -301,72 +337,72 @@ const Bills = () => {
 
         <Card className="border-0 shadow-colorful overflow-hidden">
           <div className="h-1 gradient-secondary" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <CheckCircle className="h-5 w-5 text-success" />
+          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 rounded-lg bg-success/10">
+                <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active Bills</p>
-                <p className="text-2xl font-bold text-success">{activeBills.length}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Active Bills</p>
+                <p className="text-lg md:text-2xl font-bold text-success">{activeBills.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-colorful overflow-hidden">
+        <Card className="border-0 shadow-colorful overflow-hidden col-span-2 md:col-span-1">
           <div className="h-1 gradient-warm" />
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/10">
-                <IndianRupee className="h-5 w-5 text-warning" />
+          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 rounded-lg bg-warning/10">
+                <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-warning" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-2xl font-bold text-warning">₹{totalAmount.toFixed(2)}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Total Amount</p>
+                <p className="text-lg md:text-2xl font-bold text-warning">₹{totalAmount.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-0 shadow-colorful">
-        <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
-          <CardTitle className="flex items-center gap-2">
+      {/* Bills List - Mobile Card View */}
+      {isMobile ? (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
             All Bills
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="font-semibold">Bill #</TableHead>
-                <TableHead className="font-semibold">Customer</TableHead>
-                <TableHead className="font-semibold">Date</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold text-right">Amount</TableHead>
-                <TableHead className="font-semibold">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBills.map((bill, index) => (
-                <TableRow 
-                  key={bill.id}
-                  className={`cursor-pointer hover:bg-muted/50 transition-colors ${
-                    bill.status === "cancelled" ? "opacity-60" : ""
-                  } ${index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}
-                  onClick={() => handleBillClick(bill)}
-                >
-                  <TableCell className="font-medium text-primary">{bill.bill_number}</TableCell>
-                  <TableCell>{bill.customer_name}</TableCell>
-                  <TableCell>{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+          </h3>
+          {filteredBills.map((bill) => (
+            <SwipeableCard
+              key={bill.id}
+              onEdit={() => handleBillClick(bill)}
+              onDelete={() => handleDeleteBill(bill.id)}
+            >
+              <Card 
+                className={`border-0 shadow-sm ${bill.status === "cancelled" ? "opacity-60" : ""}`}
+                onClick={() => handleBillClick(bill)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-medium text-primary">{bill.bill_number}</p>
+                      <p className="text-sm text-foreground">{bill.customer_name}</p>
+                    </div>
+                    {getStatusBadge(bill.status)}
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      {new Date(bill.bill_date).toLocaleDateString()}
+                    </span>
+                    <span className="font-semibold">₹{bill.total.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                     <Select
                       value={bill.status || "active"}
                       onValueChange={(value) => handleStatusChange(bill.id, value, bill.status)}
                     >
-                      <SelectTrigger className="w-[130px] h-8 border-0 bg-transparent">
+                      <SelectTrigger className="h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -374,67 +410,127 @@ const Bills = () => {
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
-                  </TableCell>
-                  <TableCell className="font-semibold text-right">₹{bill.total.toFixed(2)}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleBillClick(bill)}
-                    >
-                      View
-                    </Button>
-                  </TableCell>
+                  </div>
+                </CardContent>
+              </Card>
+            </SwipeableCard>
+          ))}
+          {filteredBills.length === 0 && (
+            <Card className="border-dashed">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No bills found
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        /* Desktop Table View */
+        <Card className="border-0 shadow-colorful">
+          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" />
+              All Bills
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="font-semibold">Bill #</TableHead>
+                  <TableHead className="font-semibold">Customer</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold text-right">Amount</TableHead>
+                  <TableHead className="font-semibold">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredBills.map((bill, index) => (
+                  <TableRow 
+                    key={bill.id}
+                    className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                      bill.status === "cancelled" ? "opacity-60" : ""
+                    } ${index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}
+                    onClick={() => handleBillClick(bill)}
+                  >
+                    <TableCell className="font-medium text-primary">{bill.bill_number}</TableCell>
+                    <TableCell>{bill.customer_name}</TableCell>
+                    <TableCell>{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={bill.status || "active"}
+                        onValueChange={(value) => handleStatusChange(bill.id, value, bill.status)}
+                      >
+                        <SelectTrigger className="w-[130px] h-8 border-0 bg-transparent">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="font-semibold text-right">₹{bill.total.toFixed(2)}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBillClick(bill)}
+                      >
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Bill Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader className="print:mb-8">
-            <DialogTitle className="text-2xl text-gradient">Bill Details</DialogTitle>
+            <DialogTitle className="text-xl md:text-2xl text-gradient">Bill Details</DialogTitle>
             <DialogDescription className="sr-only">
               View and manage bill details, print or share via WhatsApp
             </DialogDescription>
           </DialogHeader>
           
           {selectedBill && (
-            <div id="bill-print-area" className="space-y-6">
-              <div className="flex justify-between items-start print:mb-6">
+            <div id="bill-print-area" className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 print:mb-6">
                 <div>
                   <CompanyBranding />
-                  <h2 className="text-3xl font-bold text-gradient">BILL</h2>
-                  <p className="text-xl font-semibold text-muted-foreground mt-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gradient">BILL</h2>
+                  <p className="text-lg md:text-xl font-semibold text-muted-foreground mt-2">
                     {selectedBill.bill_number}
                   </p>
                 </div>
                 <div className="flex gap-2 print:hidden">
                   <Button onClick={handlePrint} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
-                    <Printer className="h-4 w-4 mr-2 text-primary" />
-                    Print
+                    <Printer className="h-4 w-4 mr-1 md:mr-2 text-primary" />
+                    <span className="hidden sm:inline">Print</span>
                   </Button>
                   <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="border-success/20 hover:bg-success/10">
-                    <Share2 className="h-4 w-4 mr-2 text-success" />
-                    WhatsApp
+                    <Share2 className="h-4 w-4 mr-1 md:mr-2 text-success" />
+                    <span className="hidden sm:inline">WhatsApp</span>
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 print:gap-4">
-                <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5">
-                  <h3 className="font-semibold text-primary mb-2">Bill To:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 print:gap-4">
+                <div className="p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5">
+                  <h3 className="font-semibold text-primary mb-2 text-sm md:text-base">Bill To:</h3>
                   <p className="text-foreground font-medium">{selectedBill.customer_name}</p>
                   {selectedBill.customer_email && (
-                    <p className="text-muted-foreground text-sm">{selectedBill.customer_email}</p>
+                    <p className="text-muted-foreground text-xs md:text-sm">{selectedBill.customer_email}</p>
                   )}
                 </div>
-                <div className="text-right p-4 rounded-lg bg-gradient-to-bl from-secondary/5 to-success/5">
+                <div className="text-left sm:text-right p-3 md:p-4 rounded-lg bg-gradient-to-bl from-secondary/5 to-success/5">
                   <div className="space-y-1">
-                    <p className="text-sm">
+                    <p className="text-xs md:text-sm">
                       <span className="text-muted-foreground">Bill Date:</span>{" "}
                       <span className="text-foreground font-medium">
                         {new Date(selectedBill.bill_date).toLocaleDateString()}
@@ -451,19 +547,19 @@ const Bills = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10">
-                      <TableHead className="font-semibold">Description</TableHead>
-                      <TableHead className="text-right font-semibold">Quantity</TableHead>
-                      <TableHead className="text-right font-semibold">Unit Price</TableHead>
-                      <TableHead className="text-right font-semibold">Amount</TableHead>
+                      <TableHead className="font-semibold text-xs md:text-sm">Description</TableHead>
+                      <TableHead className="text-right font-semibold text-xs md:text-sm">Qty</TableHead>
+                      <TableHead className="text-right font-semibold text-xs md:text-sm hidden sm:table-cell">Unit Price</TableHead>
+                      <TableHead className="text-right font-semibold text-xs md:text-sm">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {billItems.map((item, index) => (
                       <TableRow key={item.id} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
-                        <TableCell className="font-medium">{item.description}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium text-xs md:text-sm">{item.description}</TableCell>
+                        <TableCell className="text-right text-xs md:text-sm">{item.quantity}</TableCell>
+                        <TableCell className="text-right text-xs md:text-sm hidden sm:table-cell">₹{item.unit_price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-medium text-xs md:text-sm">₹{item.amount.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -471,26 +567,26 @@ const Bills = () => {
               </div>
 
               <div className="flex justify-end">
-                <div className="w-72 space-y-2 p-4 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30">
-                  <div className="flex justify-between text-sm">
+                <div className="w-full sm:w-64 space-y-2 p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/5 to-success/5">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span className="text-muted-foreground">Subtotal:</span>
-                    <span className="text-foreground font-medium">₹{selectedBill.subtotal.toFixed(2)}</span>
+                    <span className="font-medium">₹{selectedBill.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span className="text-muted-foreground">Tax:</span>
-                    <span className="text-foreground font-medium">₹{selectedBill.tax.toFixed(2)}</span>
+                    <span className="font-medium">₹{selectedBill.tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-xl font-bold pt-2 border-t border-primary/20">
-                    <span className="text-gradient">Total:</span>
-                    <span className="text-gradient">₹{selectedBill.total.toFixed(2)}</span>
+                  <div className="flex justify-between text-base md:text-lg font-bold pt-2 border-t">
+                    <span>Total:</span>
+                    <span className="text-primary">₹{selectedBill.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
               {selectedBill.notes && (
-                <div className="pt-4 border-t">
-                  <h3 className="font-semibold text-foreground mb-2">Notes:</h3>
-                  <p className="text-muted-foreground text-sm">{selectedBill.notes}</p>
+                <div className="p-3 md:p-4 rounded-lg bg-muted/30 print:bg-gray-50">
+                  <h3 className="font-semibold text-muted-foreground mb-2 text-xs md:text-sm">Notes:</h3>
+                  <p className="text-foreground text-xs md:text-sm">{selectedBill.notes}</p>
                 </div>
               )}
             </div>

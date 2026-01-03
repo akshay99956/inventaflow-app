@@ -8,17 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { z } from "zod";
+import { ArrowLeft } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   mobile: z.string().optional(),
-});
-
-const otpSchema = z.object({
-  email: z.string().email("Invalid email address").max(255),
-  otp: z.string().length(6, "OTP must be 6 digits").optional(),
-  newPassword: z.string().min(6, "Password must be at least 6 characters").max(100).optional(),
 });
 
 const Auth = () => {
@@ -28,7 +23,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
 
@@ -133,13 +127,13 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to BizManager</CardTitle>
-          <CardDescription>Manage your business with ease</CardDescription>
+        <CardHeader className="space-y-1 px-4 md:px-6">
+          <CardTitle className="text-xl md:text-2xl">Welcome to BizManager</CardTitle>
+          <CardDescription className="text-sm">Manage your business with ease</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 md:px-6">
           {forgotPasswordMode ? (
             <div className="space-y-4">
               <Button
@@ -148,15 +142,17 @@ const Auth = () => {
                   setForgotPasswordMode(false);
                   setOtpSent(false);
                 }}
-                className="mb-4"
+                className="mb-4 -ml-2"
+                size="sm"
               >
-                ← Back to Sign In
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to Sign In
               </Button>
               
               {!otpSent ? (
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
+                    <Label htmlFor="reset-email" className="text-sm">Email</Label>
                     <Input
                       id="reset-email"
                       type="email"
@@ -173,7 +169,7 @@ const Auth = () => {
               ) : (
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password" className="text-sm">New Password</Label>
                     <Input
                       id="new-password"
                       type="password"
@@ -189,16 +185,16 @@ const Auth = () => {
               )}
             </div>
           ) : (
-            <Tabs defaultValue="signin">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="text-sm">Email</Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -209,7 +205,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className="text-sm">Password</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -221,7 +217,7 @@ const Auth = () => {
                   <Button
                     type="button"
                     variant="link"
-                    className="px-0 text-sm"
+                    className="px-0 text-sm h-auto py-0"
                     onClick={() => setForgotPasswordMode(true)}
                   >
                     Forgot Password?
@@ -235,7 +231,7 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-sm">Email</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -246,7 +242,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-mobile">Mobile Number (Optional)</Label>
+                    <Label htmlFor="signup-mobile" className="text-sm">Mobile Number (Optional)</Label>
                     <Input
                       id="signup-mobile"
                       type="tel"
@@ -256,7 +252,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className="text-sm">Password</Label>
                     <Input
                       id="signup-password"
                       type="password"
