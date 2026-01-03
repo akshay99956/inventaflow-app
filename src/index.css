@@ -301,3 +301,8 @@ All colors MUST be HSL.
     background: white !important;
   }
 }
+
+/* Safe area for mobile bottom navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

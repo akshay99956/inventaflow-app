@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { DocumentFilters, FilterState } from "@/components/DocumentFilters";
+import { SwipeableCard } from "@/components/SwipeableCard";
 
 type Invoice = {
   id: string;
@@ -228,6 +229,25 @@ const Invoices = () => {
     }
   };
 
+  const handleDeleteInvoice = async (invoiceId: string, currentStatus: string) => {
+    // Restore stock if not already cancelled
+    if (currentStatus !== "cancelled") {
+      await restoreStock(invoiceId);
+    }
+
+    // Delete invoice items first
+    await supabase.from("invoice_items").delete().eq("invoice_id", invoiceId);
+
+    // Delete the invoice
+    const { error } = await supabase.from("invoices").delete().eq("id", invoiceId);
+
+    if (error) {
+      toast.error("Failed to delete invoice");
+    } else {
+      toast.success("Invoice deleted and stock restored");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { 
@@ -404,47 +424,32 @@ const Invoices = () => {
 
       {/* Mobile Invoice Cards */}
       <div className="md:hidden space-y-3">
+        <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
         {filteredInvoices.map((invoice) => (
-          <Card 
-            key={invoice.id} 
-            className={`border shadow-sm cursor-pointer active:scale-[0.98] transition-transform ${invoice.status === "cancelled" ? "opacity-60" : ""}`}
+          <SwipeableCard
+            key={invoice.id}
             onClick={() => handleInvoiceClick(invoice)}
+            onEdit={() => handleInvoiceClick(invoice)}
+            onDelete={() => handleDeleteInvoice(invoice.id, invoice.status)}
+            className={invoice.status === "cancelled" ? "opacity-60" : ""}
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-base truncate">{invoice.customer_name}</p>
-                  <p className="text-sm text-primary font-medium">{invoice.invoice_number}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(invoice.issue_date).toLocaleDateString()}
-                    {invoice.due_date && ` • Due: ${new Date(invoice.due_date).toLocaleDateString()}`}
-                  </p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className={`text-lg font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
-                    ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                  </p>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={invoice.status}
-                      onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
-                    >
-                      <SelectTrigger className="w-[110px] h-7 text-xs border-0 bg-transparent p-0 justify-end">
-                        {getStatusBadge(invoice.status)}
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-base truncate">{invoice.customer_name}</p>
+                <p className="text-sm text-primary font-medium">{invoice.invoice_number}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(invoice.issue_date).toLocaleDateString()}
+                  {invoice.due_date && ` • Due: ${new Date(invoice.due_date).toLocaleDateString()}`}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-right flex-shrink-0">
+                <p className={`text-lg font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
+                  ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </p>
+                {getStatusBadge(invoice.status)}
+              </div>
+            </div>
+          </SwipeableCard>
         ))}
         {filteredInvoices.length === 0 && (
           <p className="text-center text-muted-foreground py-8">No invoices found</p>

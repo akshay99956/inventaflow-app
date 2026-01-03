@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Plus, Pencil, Trash2, Users, Search } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { SwipeableCard } from "@/components/SwipeableCard";
 
 const clientSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
@@ -277,37 +278,20 @@ const Clients = () => {
       {/* Clients - Mobile Cards / Desktop Table */}
       {/* Mobile View */}
       <div className="md:hidden space-y-3">
+        <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
         {filteredClients.map((client) => (
-          <Card key={client.id} className="border shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-base truncate">{client.name}</p>
-                  {client.email && <p className="text-sm text-muted-foreground truncate">{client.email}</p>}
-                  {client.phone && <p className="text-sm text-muted-foreground">{client.phone}</p>}
-                  {client.address && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{client.address}</p>}
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(client)}
-                    className="h-9 w-9"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(client.id)}
-                    className="h-9 w-9 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SwipeableCard
+            key={client.id}
+            onEdit={() => handleEdit(client)}
+            onDelete={() => handleDelete(client.id)}
+          >
+            <div className="min-w-0">
+              <p className="font-semibold text-base truncate">{client.name}</p>
+              {client.email && <p className="text-sm text-muted-foreground truncate">{client.email}</p>}
+              {client.phone && <p className="text-sm text-muted-foreground">{client.phone}</p>}
+              {client.address && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{client.address}</p>}
+            </div>
+          </SwipeableCard>
         ))}
         {filteredClients.length === 0 && (
           <p className="text-center text-muted-foreground py-8">No clients found</p>
