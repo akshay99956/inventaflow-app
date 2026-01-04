@@ -200,16 +200,7 @@ const Dashboard = () => {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Low Stock Alert</AlertTitle>
           <AlertDescription>
-            <p className="mb-2">
-              {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {lowStockProducts.map(p => (
-                <Badge key={p.id} variant="outline" className="bg-destructive/20">
-                  {p.name} ({p.quantity} left)
-                </Badge>
-              ))}
-            </div>
+            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s need" : " needs"} restocking. Check inventory for details.
           </AlertDescription>
         </Alert>
       )}
