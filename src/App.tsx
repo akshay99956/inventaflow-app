@@ -13,8 +13,8 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Invoices from "./pages/Invoices";
 import InvoiceCreate from "./pages/InvoiceCreate";
-import Bills from "./pages/Bills";
-import BillCreate from "./pages/BillCreate";
+import PurchaseOrders from "./pages/PurchaseOrders";
+import PurchaseOrderCreate from "./pages/PurchaseOrderCreate";
 import BalanceSheet from "./pages/BalanceSheet";
 import Settings from "./pages/Settings";
 import Clients from "./pages/Clients";
@@ -89,21 +89,21 @@ const App = () => (
             }
           />
           <Route
-            path="/bills"
+            path="/purchase-orders"
             element={
               <ProtectedRoute>
                 <AppLayout>
-                  <Bills />
+                  <PurchaseOrders />
                 </AppLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/bills/new"
+            path="/purchase-orders/new"
             element={
               <ProtectedRoute>
                 <AppLayout>
-                  <BillCreate />
+                  <PurchaseOrderCreate />
                 </AppLayout>
               </ProtectedRoute>
             }

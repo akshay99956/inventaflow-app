@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart } from "lucide-react";
+import { LayoutDashboard, Package, FileText, TrendingUp, ShoppingCart, LogOut, Settings, Users, PieChart } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -21,7 +21,7 @@ const menuItems = [
   { title: "Inventory", url: "/inventory", icon: Package },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Bills", url: "/bills", icon: Receipt },
+  { title: "Purchase Orders", url: "/purchase-orders", icon: ShoppingCart },
   { title: "Balance Sheet", url: "/balance-sheet", icon: TrendingUp },
   { title: "Profit Analytics", url: "/profit-analytics", icon: PieChart },
   { title: "Settings", url: "/settings", icon: Settings },
