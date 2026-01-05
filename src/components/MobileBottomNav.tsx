@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, FileText, Users, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Package, FileText, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -7,7 +7,6 @@ const navItems = [
   { path: "/inventory", label: "Inventory", icon: Package },
   { path: "/invoices", label: "Invoices", icon: FileText },
   { path: "/purchase-orders", label: "Orders", icon: ShoppingCart },
-  { path: "/clients", label: "Clients", icon: Users },
 ];
 
 export const MobileBottomNav = () => {
