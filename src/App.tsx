@@ -15,10 +15,7 @@ import Invoices from "./pages/Invoices";
 import InvoiceCreate from "./pages/InvoiceCreate";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import PurchaseOrderCreate from "./pages/PurchaseOrderCreate";
-import BalanceSheet from "./pages/BalanceSheet";
 import Settings from "./pages/Settings";
-import Clients from "./pages/Clients";
-import ProfitAnalytics from "./pages/ProfitAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,36 +101,6 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <PurchaseOrderCreate />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/balance-sheet"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <BalanceSheet />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/clients"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Clients />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profit-analytics"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ProfitAnalytics />
                 </AppLayout>
               </ProtectedRoute>
             }

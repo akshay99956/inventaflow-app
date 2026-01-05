@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FileText, TrendingUp, ShoppingCart, LogOut, Settings, Users, PieChart } from "lucide-react";
+import { LayoutDashboard, Package, FileText, ShoppingCart, LogOut, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -6,7 +6,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -19,11 +18,8 @@ import { toast } from "sonner";
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Inventory", url: "/inventory", icon: Package },
-  { title: "Clients", url: "/clients", icon: Users },
   { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Purchase Orders", url: "/purchase-orders", icon: ShoppingCart },
-  { title: "Balance Sheet", url: "/balance-sheet", icon: TrendingUp },
-  { title: "Profit Analytics", url: "/profit-analytics", icon: PieChart },
+  { title: "Orders", url: "/purchase-orders", icon: ShoppingCart },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -53,7 +49,6 @@ export function AppSidebar() {
         </div>
         
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "hidden" : ""}>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
