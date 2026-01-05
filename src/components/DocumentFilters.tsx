@@ -16,7 +16,6 @@ interface DocumentFiltersProps {
   onFiltersChange: (filters: FilterState) => void;
   statusOptions: { value: string; label: string }[];
   showClientFilter?: boolean;
-  clientLabel?: string;
 }
 
 export interface FilterState {
@@ -29,8 +28,7 @@ export interface FilterState {
 export const DocumentFilters = ({ 
   onFiltersChange, 
   statusOptions,
-  showClientFilter = true,
-  clientLabel = "Client"
+  showClientFilter = true 
 }: DocumentFiltersProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [filters, setFilters] = useState<FilterState>({
@@ -115,7 +113,6 @@ export const DocumentFilters = ({
             {showClientFilter && (
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <User className="h-3 w-3" /> {clientLabel}
                   <User className="h-3 w-3" /> Client
                 </Label>
                 <Select

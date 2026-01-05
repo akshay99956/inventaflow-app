@@ -13,9 +13,12 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Invoices from "./pages/Invoices";
 import InvoiceCreate from "./pages/InvoiceCreate";
-import PurchaseOrders from "./pages/PurchaseOrders";
-import PurchaseOrderCreate from "./pages/PurchaseOrderCreate";
+import Bills from "./pages/Bills";
+import BillCreate from "./pages/BillCreate";
+import BalanceSheet from "./pages/BalanceSheet";
 import Settings from "./pages/Settings";
+import Clients from "./pages/Clients";
+import ProfitAnalytics from "./pages/ProfitAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,21 +89,51 @@ const App = () => (
             }
           />
           <Route
-            path="/purchase-orders"
+            path="/bills"
             element={
               <ProtectedRoute>
                 <AppLayout>
-                  <PurchaseOrders />
+                  <Bills />
                 </AppLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/purchase-orders/new"
+            path="/bills/new"
             element={
               <ProtectedRoute>
                 <AppLayout>
-                  <PurchaseOrderCreate />
+                  <BillCreate />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/balance-sheet"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <BalanceSheet />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clients"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Clients />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profit-analytics"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProfitAnalytics />
                 </AppLayout>
               </ProtectedRoute>
             }
