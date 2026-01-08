@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { SwipeableCard } from "@/components/SwipeableCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -58,6 +60,7 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [selectedPrintColumns, setSelectedPrintColumns] = useState<PrintColumn[]>(['name', 'quantity', 'unit_price']);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -340,7 +343,7 @@ const Inventory = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient">Inventory</h1>
@@ -672,31 +675,34 @@ const Inventory = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Search and Filter Section */}
       <Card className="border-2 border-accent/20 shadow-colorful">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <CardTitle className="text-gradient">Products</CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
-                Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toFixed(2)}</span>
-                {lowStockProducts.length > 0 && (
-                  <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
-                    {lowStockProducts.length} Low Stock
-                  </Badge>
-                )}
-              </p>
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 pb-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+              <div>
+                <CardTitle className="text-gradient">Products</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                  {lowStockProducts.length > 0 && (
+                    <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
+                      {lowStockProducts.length} Low Stock
+                    </Badge>
+                  )}
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Input
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="md:w-64 border-primary/20 focus:border-primary"
+                className="flex-1 border-primary/20 focus:border-primary"
               />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="flex h-10 w-full md:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+                className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -708,86 +714,145 @@ const Inventory = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/15 hover:to-accent/15">
-                <TableHead className="font-bold">Name</TableHead>
-                <TableHead className="font-bold">SKU</TableHead>
-                <TableHead className="font-bold">Category</TableHead>
-                <TableHead className="text-right font-bold">Quantity</TableHead>
-                <TableHead className="text-right font-bold">Purchase</TableHead>
-                <TableHead className="text-right font-bold">Sale</TableHead>
-                <TableHead className="text-right font-bold">Profit</TableHead>
-                <TableHead className="text-right font-bold">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product, index) => (
-                <TableRow 
-                  key={product.id} 
-                  className={`transition-colors ${
-                    isLowStock(product) 
-                      ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" 
-                      : index % 2 === 0 ? "bg-card" : "bg-muted/20"
-                  }`}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
+
+        {/* Mobile Card View */}
+        {isMobile ? (
+          <CardContent className="p-3 space-y-3">
+            <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
+            {filteredProducts.map((product) => (
+              <SwipeableCard
+                key={product.id}
+                onEdit={() => handleEdit(product)}
+                onDelete={() => handleDelete(product.id)}
+                className={isLowStock(product) ? "border-destructive/40 bg-destructive/5" : ""}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-base truncate">{product.name}</p>
+                      {product.sku && (
+                        <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
+                      )}
+                      {product.category && (
+                        <Badge variant="outline" className="mt-1 border-secondary/30 text-secondary text-xs">
+                          {product.category}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className={`text-lg font-bold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
+                        {product.quantity}
+                      </p>
+                      <p className="text-xs text-muted-foreground">units</p>
                       {isLowStock(product) && (
-                        <Badge className="text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground animate-pulse">
+                        <Badge className="mt-1 text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
                           Low Stock
                         </Badge>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{product.sku || "-"}</TableCell>
-                  <TableCell>
-                    {product.category ? (
-                      <Badge variant="outline" className="border-secondary/30 text-secondary">
-                        {product.category}
-                      </Badge>
-                    ) : "-"}
-                  </TableCell>
-                  <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                    {product.quantity}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">₹{product.purchase_price.toFixed(2)}</TableCell>
-                  <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-col items-end">
-                      <span className="font-medium text-info">₹{getProfitMargin(product).toFixed(2)}</span>
-                      <span className={`text-xs ${getProfitPercentage(product) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {getProfitPercentage(product).toFixed(1)}%
-                      </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                    <div className="space-y-0.5">
+                      <p className="text-xs text-muted-foreground">Purchase: <span className="text-foreground">₹{product.purchase_price.toFixed(2)}</span></p>
+                      <p className="text-xs text-muted-foreground">Sale: <span className="text-success font-medium">₹{product.unit_price.toFixed(2)}</span></p>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleEdit(product)}
-                        className="hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(product.id)}
-                        className="hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-info">₹{getProfitMargin(product).toFixed(2)}</p>
+                      <p className={`text-xs ${getProfitPercentage(product) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {getProfitPercentage(product).toFixed(1)}% profit
+                      </p>
                     </div>
-                  </TableCell>
+                  </div>
+                </div>
+              </SwipeableCard>
+            ))}
+            {filteredProducts.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">No products found</p>
+            )}
+          </CardContent>
+        ) : (
+          /* Desktop Table View */
+          <CardContent className="pt-6">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/15 hover:to-accent/15">
+                  <TableHead className="font-bold">Name</TableHead>
+                  <TableHead className="font-bold">SKU</TableHead>
+                  <TableHead className="font-bold">Category</TableHead>
+                  <TableHead className="text-right font-bold">Quantity</TableHead>
+                  <TableHead className="text-right font-bold">Purchase</TableHead>
+                  <TableHead className="text-right font-bold">Sale</TableHead>
+                  <TableHead className="text-right font-bold">Profit</TableHead>
+                  <TableHead className="text-right font-bold">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product, index) => (
+                  <TableRow 
+                    key={product.id} 
+                    className={`transition-colors ${
+                      isLowStock(product) 
+                        ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" 
+                        : index % 2 === 0 ? "bg-card" : "bg-muted/20"
+                    }`}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
+                        {isLowStock(product) && (
+                          <Badge className="text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground animate-pulse">
+                            Low Stock
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{product.sku || "-"}</TableCell>
+                    <TableCell>
+                      {product.category ? (
+                        <Badge variant="outline" className="border-secondary/30 text-secondary">
+                          {product.category}
+                        </Badge>
+                      ) : "-"}
+                    </TableCell>
+                    <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
+                      {product.quantity}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">₹{product.purchase_price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-col items-end">
+                        <span className="font-medium text-info">₹{getProfitMargin(product).toFixed(2)}</span>
+                        <span className={`text-xs ${getProfitPercentage(product) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {getProfitPercentage(product).toFixed(1)}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleEdit(product)}
+                          className="hover:bg-primary/10 hover:text-primary"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleDelete(product.id)}
+                          className="hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        )}
       </Card>
     </div>
   );
