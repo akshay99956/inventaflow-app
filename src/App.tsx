@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { TopNavBar } from "@/components/TopNavBar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -27,12 +28,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <AppSidebar />
-      <main className="flex-1 pb-16 md:pb-0">
-        <header className="h-14 border-b flex items-center px-4 bg-background sticky top-0 z-10">
-          <SidebarTrigger className="hidden md:flex" />
-          <span className="md:hidden font-semibold text-lg">InventaFlow</span>
+      <main className="flex-1 pb-16 md:pb-0 flex flex-col">
+        {/* Mobile Top Nav */}
+        <div className="md:hidden">
+          <TopNavBar />
+        </div>
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-14 border-b items-center px-4 bg-background sticky top-0 z-10">
+          <SidebarTrigger />
         </header>
-        {children}
+        <div className="flex-1">
+          {children}
+        </div>
       </main>
       <MobileBottomNav />
     </div>
