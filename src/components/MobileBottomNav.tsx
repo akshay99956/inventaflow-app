@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, Users, Menu, Receipt, FileText, TrendingUp, PieChart, Settings, X } from "lucide-react";
+import { Home, ShoppingCart, Package, Users, Menu, Receipt, FileText, TrendingUp, PieChart, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const primaryNavItems = [
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/dashboard", label: "Dashboard", icon: Home },
   { path: "/invoices", label: "Sales", icon: ShoppingCart },
   { path: "/inventory", label: "Inventory", icon: Package },
   { path: "/clients", label: "Clients", icon: Users },
@@ -13,7 +13,7 @@ const primaryNavItems = [
 
 const moreMenuItems = [
   { path: "/bills", label: "Purchases", icon: Receipt },
-  { path: "/invoices", label: "All Invoices", icon: FileText },
+  { path: "/invoices", label: "Invoices", icon: FileText },
   { path: "/balance-sheet", label: "Balance Sheet", icon: TrendingUp },
   { path: "/profit-analytics", label: "Reports", icon: PieChart },
   { path: "/settings", label: "Settings", icon: Settings },
