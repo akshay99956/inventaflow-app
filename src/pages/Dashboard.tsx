@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, AlertTriangle } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-type LowStockProduct = {
-  id: string;
-  name: string;
-  quantity: number;
-  low_stock_threshold: number;
-};
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -28,7 +22,6 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
   const [outstandingInvoices, setOutstandingInvoices] = useState<any[]>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -41,10 +34,6 @@ const Dashboard = () => {
       const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
       const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
       const totalStockValue = products?.reduce((sum, product) => sum + (product.quantity * product.unit_price), 0) || 0;
-
-      // Find low stock products
-      const lowStock = products?.filter(p => p.quantity <= p.low_stock_threshold) || [];
-      setLowStockProducts(lowStock);
 
       setStats({
         totalProducts,
@@ -195,26 +184,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {lowStockProducts.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Low Stock Alert</AlertTitle>
-          <AlertDescription>
-            <p className="mb-2">
-              {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s are" : " is"} running low on stock:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {lowStockProducts.map(p => (
-                <Badge key={p.id} variant="outline" className="bg-destructive/20">
-                  {p.name} ({p.quantity} left)
-                </Badge>
-              ))}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total Products</CardTitle>
@@ -223,19 +193,6 @@ const Dashboard = () => {
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
             <div className="text-xl md:text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground hidden sm:block">In inventory</p>
-          </CardContent>
-        </Card>
-
-        <Card className={`col-span-1 ${lowStockProducts.length > 0 ? "border-destructive" : ""}`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Low Stock</CardTitle>
-            <AlertTriangle className={`h-4 w-4 ${lowStockProducts.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className={`text-xl md:text-2xl font-bold ${lowStockProducts.length > 0 ? "text-destructive" : ""}`}>
-              {lowStockProducts.length}
-            </div>
-            <p className="text-xs text-muted-foreground hidden sm:block">Need restocking</p>
           </CardContent>
         </Card>
 
@@ -261,7 +218,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="col-span-2 lg:col-span-1">
+        <Card className="col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
