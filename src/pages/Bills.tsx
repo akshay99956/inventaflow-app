@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Printer, Share2, Receipt, IndianRupee, XCircle, CheckCircle, Download } from "lucide-react";
+import { Plus, Printer, Share2, Receipt, IndianRupee, XCircle, CheckCircle, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
@@ -366,58 +366,76 @@ const Bills = () => {
         </Card>
       </div>
 
-      {/* Bills List - Mobile Card View */}
+      {/* Bills List - Mobile Card View - Compact */}
       {isMobile ? (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-primary" />
-            All Bills
-          </h3>
+        <div className="space-y-2">
           {filteredBills.map((bill) => (
-            <SwipeableCard
+            <Card 
               key={bill.id}
-              onEdit={() => handleBillClick(bill)}
-              onDelete={() => handleDeleteBill(bill.id)}
+              className={`border-0 shadow-sm overflow-hidden ${bill.status === "cancelled" ? "opacity-60" : ""}`}
             >
-              <Card 
-                className={`border-0 shadow-sm ${bill.status === "cancelled" ? "opacity-60" : ""}`}
-                onClick={() => handleBillClick(bill)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="font-medium text-primary">{bill.bill_number}</p>
-                      <p className="text-sm text-foreground">{bill.customer_name}</p>
+              <div className={`h-0.5 ${bill.status === "cancelled" ? "bg-destructive" : "bg-success"}`} />
+              <CardContent className="p-3">
+                {/* Main Row - Tap to view */}
+                <div 
+                  className="flex items-center justify-between gap-2"
+                  onClick={() => handleBillClick(bill)}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm truncate">{bill.customer_name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="text-primary font-medium">{bill.bill_number}</span>
+                      <span>•</span>
+                      <span>{new Date(bill.bill_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className="text-base font-bold">₹{bill.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
                     {getStatusBadge(bill.status)}
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">
-                      {new Date(bill.bill_date).toLocaleDateString()}
-                    </span>
-                    <span className="font-semibold">₹{bill.total.toFixed(2)}</span>
-                  </div>
-                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={bill.status || "active"}
-                      onValueChange={(value) => handleStatusChange(bill.id, value, bill.status)}
+                </div>
+                
+                {/* Compact Action Row */}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+                  <Select
+                    value={bill.status || "active"}
+                    onValueChange={(value) => handleStatusChange(bill.id, value, bill.status)}
+                  >
+                    <SelectTrigger className="h-7 w-24 text-xs border-0 bg-muted/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active" className="text-xs">Active</SelectItem>
+                      <SelectItem value="cancelled" className="text-xs">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleBillClick(bill)}
                     >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Receipt className="h-3.5 w-3.5 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-destructive"
+                      onClick={() => handleDeleteBill(bill.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </SwipeableCard>
+                </div>
+              </CardContent>
+            </Card>
           ))}
           {filteredBills.length === 0 && (
             <Card className="border-dashed">
-              <CardContent className="py-8 text-center text-muted-foreground">
+              <CardContent className="py-6 text-center text-muted-foreground text-sm">
                 No bills found
               </CardContent>
             </Card>
