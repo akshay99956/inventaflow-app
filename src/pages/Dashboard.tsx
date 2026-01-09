@@ -164,7 +164,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>

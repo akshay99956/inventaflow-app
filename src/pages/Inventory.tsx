@@ -715,59 +715,75 @@ const Inventory = () => {
           </div>
         </CardHeader>
 
-        {/* Mobile Card View */}
+        {/* Mobile Card View - Compact */}
         {isMobile ? (
-          <CardContent className="p-3 space-y-3">
-            <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
+          <CardContent className="p-2 space-y-2">
             {filteredProducts.map((product) => (
-              <SwipeableCard
-                key={product.id}
-                onEdit={() => handleEdit(product)}
-                onDelete={() => handleDelete(product.id)}
-                className={isLowStock(product) ? "border-destructive/40 bg-destructive/5" : ""}
+              <Card 
+                key={product.id} 
+                className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}
               >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
+                <div className={`h-0.5 ${isLowStock(product) ? "bg-destructive" : "gradient-primary"}`} />
+                <CardContent className="p-3">
+                  {/* Main Row */}
+                  <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-base truncate">{product.name}</p>
-                      {product.sku && (
-                        <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
-                      )}
-                      {product.category && (
-                        <Badge variant="outline" className="mt-1 border-secondary/30 text-secondary text-xs">
-                          {product.category}
-                        </Badge>
-                      )}
+                      <p className="font-semibold text-sm truncate">{product.name}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {product.sku && <span>SKU: {product.sku}</span>}
+                        {product.category && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-secondary/30 text-secondary">
+                            {product.category}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className={`text-lg font-bold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                        {product.quantity}
-                      </p>
-                      <p className="text-xs text-muted-foreground">units</p>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <p className={`text-base font-bold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
+                          {product.quantity}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">in stock</p>
+                      </div>
                       {isLowStock(product) && (
-                        <Badge className="mt-1 text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
-                          Low Stock
-                        </Badge>
+                        <Badge className="text-[10px] px-1.5 bg-destructive/80">Low</Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                    <div className="space-y-0.5">
-                      <p className="text-xs text-muted-foreground">Purchase: <span className="text-foreground">₹{product.purchase_price.toFixed(2)}</span></p>
-                      <p className="text-xs text-muted-foreground">Sale: <span className="text-success font-medium">₹{product.unit_price.toFixed(2)}</span></p>
+                  
+                  {/* Price & Actions Row */}
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-muted-foreground">₹{product.purchase_price.toFixed(0)}</span>
+                      <span className="text-success font-medium">→ ₹{product.unit_price.toFixed(0)}</span>
+                      <span className={`font-medium ${getProfitPercentage(product) >= 0 ? 'text-info' : 'text-destructive'}`}>
+                        +{getProfitPercentage(product).toFixed(0)}%
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-info">₹{getProfitMargin(product).toFixed(2)}</p>
-                      <p className={`text-xs ${getProfitPercentage(product) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {getProfitPercentage(product).toFixed(1)}% profit
-                      </p>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => handleEdit(product)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-destructive"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                </div>
-              </SwipeableCard>
+                </CardContent>
+              </Card>
             ))}
             {filteredProducts.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">No products found</p>
+              <p className="text-center text-muted-foreground py-6 text-sm">No products found</p>
             )}
           </CardContent>
         ) : (

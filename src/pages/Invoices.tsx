@@ -425,179 +425,180 @@ const Invoices = () => {
         </Card>
       </div>
 
-      {/* Mobile Invoice Cards - Modern Design */}
+      {/* Mobile Invoice Cards - Compact Modern Design */}
       {isMobile && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filteredInvoices.map((invoice) => (
             <Card 
               key={invoice.id} 
-              className={`border-0 shadow-colorful overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}
+              className={`border-0 shadow-sm overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}
             >
-              <div className={`h-1 ${
+              <div className={`h-0.5 ${
                 invoice.status === "paid" ? "bg-success" : 
                 invoice.status === "overdue" ? "bg-warning" : 
                 invoice.status === "cancelled" ? "bg-destructive" : 
                 "gradient-primary"
               }`} />
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1" onClick={() => handleInvoiceClick(invoice)}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-base truncate">{invoice.customer_name}</p>
-                    </div>
-                    <p className="text-sm text-primary font-semibold">{invoice.invoice_number}</p>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                      <span>{new Date(invoice.issue_date).toLocaleDateString()}</span>
-                      {invoice.due_date && (
-                        <>
-                          <span>•</span>
-                          <span>Due: {new Date(invoice.due_date).toLocaleDateString()}</span>
-                        </>
-                      )}
+              <CardContent className="p-3">
+                {/* Main Row - Tap to view */}
+                <div 
+                  className="flex items-center justify-between gap-2"
+                  onClick={() => handleInvoiceClick(invoice)}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm truncate">{invoice.customer_name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="text-primary font-medium">{invoice.invoice_number}</span>
+                      <span>•</span>
+                      <span>{new Date(invoice.issue_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <p className={`text-xl font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <p className={`text-base font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
                       ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                     </p>
                     {getStatusBadge(invoice.status)}
                   </div>
                 </div>
                 
-                {/* Action Buttons Row */}
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/50">
+                {/* Compact Action Row */}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+                  {/* Status Dropdown - Compact */}
+                  <Select
+                    value={invoice.status}
+                    onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
+                  >
+                    <SelectTrigger className="h-7 w-24 text-xs border-0 bg-muted/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {invoiceStatusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="text-xs">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Action Buttons - Compact */}
                   <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 px-2 text-xs"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
                       onClick={() => handleInvoiceClick(invoice)}
                     >
                       <Eye className="h-3.5 w-3.5 mr-1" />
                       View
                     </Button>
-                    <Select
-                      value={invoice.status}
-                      onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
-                    >
-                      <SelectTrigger className="h-8 w-[100px] text-xs border-0 bg-muted/50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {invoiceStatusOptions.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36">
+                        <DropdownMenuItem onClick={() => handleInvoiceClick(invoice)} className="text-xs">
+                          <Eye className="h-3.5 w-3.5 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteInvoice(invoice.id, invoice.status)}
+                          className="text-destructive text-xs"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleInvoiceClick(invoice)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => handleDeleteInvoice(invoice.id, invoice.status)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
           ))}
           {filteredInvoices.length === 0 && (
-            <Card className="border-0 shadow-colorful">
-              <CardContent className="p-8 text-center">
-                <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No invoices found</p>
-                <Button 
-                  className="mt-4 gradient-primary"
-                  onClick={() => navigate("/invoices/new")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Invoice
-                </Button>
+            <Card className="border-dashed">
+              <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                No invoices found
               </CardContent>
             </Card>
           )}
         </div>
       )}
 
-      {/* Desktop Table */}
+      {/* Desktop Table View */}
       {!isMobile && (
-      <Card className="border-0 shadow-colorful">
-        <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            All Invoices
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="font-semibold">Invoice #</TableHead>
-                <TableHead className="font-semibold">Customer</TableHead>
-                <TableHead className="font-semibold">Issue Date</TableHead>
-                <TableHead className="font-semibold">Due Date</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map((invoice, index) => (
-                <TableRow 
-                  key={invoice.id} 
-                  className={`cursor-pointer hover:bg-muted/50 transition-colors ${
-                    invoice.status === "cancelled" ? "opacity-60" : ""
-                  } ${index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}
-                  onClick={() => handleInvoiceClick(invoice)}
-                >
-                  <TableCell className="font-medium text-primary">{invoice.invoice_number}</TableCell>
-                  <TableCell>{invoice.customer_name}</TableCell>
-                  <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "-"}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={invoice.status}
-                      onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
-                    >
-                      <SelectTrigger className="w-[140px] h-8 border-0 bg-transparent">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="font-semibold text-right">
-                    <span className={invoice.status === "paid" ? "text-success" : ""}>
-                      ₹{invoice.total.toFixed(2)}
-                    </span>
-                  </TableCell>
+        <Card className="border-0 shadow-colorful">
+          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              All Invoices
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="font-semibold">Invoice #</TableHead>
+                  <TableHead className="font-semibold">Customer</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold text-right">Amount</TableHead>
+                  <TableHead className="font-semibold">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice, index) => (
+                  <TableRow 
+                    key={invoice.id}
+                    className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                      invoice.status === "cancelled" ? "opacity-60" : ""
+                    } ${index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}
+                    onClick={() => handleInvoiceClick(invoice)}
+                  >
+                    <TableCell className="font-medium text-primary">{invoice.invoice_number}</TableCell>
+                    <TableCell>{invoice.customer_name}</TableCell>
+                    <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={invoice.status}
+                        onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
+                      >
+                        <SelectTrigger className="w-[120px] h-8 border-0 bg-transparent">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {invoiceStatusOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="font-semibold text-right">₹{invoice.total.toLocaleString('en-IN')}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleInvoiceClick(invoice)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteInvoice(invoice.id, invoice.status)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -698,29 +699,6 @@ const Invoices = () => {
                         {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{item.quantity}</TableCell>}
                         {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>}
                         {selectedPrintColumns.includes('amount') && <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden shadow-sm">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10">
-                      <TableHead className="font-semibold">Description</TableHead>
-                      <TableHead className="text-right font-semibold">Quantity</TableHead>
-                      <TableHead className="text-right font-semibold">Unit Price</TableHead>
-                      <TableHead className="text-right font-semibold">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {invoiceItems.map((item, index) => (
-                      <TableRow key={item.id} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
-                        <TableCell className="font-medium">{item.description}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -172,7 +172,7 @@ const Clients = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient">Clients</h1>
@@ -275,26 +275,48 @@ const Clients = () => {
         />
       </div>
 
-      {/* Clients - Mobile Cards / Desktop Table */}
-      {/* Mobile View */}
-      <div className="md:hidden space-y-3">
-        <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
+      {/* Clients - Mobile Cards - Compact */}
+      <div className="md:hidden space-y-2">
         {filteredClients.map((client) => (
-          <SwipeableCard
-            key={client.id}
-            onEdit={() => handleEdit(client)}
-            onDelete={() => handleDelete(client.id)}
-          >
-            <div className="min-w-0">
-              <p className="font-semibold text-base truncate">{client.name}</p>
-              {client.email && <p className="text-sm text-muted-foreground truncate">{client.email}</p>}
-              {client.phone && <p className="text-sm text-muted-foreground">{client.phone}</p>}
-              {client.address && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{client.address}</p>}
-            </div>
-          </SwipeableCard>
+          <Card key={client.id} className="border-0 shadow-sm overflow-hidden">
+            <div className="h-0.5 gradient-primary" />
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm truncate">{client.name}</p>
+                  <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground mt-0.5">
+                    {client.phone && <span>{client.phone}</span>}
+                    {client.email && client.phone && <span>•</span>}
+                    {client.email && <span className="truncate max-w-[140px]">{client.email}</span>}
+                  </div>
+                  {client.address && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{client.address}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => handleEdit(client)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-destructive"
+                    onClick={() => handleDelete(client.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
         {filteredClients.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No clients found</p>
+          <p className="text-center text-muted-foreground py-6 text-sm">No clients found</p>
         )}
       </div>
 
