@@ -8,7 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle, Download } from "lucide-react";
+import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle, Download, MoreHorizontal, Eye, Trash2, Edit2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
@@ -70,6 +72,7 @@ const Invoices = () => {
     status: "",
   });
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const togglePrintColumn = (col: InvoicePrintColumn) => {
     setSelectedPrintColumns(prev => 
@@ -422,42 +425,118 @@ const Invoices = () => {
         </Card>
       </div>
 
-      {/* Mobile Invoice Cards */}
-      <div className="md:hidden space-y-3">
-        <p className="text-xs text-muted-foreground text-center">← Swipe left on cards for quick actions →</p>
-        {filteredInvoices.map((invoice) => (
-          <SwipeableCard
-            key={invoice.id}
-            onClick={() => handleInvoiceClick(invoice)}
-            onEdit={() => handleInvoiceClick(invoice)}
-            onDelete={() => handleDeleteInvoice(invoice.id, invoice.status)}
-            className={invoice.status === "cancelled" ? "opacity-60" : ""}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-base truncate">{invoice.customer_name}</p>
-                <p className="text-sm text-primary font-medium">{invoice.invoice_number}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(invoice.issue_date).toLocaleDateString()}
-                  {invoice.due_date && ` • Due: ${new Date(invoice.due_date).toLocaleDateString()}`}
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className={`text-lg font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
-                  ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                </p>
-                {getStatusBadge(invoice.status)}
-              </div>
-            </div>
-          </SwipeableCard>
-        ))}
-        {filteredInvoices.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No invoices found</p>
-        )}
-      </div>
+      {/* Mobile Invoice Cards - Modern Design */}
+      {isMobile && (
+        <div className="space-y-3">
+          {filteredInvoices.map((invoice) => (
+            <Card 
+              key={invoice.id} 
+              className={`border-0 shadow-colorful overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}
+            >
+              <div className={`h-1 ${
+                invoice.status === "paid" ? "bg-success" : 
+                invoice.status === "overdue" ? "bg-warning" : 
+                invoice.status === "cancelled" ? "bg-destructive" : 
+                "gradient-primary"
+              }`} />
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1" onClick={() => handleInvoiceClick(invoice)}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-bold text-base truncate">{invoice.customer_name}</p>
+                    </div>
+                    <p className="text-sm text-primary font-semibold">{invoice.invoice_number}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <span>{new Date(invoice.issue_date).toLocaleDateString()}</span>
+                      {invoice.due_date && (
+                        <>
+                          <span>•</span>
+                          <span>Due: {new Date(invoice.due_date).toLocaleDateString()}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <p className={`text-xl font-bold ${invoice.status === "paid" ? "text-success" : ""}`}>
+                      ₹{invoice.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </p>
+                    {getStatusBadge(invoice.status)}
+                  </div>
+                </div>
+                
+                {/* Action Buttons Row */}
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/50">
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-xs"
+                      onClick={() => handleInvoiceClick(invoice)}
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1" />
+                      View
+                    </Button>
+                    <Select
+                      value={invoice.status}
+                      onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}
+                    >
+                      <SelectTrigger className="h-8 w-[100px] text-xs border-0 bg-muted/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {invoiceStatusOptions.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleInvoiceClick(invoice)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDeleteInvoice(invoice.id, invoice.status)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {filteredInvoices.length === 0 && (
+            <Card className="border-0 shadow-colorful">
+              <CardContent className="p-8 text-center">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No invoices found</p>
+                <Button 
+                  className="mt-4 gradient-primary"
+                  onClick={() => navigate("/invoices/new")}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Invoice
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Desktop Table */}
-      <Card className="border-0 shadow-colorful hidden md:block">
+      {!isMobile && (
+      <Card className="border-0 shadow-colorful">
         <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
@@ -519,6 +598,7 @@ const Invoices = () => {
           </Table>
         </CardContent>
       </Card>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
