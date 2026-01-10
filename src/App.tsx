@@ -77,7 +77,7 @@ const App = () => <QueryClientProvider client={queryClient}>
                 <AppLayout>
                   <Bills />
                 </AppLayout>
-              </ProtectedRoute>} className="pl-0 pb-0 pr-0 mx-0 mr-0 ml-0" />
+              </ProtectedRoute>} />
           <Route path="/bills/new" element={<ProtectedRoute>
                 <AppLayout>
                   <BillCreate />
