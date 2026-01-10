@@ -76,51 +76,47 @@ export const DocumentFilters = ({
 
   return (
     <Card className="border-0 shadow-sm bg-gradient-to-r from-muted/30 to-muted/10">
-      <CardContent className="py-4">
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex items-center gap-2 text-muted-foreground">
+      <CardContent className="py-2 md:py-4 px-2 md:px-6">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Filter Icon - Hidden on mobile */}
+          <div className="hidden md:flex items-center gap-2 text-muted-foreground">
             <Filter className="h-4 w-4" />
-            <span className="text-sm font-medium">Filters:</span>
           </div>
 
-          <div className="flex flex-wrap gap-4 flex-1">
-            {/* Date Range */}
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div className="flex gap-2 items-center">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">From</Label>
-                  <Input
-                    type="date"
-                    value={filters.dateFrom}
-                    onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-                    className="h-8 w-36 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">To</Label>
-                  <Input
-                    type="date"
-                    value={filters.dateTo}
-                    onChange={(e) => handleFilterChange("dateTo", e.target.value)}
-                    className="h-8 w-36 text-sm"
-                  />
-                </div>
-              </div>
+          {/* All filters in a single row */}
+          <div className="grid grid-cols-4 md:flex md:flex-wrap gap-1.5 md:gap-3 flex-1 items-center">
+            {/* Date From */}
+            <div className="flex flex-col">
+              <Label className="text-[9px] md:text-xs text-muted-foreground mb-0.5">From</Label>
+              <Input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+                className="h-7 md:h-8 text-[10px] md:text-sm px-1.5 md:px-3 w-full md:w-32"
+              />
+            </div>
+
+            {/* Date To */}
+            <div className="flex flex-col">
+              <Label className="text-[9px] md:text-xs text-muted-foreground mb-0.5">To</Label>
+              <Input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+                className="h-7 md:h-8 text-[10px] md:text-sm px-1.5 md:px-3 w-full md:w-32"
+              />
             </div>
 
             {/* Client Filter */}
             {showClientFilter && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <User className="h-3 w-3" /> Client
-                </Label>
+              <div className="flex flex-col">
+                <Label className="text-[9px] md:text-xs text-muted-foreground mb-0.5">Client</Label>
                 <Select
                   value={filters.clientId}
                   onValueChange={(value) => handleFilterChange("clientId", value === "all" ? "" : value)}
                 >
-                  <SelectTrigger className="h-8 w-44 text-sm">
-                    <SelectValue placeholder="All Clients" />
+                  <SelectTrigger className="h-7 md:h-8 text-[10px] md:text-sm px-1.5 md:px-3 w-full md:w-36">
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Clients</SelectItem>
@@ -135,14 +131,14 @@ export const DocumentFilters = ({
             )}
 
             {/* Status Filter */}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Status</Label>
+            <div className="flex flex-col">
+              <Label className="text-[9px] md:text-xs text-muted-foreground mb-0.5">Status</Label>
               <Select
                 value={filters.status}
                 onValueChange={(value) => handleFilterChange("status", value === "all" ? "" : value)}
               >
-                <SelectTrigger className="h-8 w-36 text-sm">
-                  <SelectValue placeholder="All Status" />
+                <SelectTrigger className="h-7 md:h-8 text-[10px] md:text-sm px-1.5 md:px-3 w-full md:w-28">
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
