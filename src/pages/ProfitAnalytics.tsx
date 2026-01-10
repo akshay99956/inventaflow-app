@@ -278,24 +278,29 @@ const ProfitAnalytics = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
         <Card className="border-2 border-accent/20 shadow-colorful">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 md:px-6 py-3 md:py-4 px-0 pl-0 pr-0 pb-0 pt-0 mx-0 my-0">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary pt-0 pl-0 pr-0 my-0 mx-0" />
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 px-3 md:px-6 py-2 md:py-4">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
               Monthly Profit Trend
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 md:pt-6 px-2 md:px-6">
-            <ChartContainer config={chartConfig} className="h-[200px] md:h-[300px]">
-              <AreaChart data={metrics.monthlyData}>
+          <CardContent className="pt-2 md:pt-6 px-1 md:px-6 pb-2 md:pb-6">
+            <ChartContainer config={chartConfig} className="h-[150px] md:h-[300px] w-full">
+              <AreaChart data={metrics.monthlyData} margin={isMobile ? { top: 5, right: 5, left: -20, bottom: 5 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{
-                fontSize: isMobile ? 10 : 12
-              }} />
-                <YAxis tick={{
-                fontSize: isMobile ? 10 : 12
-              }} />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: isMobile ? 8 : 12 }}
+                  tickFormatter={(value) => isMobile ? value.slice(0, 3) : value}
+                  interval={isMobile ? 0 : "preserveStartEnd"}
+                />
+                <YAxis 
+                  tick={{ fontSize: isMobile ? 8 : 12 }}
+                  tickFormatter={(value) => isMobile ? `₹${(value / 1000).toFixed(0)}k` : `₹${value}`}
+                  width={isMobile ? 35 : 60}
+                />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area type="monotone" dataKey="revenue" stackId="1" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.3} />
                 <Area type="monotone" dataKey="profit" stackId="2" stroke="hsl(var(--chart-2))" fill="hsl(var(--chart-2))" fillOpacity={0.6} />
@@ -305,26 +310,31 @@ const ProfitAnalytics = () => {
         </Card>
 
         <Card className="border-2 border-accent/20 shadow-colorful">
-          <CardHeader className="bg-gradient-to-r from-success/5 to-info/5 px-3 md:px-6 py-3 md:py-4">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+          <CardHeader className="bg-gradient-to-r from-success/5 to-info/5 px-3 md:px-6 py-2 md:py-4">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
               <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />
               Revenue vs Cost vs Profit
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 md:pt-6 px-2 md:px-6">
-            <ChartContainer config={chartConfig} className="h-[200px] md:h-[300px]">
-              <BarChart data={metrics.monthlyData}>
+          <CardContent className="pt-2 md:pt-6 px-1 md:px-6 pb-2 md:pb-6">
+            <ChartContainer config={chartConfig} className="h-[150px] md:h-[300px] w-full">
+              <BarChart data={metrics.monthlyData} margin={isMobile ? { top: 5, right: 5, left: -20, bottom: 5 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{
-                fontSize: isMobile ? 10 : 12
-              }} />
-                <YAxis tick={{
-                fontSize: isMobile ? 10 : 12
-              }} />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: isMobile ? 8 : 12 }}
+                  tickFormatter={(value) => isMobile ? value.slice(0, 3) : value}
+                  interval={isMobile ? 0 : "preserveStartEnd"}
+                />
+                <YAxis 
+                  tick={{ fontSize: isMobile ? 8 : 12 }}
+                  tickFormatter={(value) => isMobile ? `₹${(value / 1000).toFixed(0)}k` : `₹${value}`}
+                  width={isMobile ? 35 : 60}
+                />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="revenue" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="cost" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="profit" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="revenue" fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="cost" fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="profit" fill="hsl(var(--chart-2))" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ChartContainer>
           </CardContent>
