@@ -74,7 +74,7 @@ export const TopNavBar = () => {
           <Button variant="ghost" size="icon" onClick={() => setIsMoreOpen(true)} className="h-9 w-9 md:hidden bg-secondary">
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-bold text-lg text-primary">BizManager</span>
+          <span className="font-bold text-lg text-primary">DC</span>
         </div>
 
         {/* Right Actions */}
