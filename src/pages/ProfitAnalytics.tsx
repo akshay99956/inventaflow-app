@@ -184,9 +184,9 @@ const ProfitAnalytics = () => {
       </div>
 
       {/* Date Range Filter */}
-      <Card className="border-2 border-primary/20">
+      <Card className="border-2 border-primary/20 px-0 mx-0 pr-[43px]">
         <CardContent className="pt-4 md:pt-6">
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-end py-0 my-0 px-[19px]">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-end">
             <div className="flex-1 w-full space-y-1">
               <Label htmlFor="dateFrom" className="text-xs md:text-sm">From Date</Label>
               <Input id="dateFrom" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="border-primary/20" />
@@ -203,7 +203,7 @@ const ProfitAnalytics = () => {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 px-[19px] mx-[20px]">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
         <Card className="border-2 border-primary/20 shadow-colorful">
           <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
             <div className="flex items-center justify-between">
@@ -280,9 +280,9 @@ const ProfitAnalytics = () => {
       {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="border-2 border-accent/20 shadow-colorful">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 px-3 md:px-6 py-3 md:py-4">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 md:px-6 py-3 md:py-4 px-0 pl-0 pr-0 pb-0 pt-0 mx-0 my-0">
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary pt-0 pl-0 pr-0 my-[34px] mx-px" />
               Monthly Profit Trend
             </CardTitle>
           </CardHeader>
