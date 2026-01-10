@@ -282,7 +282,7 @@ const ProfitAnalytics = () => {
         <Card className="border-2 border-accent/20 shadow-colorful">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 md:px-6 py-3 md:py-4 px-0 pl-0 pr-0 pb-0 pt-0 mx-0 my-0">
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary pt-0 pl-0 pr-0 my-[34px] mx-px" />
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-primary pt-0 pl-0 pr-0 my-0 mx-0" />
               Monthly Profit Trend
             </CardTitle>
           </CardHeader>

@@ -77,7 +77,7 @@ const App = () => <QueryClientProvider client={queryClient}>
                 <AppLayout>
                   <Bills />
                 </AppLayout>
-              </ProtectedRoute>} className="px-0 ml-0 mt-0 mr-0 pr-0 pl-0 mb-0" />
+              </ProtectedRoute>} className="pl-0 pb-0 pr-0 mx-0 mr-0 ml-0" />
           <Route path="/bills/new" element={<ProtectedRoute>
                 <AppLayout>
                   <BillCreate />
@@ -95,7 +95,7 @@ const App = () => <QueryClientProvider client={queryClient}>
               </ProtectedRoute>} />
           <Route path="/profit-analytics" element={<ProtectedRoute>
                 <AppLayout>
-                  <ProfitAnalytics className="pt-0 pr-0 pb-0 my-[7px] mx-0 pl-px" />
+                  <ProfitAnalytics />
                 </AppLayout>
               </ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute>
