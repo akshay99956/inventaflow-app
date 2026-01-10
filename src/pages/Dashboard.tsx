@@ -163,7 +163,7 @@ const Dashboard = () => {
             <span className="sm:hidden">Export</span>
           </Button>
           <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Printer className="h-4 w-4 mr-2" />
+            <Printer className="h-4 w-4 mr-2 bg-destructive-foreground text-destructive-foreground" />
             <span className="hidden sm:inline">Print Report</span>
             <span className="sm:hidden">Print</span>
           </Button>
@@ -177,7 +177,7 @@ const Dashboard = () => {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl md:text-2xl font-bold">{stats.totalProducts}</div>
+            <div className="text-xl md:text-2xl font-bold text-primary">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground hidden sm:block">In inventory</p>
           </CardContent>
         </Card>
@@ -188,7 +188,7 @@ const Dashboard = () => {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-lg md:text-2xl font-bold">₹{stats.totalStockValue.toLocaleString('en-IN', {
+            <div className="text-lg md:text-2xl font-bold text-destructive">₹{stats.totalStockValue.toLocaleString('en-IN', {
               maximumFractionDigits: 0
             })}</div>
             <p className="text-xs text-muted-foreground hidden sm:block">Inventory value</p>
@@ -201,7 +201,7 @@ const Dashboard = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl md:text-2xl font-bold">{stats.pendingInvoices}</div>
+            <div className="text-xl md:text-2xl font-bold text-secondary">{stats.pendingInvoices}</div>
             <p className="text-xs text-muted-foreground hidden sm:block">Awaiting payment</p>
           </CardContent>
         </Card>
@@ -212,7 +212,7 @@ const Dashboard = () => {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-lg md:text-2xl font-bold">₹{stats.totalRevenue.toLocaleString('en-IN', {
+            <div className="text-lg md:text-2xl font-bold text-success">₹{stats.totalRevenue.toLocaleString('en-IN', {
               maximumFractionDigits: 0
             })}</div>
             <p className="text-xs text-muted-foreground hidden sm:block">All time</p>
