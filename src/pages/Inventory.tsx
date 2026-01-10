@@ -322,7 +322,7 @@ const Inventory = () => {
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm} size="sm" className="bg-gradient-primary shadow-colorful hover:shadow-glow-md flex-1 sm:flex-none">
+              <Button onClick={resetForm} size="sm" className="bg-gradient-primary shadow-colorful hover:shadow-glow-md flex-1 sm:flex-none bg-success">
                 <Plus className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Add Product</span>
               </Button>
