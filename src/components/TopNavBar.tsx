@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Bell, User, LogOut, Settings, X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Search, Bell, User, LogOut, Settings, Menu, Receipt, FileText, TrendingUp, PieChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,11 +13,38 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const moreMenuItems = [
+  { path: "/bills", label: "Purchases", icon: Receipt },
+  { path: "/invoices", label: "Invoices", icon: FileText },
+  { path: "/balance-sheet", label: "Balance Sheet", icon: TrendingUp },
+  { path: "/profit-analytics", label: "Reports", icon: PieChart },
+  { path: "/settings", label: "Settings", icon: Settings },
+];
 
 export const TopNavBar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Hide on landing and auth pages
+  const hiddenPaths = ["/", "/auth"];
+  if (hiddenPaths.includes(location.pathname)) {
+    return null;
+  }
+
+  const isActiveRoute = (path: string) => {
+    if (path === "/dashboard") return location.pathname === path;
+    return location.pathname.startsWith(path);
+  };
+
+  const handleNavClick = (path: string) => {
+    navigate(path);
+    setIsMoreOpen(false);
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -31,7 +58,6 @@ export const TopNavBar = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // For now, navigate to inventory with search term
       navigate(`/inventory?search=${encodeURIComponent(searchQuery)}`);
       setIsSearchOpen(false);
       setSearchQuery("");
@@ -41,14 +67,21 @@ export const TopNavBar = () => {
   return (
     <>
       <header className="h-14 border-b flex items-center justify-between px-4 bg-background sticky top-0 z-10">
-        {/* Logo/App Name */}
+        {/* Left: Menu + Logo */}
         <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsMoreOpen(true)}
+            className="h-9 w-9 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <span className="font-bold text-lg text-primary">BizManager</span>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-1">
-          {/* Search Button */}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -58,13 +91,11 @@ export const TopNavBar = () => {
             <Search className="h-5 w-5" />
           </Button>
 
-          {/* Notifications */}
           <Button variant="ghost" size="icon" className="h-9 w-9 relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
           </Button>
 
-          {/* User Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -85,6 +116,37 @@ export const TopNavBar = () => {
           </DropdownMenu>
         </div>
       </header>
+
+      {/* More Menu Sheet - slides from left */}
+      <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
+        <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle className="text-left">Menu</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col py-2">
+            {moreMenuItems.map((item) => {
+              const isActive = isActiveRoute(item.path);
+              const Icon = item.icon;
+              
+              return (
+                <button
+                  key={item.path + item.label}
+                  onClick={() => handleNavClick(item.path)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 text-left transition-all",
+                    isActive 
+                      ? "bg-primary/10 text-primary border-l-2 border-primary" 
+                      : "text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Search Sheet */}
       <Sheet open={isSearchOpen} onOpenChange={setIsSearchOpen}>
