@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { SwipeableCard } from "@/components/SwipeableCard";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   sku: z.string().max(100).optional(),
@@ -23,9 +22,8 @@ const productSchema = z.object({
   purchase_price: z.number().min(0, "Purchase price must be positive"),
   unit_price: z.number().min(0, "Sale price must be positive"),
   category: z.string().max(100).optional(),
-  low_stock_threshold: z.number().min(0, "Threshold must be positive"),
+  low_stock_threshold: z.number().min(0, "Threshold must be positive")
 });
-
 type Product = {
   id: string;
   name: string;
@@ -37,9 +35,7 @@ type Product = {
   category: string | null;
   low_stock_threshold: number;
 };
-
 type PrintColumn = 'name' | 'sku' | 'quantity' | 'purchase_price' | 'unit_price' | 'profit' | 'total_value';
-
 const printColumnLabels: Record<PrintColumn, string> = {
   name: 'Name',
   sku: 'SKU',
@@ -47,9 +43,8 @@ const printColumnLabels: Record<PrintColumn, string> = {
   purchase_price: 'Purchase Price',
   unit_price: 'Sale Price',
   profit: 'Profit',
-  total_value: 'Total Value',
+  total_value: 'Total Value'
 };
-
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -69,11 +64,15 @@ const Inventory = () => {
     purchase_price: 0,
     unit_price: 0,
     category: "",
-    low_stock_threshold: 10,
+    low_stock_threshold: 10
   });
-
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+    const {
+      data,
+      error
+    } = await supabase.from("products").select("*").order("created_at", {
+      ascending: false
+    });
     if (error) {
       toast.error("Error fetching products");
     } else {
@@ -81,85 +80,76 @@ const Inventory = () => {
       setFilteredProducts(data || []);
     }
   };
-
   useEffect(() => {
     let filtered = products;
-
     if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) || product.description?.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-
     if (categoryFilter) {
       filtered = filtered.filter(product => product.category === categoryFilter);
     }
-
     setFilteredProducts(filtered);
   }, [searchTerm, categoryFilter, products]);
-
   const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-
   const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold);
-
   useEffect(() => {
     fetchProducts();
-
-    const channel = supabase
-      .channel("products-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
-        fetchProducts();
-      })
-      .subscribe();
-
+    const channel = supabase.channel("products-changes").on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "products"
+    }, () => {
+      fetchProducts();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     const validation = productSchema.safeParse(formData);
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
     }
-
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     if (!user) return;
-
     if (editingProduct) {
-      const { error } = await supabase
-        .from("products")
-        .update({ ...formData })
-        .eq("id", editingProduct.id);
-      
+      const {
+        error
+      } = await supabase.from("products").update({
+        ...formData
+      }).eq("id", editingProduct.id);
       if (error) {
         toast.error("Error updating product");
       } else {
         toast.success("Product updated successfully");
       }
     } else {
-      const { error } = await supabase.from("products").insert([{ ...formData, user_id: user.id }]);
-      
+      const {
+        error
+      } = await supabase.from("products").insert([{
+        ...formData,
+        user_id: user.id
+      }]);
       if (error) {
         toast.error("Error creating product");
       } else {
         toast.success("Product created successfully");
       }
     }
-
     setIsDialogOpen(false);
     resetForm();
     fetchProducts();
   };
-
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    
+    const {
+      error
+    } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       toast.error("Error deleting product");
     } else {
@@ -167,7 +157,6 @@ const Inventory = () => {
       fetchProducts();
     }
   };
-
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
@@ -178,11 +167,10 @@ const Inventory = () => {
       purchase_price: product.purchase_price || 0,
       unit_price: product.unit_price,
       category: product.category || "",
-      low_stock_threshold: product.low_stock_threshold,
+      low_stock_threshold: product.low_stock_threshold
     });
     setIsDialogOpen(true);
   };
-
   const resetForm = () => {
     setFormData({
       name: "",
@@ -192,24 +180,20 @@ const Inventory = () => {
       purchase_price: 0,
       unit_price: 0,
       category: "",
-      low_stock_threshold: 10,
+      low_stock_threshold: 10
     });
     setEditingProduct(null);
   };
-
   const handlePrint = () => {
     window.print();
   };
-
   const handleWhatsAppShare = () => {
-    const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
-    const totalProfit = filteredProducts.reduce((sum, p) => sum + ((p.unit_price - p.purchase_price) * p.quantity), 0);
-    
+    const totalValue = filteredProducts.reduce((sum, p) => sum + p.quantity * p.unit_price, 0);
+    const totalProfit = filteredProducts.reduce((sum, p) => sum + (p.unit_price - p.purchase_price) * p.quantity, 0);
     let message = `📦 Inventory Stock Report\n\nTotal Products: ${filteredProducts.length}`;
     if (selectedPrintColumns.includes('total_value')) message += `\nTotal Stock Value: ₹${totalValue.toFixed(2)}`;
     if (selectedPrintColumns.includes('profit')) message += `\nTotal Profit Margin: ₹${totalProfit.toFixed(2)}`;
     message += `\n\n`;
-    
     message += filteredProducts.map(p => {
       let line = `• ${p.name}`;
       const details: string[] = [];
@@ -218,55 +202,33 @@ const Inventory = () => {
       if (selectedPrintColumns.includes('unit_price')) details.push(`Sale: ₹${p.unit_price.toFixed(2)}`);
       if (selectedPrintColumns.includes('profit')) {
         const margin = p.unit_price - p.purchase_price;
-        const marginPct = p.purchase_price > 0 ? ((margin / p.purchase_price) * 100).toFixed(1) : '0';
+        const marginPct = p.purchase_price > 0 ? (margin / p.purchase_price * 100).toFixed(1) : '0';
         details.push(`Profit: ₹${margin.toFixed(2)} (${marginPct}%)`);
       }
       if (details.length > 0) line += `\n  ${details.join(' | ')}`;
       return line;
     }).join('\n');
-    
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
-
   const togglePrintColumn = (col: PrintColumn) => {
-    setSelectedPrintColumns(prev => 
-      prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]
-    );
+    setSelectedPrintColumns(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]);
   };
-
-  const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.unit_price), 0);
-  const totalProfitMargin = filteredProducts.reduce((sum, p) => sum + ((p.unit_price - p.purchase_price) * p.quantity), 0);
-
+  const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + p.quantity * p.unit_price, 0);
+  const totalProfitMargin = filteredProducts.reduce((sum, p) => sum + (p.unit_price - p.purchase_price) * p.quantity, 0);
   const isLowStock = (product: Product) => product.quantity <= product.low_stock_threshold;
-
   const getProfitMargin = (product: Product) => product.unit_price - product.purchase_price;
   const getProfitPercentage = (product: Product) => {
     if (product.purchase_price === 0) return 0;
-    return ((product.unit_price - product.purchase_price) / product.purchase_price) * 100;
+    return (product.unit_price - product.purchase_price) / product.purchase_price * 100;
   };
-
   const handleCSVExport = () => {
     const headers = ['Name', 'SKU', 'Category', 'Quantity', 'Purchase Price', 'Sale Price', 'Profit Margin', 'Profit %', 'Total Value', 'Total Profit'];
-    const rows = filteredProducts.map(p => [
-      p.name,
-      p.sku || '',
-      p.category || '',
-      p.quantity,
-      p.purchase_price.toFixed(2),
-      p.unit_price.toFixed(2),
-      getProfitMargin(p).toFixed(2),
-      getProfitPercentage(p).toFixed(2) + '%',
-      (p.quantity * p.unit_price).toFixed(2),
-      (getProfitMargin(p) * p.quantity).toFixed(2)
-    ]);
-    
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const rows = filteredProducts.map(p => [p.name, p.sku || '', p.category || '', p.quantity, p.purchase_price.toFixed(2), p.unit_price.toFixed(2), getProfitMargin(p).toFixed(2), getProfitPercentage(p).toFixed(2) + '%', (p.quantity * p.unit_price).toFixed(2), (getProfitMargin(p) * p.quantity).toFixed(2)]);
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
@@ -274,42 +236,39 @@ const Inventory = () => {
     URL.revokeObjectURL(link.href);
     toast.success('Inventory exported to CSV');
   };
-
   const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     if (!user) {
       toast.error("You must be logged in");
       return;
     }
-
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = async e => {
       try {
         const text = e.target?.result as string;
         const lines = text.split('\n').filter(line => line.trim());
         const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
-        
         const nameIdx = headers.findIndex(h => h === 'name' || h === 'product name');
         const skuIdx = headers.findIndex(h => h === 'sku');
         const categoryIdx = headers.findIndex(h => h === 'category');
         const quantityIdx = headers.findIndex(h => h === 'quantity' || h === 'qty');
         const purchasePriceIdx = headers.findIndex(h => h.includes('purchase') || h.includes('cost'));
         const salePriceIdx = headers.findIndex(h => h.includes('sale') || h.includes('unit') || h === 'price');
-
         if (nameIdx === -1) {
           toast.error("CSV must have a 'Name' column");
           return;
         }
-
         const productsToImport = [];
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
           const name = values[nameIdx];
           if (!name) continue;
-
           productsToImport.push({
             user_id: user.id,
             name,
@@ -318,16 +277,16 @@ const Inventory = () => {
             quantity: quantityIdx >= 0 ? parseInt(values[quantityIdx]) || 0 : 0,
             purchase_price: purchasePriceIdx >= 0 ? parseFloat(values[purchasePriceIdx]) || 0 : 0,
             unit_price: salePriceIdx >= 0 ? parseFloat(values[salePriceIdx]) || 0 : 0,
-            low_stock_threshold: 10,
+            low_stock_threshold: 10
           });
         }
-
         if (productsToImport.length === 0) {
           toast.error("No valid products found in CSV");
           return;
         }
-
-        const { error } = await supabase.from("products").insert(productsToImport);
+        const {
+          error
+        } = await supabase.from("products").insert(productsToImport);
         if (error) {
           toast.error("Error importing products: " + error.message);
         } else {
@@ -341,22 +300,14 @@ const Inventory = () => {
     reader.readAsText(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  return (
-    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
+  return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient">Inventory</h1>
           <p className="text-sm md:text-base text-muted-foreground">Manage your products and stock</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleCSVImport}
-            accept=".csv"
-            className="hidden"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleCSVImport} accept=".csv" className="hidden" />
           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="border-info hover:bg-info/10 flex-1 sm:flex-none">
             <Upload className="h-4 w-4 sm:mr-2 text-info" />
             <span className="hidden sm:inline">Import</span>
@@ -386,92 +337,66 @@ const Inventory = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  className="border-primary/20 focus:border-primary"
-                />
+                <Input id="name" value={formData.name} onChange={e => setFormData({
+                  ...formData,
+                  name: e.target.value
+                })} required className="border-primary/20 focus:border-primary" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="border-primary/20 focus:border-primary"
-                />
+                <Input id="sku" value={formData.sku} onChange={e => setFormData({
+                  ...formData,
+                  sku: e.target.value
+                })} className="border-primary/20 focus:border-primary" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="border-primary/20 focus:border-primary"
-                />
+                <Input id="category" value={formData.category} onChange={e => setFormData({
+                  ...formData,
+                  category: e.target.value
+                })} className="border-primary/20 focus:border-primary" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantity *</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                    required
-                    className="border-primary/20 focus:border-primary"
-                  />
+                  <Input id="quantity" type="number" value={formData.quantity} onChange={e => setFormData({
+                    ...formData,
+                    quantity: Number(e.target.value)
+                  })} required className="border-primary/20 focus:border-primary" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="purchase_price">Purchase Price *</Label>
-                  <Input
-                    id="purchase_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.purchase_price}
-                    onChange={(e) => setFormData({ ...formData, purchase_price: Number(e.target.value) })}
-                    required
-                    className="border-warning/20 focus:border-warning"
-                  />
+                  <Input id="purchase_price" type="number" step="0.01" value={formData.purchase_price} onChange={e => setFormData({
+                    ...formData,
+                    purchase_price: Number(e.target.value)
+                  })} required className="border-warning/20 focus:border-warning" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="unit_price">Sale Price *</Label>
-                  <Input
-                    id="unit_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.unit_price}
-                    onChange={(e) => setFormData({ ...formData, unit_price: Number(e.target.value) })}
-                    required
-                    className="border-primary/20 focus:border-primary"
-                  />
+                  <Input id="unit_price" type="number" step="0.01" value={formData.unit_price} onChange={e => setFormData({
+                    ...formData,
+                    unit_price: Number(e.target.value)
+                  })} required className="border-primary/20 focus:border-primary" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
-                <Input
-                  id="low_stock_threshold"
-                  type="number"
-                  value={formData.low_stock_threshold}
-                  onChange={(e) => setFormData({ ...formData, low_stock_threshold: Number(e.target.value) })}
-                  className="border-warning/20 focus:border-warning"
-                />
+                <Input id="low_stock_threshold" type="number" value={formData.low_stock_threshold} onChange={e => setFormData({
+                  ...formData,
+                  low_stock_threshold: Number(e.target.value)
+                })} className="border-warning/20 focus:border-warning" />
                 <p className="text-xs text-muted-foreground">Alert when quantity falls below this number</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="border-primary/20 focus:border-primary"
-                />
+                <Input id="description" value={formData.description} onChange={e => setFormData({
+                  ...formData,
+                  description: e.target.value
+                })} className="border-primary/20 focus:border-primary" />
               </div>
-              <Button type="submit" className="w-full bg-gradient-primary shadow-colorful hover:shadow-glow-md">
+              <Button type="submit" className="w-full bg-gradient-primary shadow-colorful hover:shadow-glow-md bg-success">
                 {editingProduct ? "Update Product" : "Add Product"}
               </Button>
             </form>
@@ -501,7 +426,9 @@ const Inventory = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Stock Value</p>
-                <p className="text-lg md:text-2xl font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                <p className="text-lg md:text-2xl font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', {
+                  maximumFractionDigits: 0
+                })}</p>
               </div>
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center flex-shrink-0">
                 <IndianRupee className="h-5 w-5 md:h-6 md:w-6 text-success-foreground" />
@@ -529,7 +456,9 @@ const Inventory = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Profit</p>
-                <p className="text-lg md:text-2xl font-bold text-info">₹{totalProfitMargin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                <p className="text-lg md:text-2xl font-bold text-info">₹{totalProfitMargin.toLocaleString('en-IN', {
+                  maximumFractionDigits: 0
+                })}</p>
               </div>
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-info-foreground" />
@@ -555,16 +484,14 @@ const Inventory = () => {
         </Card>
       </div>
 
-      {lowStockProducts.length > 0 && (
-        <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10">
+      {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10">
           <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
           <AlertTitle className="text-destructive font-bold text-sm md:text-base">Low Stock Alert</AlertTitle>
           <AlertDescription className="text-destructive/80 text-xs md:text-sm">
             {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low: 
             <span className="font-semibold"> {lowStockProducts.slice(0, 3).map(p => p.name).join(", ")}{lowStockProducts.length > 3 ? ` +${lowStockProducts.length - 3} more` : ''}</span>
           </AlertDescription>
-        </Alert>
-      )}
+        </Alert>}
 
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -580,18 +507,12 @@ const Inventory = () => {
             <div className="print:hidden p-4 bg-muted/30 rounded-lg">
               <Label className="text-sm font-medium mb-3 block">Select columns to include:</Label>
               <div className="flex flex-wrap gap-4">
-                {(Object.keys(printColumnLabels) as PrintColumn[]).map(col => (
-                  <div key={col} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`col-${col}`}
-                      checked={selectedPrintColumns.includes(col)}
-                      onCheckedChange={() => togglePrintColumn(col)}
-                    />
+                {(Object.keys(printColumnLabels) as PrintColumn[]).map(col => <div key={col} className="flex items-center space-x-2">
+                    <Checkbox id={`col-${col}`} checked={selectedPrintColumns.includes(col)} onCheckedChange={() => togglePrintColumn(col)} />
                     <Label htmlFor={`col-${col}`} className="text-sm cursor-pointer">
                       {printColumnLabels[col]}
                     </Label>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
 
@@ -628,25 +549,19 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
+                  {filteredProducts.map(product => <TableRow key={product.id}>
                       {selectedPrintColumns.includes('name') && <TableCell className="font-medium">{product.name}</TableCell>}
                       {selectedPrintColumns.includes('sku') && <TableCell>{product.sku || "-"}</TableCell>}
                       {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{product.quantity}</TableCell>}
                       {selectedPrintColumns.includes('purchase_price') && <TableCell className="text-right">₹{product.purchase_price.toFixed(2)}</TableCell>}
                       {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right">₹{product.unit_price.toFixed(2)}</TableCell>}
-                      {selectedPrintColumns.includes('profit') && (
-                        <TableCell className="text-right text-info">
+                      {selectedPrintColumns.includes('profit') && <TableCell className="text-right text-info">
                           ₹{getProfitMargin(product).toFixed(2)} ({getProfitPercentage(product).toFixed(1)}%)
-                        </TableCell>
-                      )}
-                      {selectedPrintColumns.includes('total_value') && (
-                        <TableCell className="text-right font-semibold">
+                        </TableCell>}
+                      {selectedPrintColumns.includes('total_value') && <TableCell className="text-right font-semibold">
                           ₹{(product.quantity * product.unit_price).toFixed(2)}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                        </TableCell>}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </div>
@@ -657,18 +572,14 @@ const Inventory = () => {
                   <span className="text-muted-foreground">Total Products:</span>
                   <span className="text-foreground font-medium">{filteredProducts.length}</span>
                 </div>
-                {selectedPrintColumns.includes('total_value') && (
-                  <div className="flex justify-between text-sm">
+                {selectedPrintColumns.includes('total_value') && <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Inventory Value:</span>
                     <span className="text-foreground font-medium">₹{totalInventoryValue.toFixed(2)}</span>
-                  </div>
-                )}
-                {selectedPrintColumns.includes('profit') && (
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t text-info">
+                  </div>}
+                {selectedPrintColumns.includes('profit') && <div className="flex justify-between text-lg font-bold pt-2 border-t text-info">
                     <span>Total Profit Margin:</span>
                     <span>₹{totalProfitMargin.toFixed(2)}</span>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </div>
@@ -683,46 +594,30 @@ const Inventory = () => {
               <div>
                 <CardTitle className="text-gradient">Products</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-                  {lowStockProducts.length > 0 && (
-                    <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
+                  Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', {
+                    maximumFractionDigits: 0
+                  })}</span>
+                  {lowStockProducts.length > 0 && <Badge className="ml-2 bg-gradient-to-r from-destructive to-warning text-destructive-foreground">
                       {lowStockProducts.length} Low Stock
-                    </Badge>
-                  )}
+                    </Badge>}
                 </p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <Input
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 border-primary/20 focus:border-primary"
-              />
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
-              >
+              <Input placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="flex-1 border-primary/20 focus:border-primary" />
+              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2">
                 <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat || ""}>
+                {categories.map(cat => <option key={cat} value={cat || ""}>
                     {cat}
-                  </option>
-                ))}
+                  </option>)}
               </select>
             </div>
           </div>
         </CardHeader>
 
         {/* Mobile Card View - Compact */}
-        {isMobile ? (
-          <CardContent className="p-2 space-y-2">
-            {filteredProducts.map((product) => (
-              <Card 
-                key={product.id} 
-                className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}
-              >
+        {isMobile ? <CardContent className="p-2 space-y-2">
+            {filteredProducts.map(product => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}>
                 <div className={`h-0.5 ${isLowStock(product) ? "bg-destructive" : "gradient-primary"}`} />
                 <CardContent className="p-3">
                   {/* Main Row */}
@@ -731,11 +626,9 @@ const Inventory = () => {
                       <p className="font-semibold text-sm truncate">{product.name}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {product.sku && <span>SKU: {product.sku}</span>}
-                        {product.category && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-secondary/30 text-secondary">
+                        {product.category && <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-secondary/30 text-secondary">
                             {product.category}
-                          </Badge>
-                        )}
+                          </Badge>}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
@@ -745,9 +638,7 @@ const Inventory = () => {
                         </p>
                         <p className="text-[10px] text-muted-foreground">in stock</p>
                       </div>
-                      {isLowStock(product) && (
-                        <Badge className="text-[10px] px-1.5 bg-destructive/80">Low</Badge>
-                      )}
+                      {isLowStock(product) && <Badge className="text-[10px] px-1.5 bg-destructive/80">Low</Badge>}
                     </div>
                   </div>
                   
@@ -761,34 +652,19 @@ const Inventory = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() => handleEdit(product)}
-                      >
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleEdit(product)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0 text-destructive"
-                        onClick={() => handleDelete(product.id)}
-                      >
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete(product.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
-            {filteredProducts.length === 0 && (
-              <p className="text-center text-muted-foreground py-6 text-sm">No products found</p>
-            )}
-          </CardContent>
-        ) : (
-          /* Desktop Table View */
-          <CardContent className="pt-6">
+              </Card>)}
+            {filteredProducts.length === 0 && <p className="text-center text-muted-foreground py-6 text-sm">No products found</p>}
+          </CardContent> : (/* Desktop Table View */
+      <CardContent className="pt-6">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/15 hover:to-accent/15">
@@ -803,32 +679,20 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product, index) => (
-                  <TableRow 
-                    key={product.id} 
-                    className={`transition-colors ${
-                      isLowStock(product) 
-                        ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" 
-                        : index % 2 === 0 ? "bg-card" : "bg-muted/20"
-                    }`}
-                  >
+                {filteredProducts.map((product, index) => <TableRow key={product.id} className={`transition-colors ${isLowStock(product) ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" : index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
-                        {isLowStock(product) && (
-                          <Badge className="text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground animate-pulse">
+                        {isLowStock(product) && <Badge className="text-xs bg-gradient-to-r from-destructive to-warning text-destructive-foreground animate-pulse">
                             Low Stock
-                          </Badge>
-                        )}
+                          </Badge>}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{product.sku || "-"}</TableCell>
                     <TableCell>
-                      {product.category ? (
-                        <Badge variant="outline" className="border-secondary/30 text-secondary">
+                      {product.category ? <Badge variant="outline" className="border-secondary/30 text-secondary">
                           {product.category}
-                        </Badge>
-                      ) : "-"}
+                        </Badge> : "-"}
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
                       {product.quantity}
@@ -845,33 +709,19 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleEdit(product)}
-                          className="hover:bg-primary/10 hover:text-primary"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="hover:bg-primary/10 hover:text-primary">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDelete(product.id)}
-                          className="hover:bg-destructive/10 hover:text-destructive"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="hover:bg-destructive/10 hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>)}
               </TableBody>
             </Table>
-          </CardContent>
-        )}
+          </CardContent>)}
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Inventory;
