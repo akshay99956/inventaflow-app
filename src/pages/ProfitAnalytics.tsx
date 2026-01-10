@@ -12,7 +12,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 type Product = {
   id: string;
   name: string;
@@ -22,7 +21,6 @@ type Product = {
   purchase_price: number;
   unit_price: number;
 };
-
 type InvoiceItem = {
   id: string;
   quantity: number;
@@ -39,7 +37,6 @@ type InvoiceItem = {
     purchase_price: number;
   } | null;
 };
-
 const ProfitAnalytics = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
@@ -47,29 +44,21 @@ const ProfitAnalytics = () => {
   const [dateTo, setDateTo] = useState(() => format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
-
   useEffect(() => {
     fetchData();
   }, [dateFrom, dateTo]);
-
   const fetchData = async () => {
     setLoading(true);
-    
-    const { data: productsData } = await supabase
-      .from("products")
-      .select("*");
-    
-    const { data: itemsData } = await supabase
-      .from("invoice_items")
-      .select(`
+    const {
+      data: productsData
+    } = await supabase.from("products").select("*");
+    const {
+      data: itemsData
+    } = await supabase.from("invoice_items").select(`
         *,
         invoices!inner(issue_date, status),
         products(name, purchase_price)
-      `)
-      .gte("invoices.issue_date", dateFrom)
-      .lte("invoices.issue_date", dateTo)
-      .neq("invoices.status", "cancelled");
-    
+      `).gte("invoices.issue_date", dateFrom).lte("invoices.issue_date", dateTo).neq("invoices.status", "cancelled");
     setProducts(productsData || []);
     setInvoiceItems(itemsData || []);
     setLoading(false);
@@ -79,21 +68,34 @@ const ProfitAnalytics = () => {
   const calculateProfitMetrics = () => {
     let totalRevenue = 0;
     let totalCost = 0;
-    const productProfits: Record<string, { name: string; revenue: number; cost: number; quantity: number }> = {};
-    const monthlyProfits: Record<string, { month: string; revenue: number; cost: number; profit: number }> = {};
-
+    const productProfits: Record<string, {
+      name: string;
+      revenue: number;
+      cost: number;
+      quantity: number;
+    }> = {};
+    const monthlyProfits: Record<string, {
+      month: string;
+      revenue: number;
+      cost: number;
+      profit: number;
+    }> = {};
     invoiceItems.forEach(item => {
       const purchasePrice = item.products?.purchase_price || 0;
       const revenue = item.amount;
       const cost = purchasePrice * item.quantity;
-      
       totalRevenue += revenue;
       totalCost += cost;
 
       // Track by product
       const productName = item.products?.name || "Unknown";
       if (!productProfits[productName]) {
-        productProfits[productName] = { name: productName, revenue: 0, cost: 0, quantity: 0 };
+        productProfits[productName] = {
+          name: productName,
+          revenue: 0,
+          cost: 0,
+          quantity: 0
+        };
       }
       productProfits[productName].revenue += revenue;
       productProfits[productName].cost += cost;
@@ -103,31 +105,30 @@ const ProfitAnalytics = () => {
       if (item.invoices?.issue_date) {
         const month = format(new Date(item.invoices.issue_date), "MMM yyyy");
         if (!monthlyProfits[month]) {
-          monthlyProfits[month] = { month, revenue: 0, cost: 0, profit: 0 };
+          monthlyProfits[month] = {
+            month,
+            revenue: 0,
+            cost: 0,
+            profit: 0
+          };
         }
         monthlyProfits[month].revenue += revenue;
         monthlyProfits[month].cost += cost;
-        monthlyProfits[month].profit += (revenue - cost);
+        monthlyProfits[month].profit += revenue - cost;
       }
     });
-
     const totalProfit = totalRevenue - totalCost;
-    const profitMarginPercent = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    const profitMarginPercent = totalRevenue > 0 ? totalProfit / totalRevenue * 100 : 0;
 
     // Sort and process product profits
-    const topProfitableProducts = Object.values(productProfits)
-      .map(p => ({
-        ...p,
-        profit: p.revenue - p.cost,
-        margin: p.revenue > 0 ? ((p.revenue - p.cost) / p.revenue) * 100 : 0
-      }))
-      .sort((a, b) => b.profit - a.profit)
-      .slice(0, 10);
+    const topProfitableProducts = Object.values(productProfits).map(p => ({
+      ...p,
+      profit: p.revenue - p.cost,
+      margin: p.revenue > 0 ? (p.revenue - p.cost) / p.revenue * 100 : 0
+    })).sort((a, b) => b.profit - a.profit).slice(0, 10);
 
     // Sort monthly data
-    const monthlyData = Object.values(monthlyProfits)
-      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
-
+    const monthlyData = Object.values(monthlyProfits).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
     return {
       totalRevenue,
       totalCost,
@@ -137,44 +138,31 @@ const ProfitAnalytics = () => {
       monthlyData
     };
   };
-
   const metrics = calculateProfitMetrics();
 
   // Inventory profit potential
-  const inventoryProfitPotential = products.reduce((sum, p) => 
-    sum + ((p.unit_price - p.purchase_price) * p.quantity), 0
-  );
-
+  const inventoryProfitPotential = products.reduce((sum, p) => sum + (p.unit_price - p.purchase_price) * p.quantity, 0);
   const chartConfig = {
-    revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
-    cost: { label: "Cost", color: "hsl(var(--chart-3))" },
-    profit: { label: "Profit", color: "hsl(var(--chart-2))" },
+    revenue: {
+      label: "Revenue",
+      color: "hsl(var(--chart-1))"
+    },
+    cost: {
+      label: "Cost",
+      color: "hsl(var(--chart-3))"
+    },
+    profit: {
+      label: "Profit",
+      color: "hsl(var(--chart-2))"
+    }
   } satisfies ChartConfig;
-
   const handleCSVExport = () => {
     const headers = ['Product', 'Quantity Sold', 'Revenue', 'Cost', 'Profit', 'Margin %'];
-    const rows = metrics.topProfitableProducts.map(p => [
-      p.name,
-      p.quantity,
-      p.revenue.toFixed(2),
-      p.cost.toFixed(2),
-      p.profit.toFixed(2),
-      p.margin.toFixed(2) + '%'
-    ]);
-
-    const csvContent = [
-      `Profit Analytics Report (${dateFrom} to ${dateTo})`,
-      '',
-      `Total Revenue: ₹${metrics.totalRevenue.toFixed(2)}`,
-      `Total Cost: ₹${metrics.totalCost.toFixed(2)}`,
-      `Total Profit: ₹${metrics.totalProfit.toFixed(2)}`,
-      `Profit Margin: ${metrics.profitMarginPercent.toFixed(2)}%`,
-      '',
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const rows = metrics.topProfitableProducts.map(p => [p.name, p.quantity, p.revenue.toFixed(2), p.cost.toFixed(2), p.profit.toFixed(2), p.margin.toFixed(2) + '%']);
+    const csvContent = [`Profit Analytics Report (${dateFrom} to ${dateTo})`, '', `Total Revenue: ₹${metrics.totalRevenue.toFixed(2)}`, `Total Cost: ₹${metrics.totalCost.toFixed(2)}`, `Total Profit: ₹${metrics.totalProfit.toFixed(2)}`, `Profit Margin: ${metrics.profitMarginPercent.toFixed(2)}%`, '', headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `profit_analytics_${dateFrom}_to_${dateTo}.csv`;
@@ -182,21 +170,14 @@ const ProfitAnalytics = () => {
     URL.revokeObjectURL(link.href);
     toast.success('Profit analytics exported to CSV');
   };
-
-  return (
-    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
+  return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient">Profit Analytics</h1>
           <p className="text-sm md:text-base text-muted-foreground">Analyze your business profitability</p>
         </div>
-        <Button 
-          onClick={handleCSVExport} 
-          variant="outline" 
-          className="border-success hover:bg-success/10"
-          size={isMobile ? "sm" : "default"}
-        >
+        <Button onClick={handleCSVExport} variant="outline" className="border-success hover:bg-success/10" size={isMobile ? "sm" : "default"}>
           <Download className="h-4 w-4" />
           <span className="ml-2">Export Report</span>
         </Button>
@@ -205,26 +186,14 @@ const ProfitAnalytics = () => {
       {/* Date Range Filter */}
       <Card className="border-2 border-primary/20">
         <CardContent className="pt-4 md:pt-6">
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-end">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-end py-0 my-0 px-[19px]">
             <div className="flex-1 w-full space-y-1">
               <Label htmlFor="dateFrom" className="text-xs md:text-sm">From Date</Label>
-              <Input
-                id="dateFrom"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="border-primary/20"
-              />
+              <Input id="dateFrom" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="border-primary/20" />
             </div>
             <div className="flex-1 w-full space-y-1">
               <Label htmlFor="dateTo" className="text-xs md:text-sm">To Date</Label>
-              <Input
-                id="dateTo"
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="border-primary/20"
-              />
+              <Input id="dateTo" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="border-primary/20" />
             </div>
             <Button onClick={fetchData} className="bg-gradient-primary w-full sm:w-auto">
               Apply Filter
@@ -234,7 +203,7 @@ const ProfitAnalytics = () => {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 px-[19px] mx-[20px]">
         <Card className="border-2 border-primary/20 shadow-colorful">
           <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
             <div className="flex items-center justify-between">
@@ -321,8 +290,12 @@ const ProfitAnalytics = () => {
             <ChartContainer config={chartConfig} className="h-[200px] md:h-[300px]">
               <AreaChart data={metrics.monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fontSize: isMobile ? 10 : 12 }} />
-                <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
+                <XAxis dataKey="month" tick={{
+                fontSize: isMobile ? 10 : 12
+              }} />
+                <YAxis tick={{
+                fontSize: isMobile ? 10 : 12
+              }} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area type="monotone" dataKey="revenue" stackId="1" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.3} />
                 <Area type="monotone" dataKey="profit" stackId="2" stroke="hsl(var(--chart-2))" fill="hsl(var(--chart-2))" fillOpacity={0.6} />
@@ -342,8 +315,12 @@ const ProfitAnalytics = () => {
             <ChartContainer config={chartConfig} className="h-[200px] md:h-[300px]">
               <BarChart data={metrics.monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fontSize: isMobile ? 10 : 12 }} />
-                <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
+                <XAxis dataKey="month" tick={{
+                fontSize: isMobile ? 10 : 12
+              }} />
+                <YAxis tick={{
+                fontSize: isMobile ? 10 : 12
+              }} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="revenue" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="cost" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
@@ -361,10 +338,8 @@ const ProfitAnalytics = () => {
         </CardHeader>
         <CardContent className="pt-4 md:pt-6 px-0 md:px-6">
           {/* Mobile Card View */}
-          {isMobile ? (
-            <div className="space-y-3 px-3">
-              {metrics.topProfitableProducts.map((product, index) => (
-                <Card key={product.name} className="bg-muted/20">
+          {isMobile ? <div className="space-y-3 px-3">
+              {metrics.topProfitableProducts.map((product, index) => <Card key={product.name} className="bg-muted/20">
                   <CardContent className="p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge className="bg-gradient-primary text-primary-foreground text-xs">#{index + 1}</Badge>
@@ -386,26 +361,18 @@ const ProfitAnalytics = () => {
                         </span>
                       </div>
                       <div>
-                        <Badge 
-                          variant={product.margin >= 20 ? "default" : product.margin >= 10 ? "secondary" : "destructive"} 
-                          className={`text-xs ${product.margin >= 20 ? "bg-success" : ""}`}
-                        >
+                        <Badge variant={product.margin >= 20 ? "default" : product.margin >= 10 ? "secondary" : "destructive"} className={`text-xs ${product.margin >= 20 ? "bg-success" : ""}`}>
                           {product.margin.toFixed(1)}%
                         </Badge>
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-              {metrics.topProfitableProducts.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">
+                </Card>)}
+              {metrics.topProfitableProducts.length === 0 && <p className="text-center text-muted-foreground py-8">
                   No sales data found for the selected period
-                </p>
-              )}
-            </div>
-          ) : (
-            /* Desktop Table View */
-            <Table>
+                </p>}
+            </div> : (/* Desktop Table View */
+        <Table>
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10">
                   <TableHead className="font-bold">Product</TableHead>
@@ -417,8 +384,7 @@ const ProfitAnalytics = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {metrics.topProfitableProducts.map((product, index) => (
-                  <TableRow key={product.name} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
+                {metrics.topProfitableProducts.map((product, index) => <TableRow key={product.name} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Badge className="bg-gradient-primary text-primary-foreground">#{index + 1}</Badge>
@@ -432,27 +398,20 @@ const ProfitAnalytics = () => {
                       ₹{product.profit.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge variant={product.margin >= 20 ? "default" : product.margin >= 10 ? "secondary" : "destructive"} 
-                             className={product.margin >= 20 ? "bg-success" : ""}>
+                      <Badge variant={product.margin >= 20 ? "default" : product.margin >= 10 ? "secondary" : "destructive"} className={product.margin >= 20 ? "bg-success" : ""}>
                         {product.margin.toFixed(1)}%
                       </Badge>
                     </TableCell>
-                  </TableRow>
-                ))}
-                {metrics.topProfitableProducts.length === 0 && (
-                  <TableRow>
+                  </TableRow>)}
+                {metrics.topProfitableProducts.length === 0 && <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       No sales data found for the selected period
                     </TableCell>
-                  </TableRow>
-                )}
+                  </TableRow>}
               </TableBody>
-            </Table>
-          )}
+            </Table>)}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default ProfitAnalytics;

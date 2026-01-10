@@ -21,11 +21,12 @@ import Settings from "./pages/Settings";
 import Clients from "./pages/Clients";
 import ProfitAnalytics from "./pages/ProfitAnalytics";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
-
-const AppLayout = ({ children }: { children: React.ReactNode }) => (
-  <SidebarProvider>
+const AppLayout = ({
+  children
+}: {
+  children: React.ReactNode;
+}) => <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <AppSidebar />
       <main className="flex-1 pb-16 md:pb-0 flex flex-col">
@@ -43,11 +44,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
       </main>
       <MobileBottomNav />
     </div>
-  </SidebarProvider>
-);
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+  </SidebarProvider>;
+const App = () => <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -55,111 +53,59 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
+          <Route path="/dashboard" element={<ProtectedRoute>
                 <AppLayout>
                   <Dashboard />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inventory"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute>
                 <AppLayout>
                   <Inventory />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/invoices"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/invoices" element={<ProtectedRoute>
                 <AppLayout>
                   <Invoices />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/invoices/new"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/invoices/new" element={<ProtectedRoute>
                 <AppLayout>
                   <InvoiceCreate />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bills"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/bills" element={<ProtectedRoute>
                 <AppLayout>
                   <Bills />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bills/new"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/bills/new" element={<ProtectedRoute>
                 <AppLayout>
                   <BillCreate />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/balance-sheet"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/balance-sheet" element={<ProtectedRoute>
                 <AppLayout>
                   <BalanceSheet />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/clients"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/clients" element={<ProtectedRoute>
                 <AppLayout>
                   <Clients />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profit-analytics"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/profit-analytics" element={<ProtectedRoute>
                 <AppLayout>
-                  <ProfitAnalytics />
+                  <ProfitAnalytics className="pt-0 pr-0 pb-0 my-[7px] mx-0 pl-px" />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
+              </ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute>
                 <AppLayout>
                   <Settings />
                 </AppLayout>
-              </ProtectedRoute>
-            }
-          />
+              </ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>;
 export default App;
