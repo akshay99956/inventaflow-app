@@ -32,6 +32,7 @@ type BillItem = {
 type Product = {
   id: string;
   name: string;
+  purchase_price: number;
   unit_price: number;
   quantity: number;
 };
@@ -63,7 +64,7 @@ const BillCreate = () => {
     const fetchProducts = async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, unit_price, quantity")
+        .select("id, name, purchase_price, unit_price, quantity")
         .order("name");
       if (!error && data) {
         setProducts(data);
@@ -95,7 +96,7 @@ const BillCreate = () => {
         product_id: productId,
         description: product.name,
         quantity: 1,
-        unit_price: product.unit_price
+        unit_price: product.purchase_price
       };
       setItems(newItems);
     }
@@ -272,7 +273,7 @@ const BillCreate = () => {
                         <SelectContent>
                           {products.map((product) => (
                             <SelectItem key={product.id} value={product.id} className="text-xs md:text-sm">
-                              {product.name} - ₹{product.unit_price}
+                              {product.name} - ₹{product.purchase_price} (Cost)
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -314,7 +315,7 @@ const BillCreate = () => {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Price (₹)</label>
+                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Cost (₹)</label>
                       <Input
                         type="number"
                         min="0"
