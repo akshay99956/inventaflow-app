@@ -369,6 +369,81 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          bill_due_alerts: boolean
+          bill_prefix: string
+          created_at: string
+          currency_code: string
+          currency_symbol: string
+          date_format: string
+          default_payment_terms: number
+          default_tax_rate: number
+          email_notifications: boolean
+          id: string
+          invoice_prefix: string
+          invoice_reminders: boolean
+          items_per_page: number
+          low_stock_alerts: boolean
+          show_clients: boolean
+          show_dashboard: boolean
+          show_inventory: boolean
+          show_sales: boolean
+          tax_enabled: boolean
+          tax_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bill_due_alerts?: boolean
+          bill_prefix?: string
+          created_at?: string
+          currency_code?: string
+          currency_symbol?: string
+          date_format?: string
+          default_payment_terms?: number
+          default_tax_rate?: number
+          email_notifications?: boolean
+          id?: string
+          invoice_prefix?: string
+          invoice_reminders?: boolean
+          items_per_page?: number
+          low_stock_alerts?: boolean
+          show_clients?: boolean
+          show_dashboard?: boolean
+          show_inventory?: boolean
+          show_sales?: boolean
+          tax_enabled?: boolean
+          tax_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bill_due_alerts?: boolean
+          bill_prefix?: string
+          created_at?: string
+          currency_code?: string
+          currency_symbol?: string
+          date_format?: string
+          default_payment_terms?: number
+          default_tax_rate?: number
+          email_notifications?: boolean
+          id?: string
+          invoice_prefix?: string
+          invoice_reminders?: boolean
+          items_per_page?: number
+          low_stock_alerts?: boolean
+          show_clients?: boolean
+          show_dashboard?: boolean
+          show_inventory?: boolean
+          show_sales?: boolean
+          tax_enabled?: boolean
+          tax_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
