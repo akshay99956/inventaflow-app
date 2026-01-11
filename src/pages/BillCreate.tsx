@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,30 +9,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 const billSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
   customer_email: z.string().email("Invalid email").optional().or(z.literal("")),
   bill_date: z.string().min(1, "Bill date is required"),
   notes: z.string().optional()
 });
+
 type BillFormData = z.infer<typeof billSchema>;
 type BillItem = {
+  product_id: string | null;
   description: string;
   quantity: number;
   unit_price: number;
 };
+
+type Product = {
+  id: string;
+  name: string;
+  unit_price: number;
+  quantity: number;
+};
+
 const BillCreate = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<BillItem[]>([{
+    product_id: null,
     description: "",
     quantity: 1,
     unit_price: 0
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<BillFormData>({
     resolver: zodResolver(billSchema),
     defaultValues: {
@@ -42,18 +57,50 @@ const BillCreate = () => {
       notes: ""
     }
   });
+
+  // Fetch products for selection
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, unit_price, quantity")
+        .order("name");
+      if (!error && data) {
+        setProducts(data);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const addItem = () => {
     setItems([...items, {
+      product_id: null,
       description: "",
       quantity: 1,
       unit_price: 0
     }]);
   };
+
   const removeItem = (index: number) => {
     if (items.length > 1) {
       setItems(items.filter((_, i) => i !== index));
     }
   };
+
+  const handleProductSelect = (index: number, productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      const newItems = [...items];
+      newItems[index] = {
+        product_id: productId,
+        description: product.name,
+        quantity: 1,
+        unit_price: product.unit_price
+      };
+      setItems(newItems);
+    }
+  };
+
   const updateItem = (index: number, field: keyof BillItem, value: string | number) => {
     const newItems = [...items];
     newItems[index] = {
@@ -62,38 +109,27 @@ const BillCreate = () => {
     };
     setItems(newItems);
   };
+
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
     const tax = subtotal * 0.1;
     const total = subtotal + tax;
-    return {
-      subtotal,
-      tax,
-      total
-    };
+    return { subtotal, tax, total };
   };
+
   const onSubmit = async (data: BillFormData) => {
     setIsSubmitting(true);
     try {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("You must be logged in to create a bill");
         return;
       }
-      const {
-        subtotal,
-        tax,
-        total
-      } = calculateTotals();
+
+      const { subtotal, tax, total } = calculateTotals();
       const billNumber = `BILL-${Date.now()}`;
-      const {
-        data: bill,
-        error: billError
-      } = await supabase.from("bills").insert({
+
+      const { data: bill, error: billError } = await supabase.from("bills").insert({
         bill_number: billNumber,
         user_id: user.id,
         customer_name: data.customer_name,
@@ -104,20 +140,37 @@ const BillCreate = () => {
         tax,
         total
       }).select().single();
+
       if (billError) throw billError;
-      const itemsToInsert = items.filter(item => item.description && item.quantity > 0 && item.unit_price > 0).map(item => ({
-        bill_id: bill.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        amount: item.quantity * item.unit_price
-      }));
+
+      const itemsToInsert = items
+        .filter(item => item.description && item.quantity > 0 && item.unit_price > 0)
+        .map(item => ({
+          bill_id: bill.id,
+          product_id: item.product_id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          amount: item.quantity * item.unit_price
+        }));
+
       if (itemsToInsert.length > 0) {
-        const {
-          error: itemsError
-        } = await supabase.from("bill_items").insert(itemsToInsert);
+        const { error: itemsError } = await supabase.from("bill_items").insert(itemsToInsert);
         if (itemsError) throw itemsError;
+
+        // Update product quantities (add stock for purchases/bills)
+        for (const item of itemsToInsert) {
+          if (item.product_id) {
+            const product = products.find(p => p.id === item.product_id);
+            if (product) {
+              await supabase.from("products").update({
+                quantity: product.quantity + item.quantity
+              }).eq("id", item.product_id);
+            }
+          }
+        }
       }
+
       toast.success("Bill created successfully");
       navigate("/bills");
     } catch (error) {
@@ -127,173 +180,223 @@ const BillCreate = () => {
       setIsSubmitting(false);
     }
   };
-  const {
-    subtotal,
-    tax,
-    total
-  } = calculateTotals();
-  return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
+
+  const { subtotal, tax, total } = calculateTotals();
+
+  return (
+    <div className="p-3 md:p-8 space-y-3 md:space-y-6 pb-24 md:pb-8">
       {/* Header */}
-      <div className="sm:flex-row sm:items-center gap-4 items-start justify-between flex flex-col">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/bills")} className="md:hidden bg-warning">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/bills")} className="h-8 w-8 md:hidden">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Create Bill</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Create a new customer bill</p>
+            <h1 className="text-xl md:text-3xl font-bold text-foreground">Create Bill</h1>
+            <p className="text-xs md:text-base text-muted-foreground">Add new purchase</p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => navigate("/bills")} className="hidden md:flex">
+        <Button variant="outline" size="sm" onClick={() => navigate("/bills")} className="hidden md:flex">
           Cancel
         </Button>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
-          {/* Customer Information */}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 md:space-y-6">
+          {/* Customer & Date - Compact on mobile */}
           <Card>
-            <CardHeader className="pb-3 md:pb-6 my-0 px-[26px] bg-[#e6f4f4]">
-              <CardTitle className="text-lg md:text-xl">Customer Information</CardTitle>
+            <CardHeader className="py-2 px-3 md:pb-4 md:px-6 bg-accent/30">
+              <CardTitle className="text-sm md:text-lg">Supplier Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField control={form.control} name="customer_name" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel className="text-sm">Customer Name</FormLabel>
+            <CardContent className="p-3 md:p-6 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField control={form.control} name="customer_name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs md:text-sm">Supplier Name *</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter customer name" />
+                      <Input {...field} placeholder="Enter name" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>} />
-              <FormField control={form.control} name="customer_email" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel className="text-sm">Customer Email (Optional)</FormLabel>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="bill_date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs md:text-sm">Bill Date *</FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" placeholder="customer@example.com" />
+                      <Input {...field} type="date" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>} />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="customer_email" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs md:text-sm">Email (Optional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" placeholder="email@example.com" className="h-9 text-sm" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
             </CardContent>
           </Card>
 
-          {/* Bill Details */}
+          {/* Bill Items - Improved mobile UI */}
           <Card>
-            <CardHeader className="pb-3 md:pb-6 bg-[#e7f3f3]">
-              <CardTitle className="text-lg md:text-xl">Bill Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 px-[8px] my-0 mx-0">
-              <FormField control={form.control} name="bill_date" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel className="text-sm">Bill Date</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
-              <FormField control={form.control} name="notes" render={({
-              field
-            }) => <FormItem>
-                    <FormLabel className="text-sm">Notes (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Additional notes" className="min-h-[80px] mx-0 my-0 px-[6px]" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
-            </CardContent>
-          </Card>
-
-          {/* Bill Items */}
-          <Card>
-            <CardHeader className="pb-3 md:pb-6 bg-[#dff1f1]">
+            <CardHeader className="py-2 px-3 md:pb-4 md:px-6 bg-primary/10">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg md:text-xl">Bill Items</CardTitle>
-                <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">Add Item</span>
+                <CardTitle className="text-sm md:text-lg flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Items
+                </CardTitle>
+                <Button type="button" variant="outline" size="sm" onClick={addItem} className="h-7 text-xs md:h-9 md:text-sm">
+                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                  Add
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {items.map((item, index) => <div key={index} className="space-y-3 p-3 md:p-4 border rounded-lg bg-muted/20">
-                  {/* Mobile Layout */}
-                  {isMobile ? <>
-                      <div className="flex justify-between items-start">
-                        <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeItem(index)} disabled={items.length === 1}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <Input placeholder="Description" value={item.description} onChange={e => updateItem(index, "description", e.target.value)} />
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-1">
-                          <label className="text-xs text-muted-foreground">Qty</label>
-                          <Input type="number" min="1" value={item.quantity} onChange={e => updateItem(index, "quantity", parseInt(e.target.value) || 1)} />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs text-muted-foreground">Price</label>
-                          <Input type="number" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)} />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs text-muted-foreground">Amount</label>
-                          <div className="h-10 flex items-center justify-end font-medium text-sm">
-                            ₹{(item.quantity * item.unit_price).toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </> : (/* Desktop Layout */
-              <div className="flex gap-4 items-start">
-                      <div className="flex-1 space-y-2">
-                        <Input placeholder="Description" value={item.description} onChange={e => updateItem(index, "description", e.target.value)} />
-                      </div>
-                      <div className="w-24">
-                        <Input type="number" placeholder="Qty" min="1" value={item.quantity} onChange={e => updateItem(index, "quantity", parseInt(e.target.value) || 1)} />
-                      </div>
-                      <div className="w-32">
-                        <Input type="number" placeholder="Price" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)} />
-                      </div>
-                      <div className="w-32 flex items-center justify-end">
-                        <span className="text-sm font-medium">
-                          ₹{(item.quantity * item.unit_price).toFixed(2)}
-                        </span>
-                      </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} disabled={items.length === 1}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>)}
-                </div>)}
+            <CardContent className="p-2 md:p-6 space-y-2 md:space-y-3">
+              {items.map((item, index) => (
+                <div key={index} className="border rounded-lg p-2 md:p-4 bg-muted/30 space-y-2">
+                  {/* Product Selection */}
+                  <div className="flex gap-2 items-start">
+                    <div className="flex-1">
+                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Select Product</label>
+                      <Select
+                        value={item.product_id || ""}
+                        onValueChange={(value) => handleProductSelect(index, value)}
+                      >
+                        <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
+                          <SelectValue placeholder="Choose product..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products.map((product) => (
+                            <SelectItem key={product.id} value={product.id} className="text-xs md:text-sm">
+                              {product.name} - ₹{product.unit_price}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 mt-4 text-destructive hover:text-destructive" 
+                      onClick={() => removeItem(index)} 
+                      disabled={items.length === 1}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
 
-              {/* Totals */}
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                  {/* Description - Now visible */}
+                  <div>
+                    <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Description</label>
+                    <Input
+                      placeholder="Item description"
+                      value={item.description}
+                      onChange={(e) => updateItem(index, "description", e.target.value)}
+                      className="h-8 md:h-10 text-xs md:text-sm bg-background"
+                    />
+                  </div>
+
+                  {/* Qty, Price, Amount in row */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Qty</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                        className="h-8 md:h-10 text-xs md:text-sm text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Price (₹)</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.unit_price}
+                        onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                        className="h-8 md:h-10 text-xs md:text-sm text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Amount</label>
+                      <div className="h-8 md:h-10 flex items-center justify-center font-semibold text-xs md:text-sm bg-accent/50 rounded-md">
+                        ₹{(item.quantity * item.unit_price).toFixed(0)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (10%):</span>
-                  <span className="font-medium">₹{tax.toFixed(2)}</span>
+              ))}
+
+              {/* Totals - Compact */}
+              <div className="border-t pt-3 mt-3 space-y-1">
+                <div className="flex justify-between text-xs md:text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold bg-[#eacccc]">
-                  <span>Total:</span>
-                  <span>₹{total.toFixed(2)}</span>
+                <div className="flex justify-between text-xs md:text-sm">
+                  <span className="text-muted-foreground">Tax (10%)</span>
+                  <span>₹{tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm md:text-lg font-bold pt-1 border-t">
+                  <span>Total</span>
+                  <span className="text-primary">₹{total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate("/bills")} className="order-2 sm:order-1">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="order-1 sm:order-2 gradient-primary">
-              {isSubmitting ? "Creating..." : "Create Bill"}
-            </Button>
+          {/* Notes */}
+          <Card>
+            <CardHeader className="py-2 px-3 md:pb-4 md:px-6 bg-muted/50">
+              <CardTitle className="text-sm md:text-lg">Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 md:p-6">
+              <FormField control={form.control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea 
+                      {...field}
+                      placeholder="Additional notes (optional)" 
+                      className="min-h-[60px] md:min-h-[80px] text-xs md:text-sm" 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons - Fixed on mobile */}
+          <div className="fixed bottom-16 left-0 right-0 p-3 bg-background border-t md:relative md:bottom-auto md:border-0 md:p-0 md:bg-transparent">
+            <div className="flex gap-2 max-w-4xl mx-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate("/bills")} 
+                className="flex-1 md:flex-none h-10 text-sm"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="flex-1 md:flex-none h-10 text-sm bg-primary hover:bg-primary/90"
+              >
+                {isSubmitting ? "Creating..." : "Create Bill"}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
-    </div>;
+    </div>
+  );
 };
+
 export default BillCreate;
