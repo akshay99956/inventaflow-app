@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TopNavBar } from "@/components/TopNavBar";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -45,67 +46,71 @@ const AppLayout = ({
       <MobileBottomNav />
     </div>
   </SidebarProvider>;
-const App = () => <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/inventory" element={<ProtectedRoute>
-                <AppLayout>
-                  <Inventory />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/invoices" element={<ProtectedRoute>
-                <AppLayout>
-                  <Invoices />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/invoices/new" element={<ProtectedRoute>
-                <AppLayout>
-                  <InvoiceCreate />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/bills" element={<ProtectedRoute>
-                <AppLayout>
-                  <Bills />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/bills/new" element={<ProtectedRoute>
-                <AppLayout>
-                  <BillCreate />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/balance-sheet" element={<ProtectedRoute>
-                <AppLayout>
-                  <BalanceSheet />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/clients" element={<ProtectedRoute>
-                <AppLayout>
-                  <Clients />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/profit-analytics" element={<ProtectedRoute>
-                <AppLayout>
-                  <ProfitAnalytics />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute>
-                <AppLayout>
-                  <Settings />
-                </AppLayout>
-              </ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>;
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <SettingsProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/inventory" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Inventory />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/invoices" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Invoices />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/invoices/new" element={<ProtectedRoute>
+                  <AppLayout>
+                    <InvoiceCreate />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/bills" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Bills />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/bills/new" element={<ProtectedRoute>
+                  <AppLayout>
+                    <BillCreate />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/balance-sheet" element={<ProtectedRoute>
+                  <AppLayout>
+                    <BalanceSheet />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/clients" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Clients />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/profit-analytics" element={<ProtectedRoute>
+                  <AppLayout>
+                    <ProfitAnalytics />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Settings />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </SettingsProvider>
+  </QueryClientProvider>
+);
 export default App;
