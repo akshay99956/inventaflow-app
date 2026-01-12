@@ -101,19 +101,38 @@ const Settings = () => {
       if (error) throw error;
 
       if (data) {
+        let logoUrl = data.logo_url || "";
+        
+        // Generate signed URL for the logo if it exists
+        if (data.logo_url) {
+          const urlParts = data.logo_url.split("/company-logos/");
+          if (urlParts.length > 1) {
+            const filePath = urlParts[1].split("?")[0];
+            const { data: signedUrlData } = await supabase.storage
+              .from("company-logos")
+              .createSignedUrl(filePath, 3600);
+            
+            if (signedUrlData?.signedUrl) {
+              logoUrl = signedUrlData.signedUrl;
+            }
+          }
+        }
+        
         setProfile({
           id: data.id,
           company_name: data.company_name || "",
           address: data.address || "",
           phone: data.phone || "",
           email: data.email || "",
-          logo_url: data.logo_url || "",
+          logo_url: logoUrl,
           gst_number: data.gst_number || "",
           website: data.website || "",
         });
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching profile:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -155,11 +174,14 @@ const Settings = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Use signed URL for private bucket (24 hour expiration)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("company-logos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 86400); // 24 hours
 
-      setProfile((prev) => ({ ...prev, logo_url: publicUrl }));
+      if (signedUrlError) throw signedUrlError;
+
+      setProfile((prev) => ({ ...prev, logo_url: signedUrlData.signedUrl }));
       toast({ title: "Success", description: "Logo uploaded successfully!" });
     } catch (error: any) {
       console.error("Error uploading logo:", error);

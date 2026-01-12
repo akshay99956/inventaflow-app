@@ -17,6 +17,7 @@ interface CompanyBrandingProps {
 
 export const CompanyBranding = ({ className = "" }: CompanyBrandingProps) => {
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -34,6 +35,24 @@ export const CompanyBranding = ({ className = "" }: CompanyBrandingProps) => {
 
     if (data) {
       setProfile(data);
+      
+      // Generate signed URL for the logo if it exists
+      if (data.logo_url) {
+        // Extract the file path from the stored URL
+        const urlParts = data.logo_url.split("/company-logos/");
+        if (urlParts.length > 1) {
+          // Get the path, removing any query parameters from old signed URLs
+          const filePath = urlParts[1].split("?")[0];
+          
+          const { data: signedUrlData } = await supabase.storage
+            .from("company-logos")
+            .createSignedUrl(filePath, 3600); // 1 hour for display
+          
+          if (signedUrlData?.signedUrl) {
+            setLogoUrl(signedUrlData.signedUrl);
+          }
+        }
+      }
     }
   };
 
@@ -49,9 +68,9 @@ export const CompanyBranding = ({ className = "" }: CompanyBrandingProps) => {
   return (
     <div className={`mb-4 pb-4 border-b ${className}`}>
       <div className="flex items-start gap-4">
-        {profile.logo_url && (
+        {logoUrl && (
           <img
-            src={profile.logo_url}
+            src={logoUrl}
             alt="Company Logo"
             className="h-16 w-16 rounded-lg object-cover border border-border print:h-12 print:w-12"
           />
