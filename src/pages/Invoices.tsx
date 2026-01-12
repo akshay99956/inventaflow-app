@@ -479,63 +479,63 @@ const Invoices = () => {
         </Card>}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader className="print:mb-8">
-            <DialogTitle className="text-2xl text-gradient">Invoice Details</DialogTitle>
+            <DialogTitle className="text-xl md:text-2xl text-gradient">Invoice Details</DialogTitle>
             <DialogDescription className="sr-only">
               View and manage invoice details, print or share via WhatsApp
             </DialogDescription>
           </DialogHeader>
           
-          {selectedInvoice && <div id="invoice-print-area" className="space-y-6">
+          {selectedInvoice && <div id="invoice-print-area" className="space-y-4 md:space-y-6">
               {/* Column Selection - Hidden on Print */}
-              <div className="print:hidden p-4 bg-muted/30 rounded-lg">
-                <Label className="text-sm font-medium mb-3 block">Select columns for print/share:</Label>
-                <div className="flex flex-wrap gap-4">
+              <div className="print:hidden p-3 md:p-4 bg-muted/30 rounded-lg">
+                <Label className="text-xs md:text-sm font-medium mb-2 block">Select columns for print/share:</Label>
+                <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-4">
                   {(Object.keys(invoicePrintColumnLabels) as InvoicePrintColumn[]).map(col => <div key={col} className="flex items-center space-x-2">
                       <Checkbox id={`inv-col-${col}`} checked={selectedPrintColumns.includes(col)} onCheckedChange={() => togglePrintColumn(col)} />
-                      <Label htmlFor={`inv-col-${col}`} className="text-sm cursor-pointer">
+                      <Label htmlFor={`inv-col-${col}`} className="text-xs md:text-sm cursor-pointer">
                         {invoicePrintColumnLabels[col]}
                       </Label>
                     </div>)}
                 </div>
               </div>
 
-              <div className="flex justify-between items-start print:mb-6">
-                <div>
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4 print:mb-6">
+                <div className="w-full md:w-auto">
                   <CompanyBranding />
-                  <h2 className="text-3xl font-bold text-gradient">INVOICE</h2>
-                  <p className="text-xl font-semibold text-muted-foreground mt-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gradient">INVOICE</h2>
+                  <p className="text-lg md:text-xl font-semibold text-muted-foreground mt-1 md:mt-2">
                     {selectedInvoice.invoice_number}
                   </p>
                 </div>
-                <div className="flex gap-2 print:hidden">
-                  <Button onClick={handlePrint} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
+                <div className="flex gap-2 print:hidden w-full md:w-auto">
+                  <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 md:flex-none border-primary/20 hover:bg-primary/10">
                     <Printer className="h-4 w-4 mr-2 text-primary" />
                     Print
                   </Button>
-                  <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="border-success/20 hover:bg-success/10">
+                  <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="flex-1 md:flex-none border-success/20 hover:bg-success/10">
                     <Share2 className="h-4 w-4 mr-2 text-success" />
                     WhatsApp
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 print:gap-4">
-                <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5">
-                  <h3 className="font-semibold text-primary mb-2">Bill To:</h3>
-                  <p className="text-foreground font-medium">{selectedInvoice.customer_name}</p>
-                  {selectedInvoice.customer_email && <p className="text-muted-foreground text-sm">{selectedInvoice.customer_email}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 print:gap-4">
+                <div className="p-3 md:p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5">
+                  <h3 className="font-semibold text-primary mb-1 md:mb-2 text-sm md:text-base">Bill To:</h3>
+                  <p className="text-foreground font-medium text-sm md:text-base">{selectedInvoice.customer_name}</p>
+                  {selectedInvoice.customer_email && <p className="text-muted-foreground text-xs md:text-sm">{selectedInvoice.customer_email}</p>}
                 </div>
-                <div className="text-right p-4 rounded-lg bg-gradient-to-bl from-secondary/5 to-success/5">
+                <div className="md:text-right p-3 md:p-4 rounded-lg bg-gradient-to-bl from-secondary/5 to-success/5">
                   <div className="space-y-1">
-                    <p className="text-sm">
+                    <p className="text-xs md:text-sm">
                       <span className="text-muted-foreground">Issue Date:</span>{" "}
                       <span className="text-foreground font-medium">
                         {new Date(selectedInvoice.issue_date).toLocaleDateString()}
                       </span>
                     </p>
-                    {selectedInvoice.due_date && <p className="text-sm">
+                    {selectedInvoice.due_date && <p className="text-xs md:text-sm">
                         <span className="text-muted-foreground">Due Date:</span>{" "}
                         <span className="text-foreground font-medium">
                           {new Date(selectedInvoice.due_date).toLocaleDateString()}
@@ -548,47 +548,47 @@ const Invoices = () => {
                 </div>
               </div>
 
-              <div className="border rounded-lg overflow-hidden shadow-sm">
+              <div className="border rounded-lg overflow-hidden shadow-sm overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-r from-primary/10 to-accent/10">
-                      {selectedPrintColumns.includes('description') && <TableHead className="font-semibold">Description</TableHead>}
-                      {selectedPrintColumns.includes('quantity') && <TableHead className="text-right font-semibold">Quantity</TableHead>}
-                      {selectedPrintColumns.includes('unit_price') && <TableHead className="text-right font-semibold">Unit Price</TableHead>}
-                      {selectedPrintColumns.includes('amount') && <TableHead className="text-right font-semibold">Amount</TableHead>}
+                      {selectedPrintColumns.includes('description') && <TableHead className="font-semibold text-xs md:text-sm">Description</TableHead>}
+                      {selectedPrintColumns.includes('quantity') && <TableHead className="text-right font-semibold text-xs md:text-sm">Qty</TableHead>}
+                      {selectedPrintColumns.includes('unit_price') && <TableHead className="text-right font-semibold text-xs md:text-sm">Price</TableHead>}
+                      {selectedPrintColumns.includes('amount') && <TableHead className="text-right font-semibold text-xs md:text-sm">Amount</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {invoiceItems.map((item, index) => <TableRow key={item.id} className={index % 2 === 0 ? "bg-card" : "bg-muted/20"}>
-                        {selectedPrintColumns.includes('description') && <TableCell className="font-medium">{item.description}</TableCell>}
-                        {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{item.quantity}</TableCell>}
-                        {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>}
-                        {selectedPrintColumns.includes('amount') && <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>}
+                        {selectedPrintColumns.includes('description') && <TableCell className="font-medium text-xs md:text-sm">{item.description}</TableCell>}
+                        {selectedPrintColumns.includes('quantity') && <TableCell className="text-right text-xs md:text-sm">{item.quantity}</TableCell>}
+                        {selectedPrintColumns.includes('unit_price') && <TableCell className="text-right text-xs md:text-sm">₹{item.unit_price.toFixed(2)}</TableCell>}
+                        {selectedPrintColumns.includes('amount') && <TableCell className="text-right font-medium text-xs md:text-sm">₹{item.amount.toFixed(2)}</TableCell>}
                       </TableRow>)}
                   </TableBody>
                 </Table>
               </div>
 
               <div className="flex justify-end">
-                <div className="w-72 space-y-2 p-4 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30">
-                  <div className="flex justify-between text-sm">
+                <div className="w-full md:w-72 space-y-2 p-3 md:p-4 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span className="text-muted-foreground">Subtotal:</span>
                     <span className="text-foreground font-medium">₹{selectedInvoice.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs md:text-sm">
                     <span className="text-muted-foreground">Tax:</span>
                     <span className="text-foreground font-medium">₹{selectedInvoice.tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-xl font-bold pt-2 border-t border-primary/20">
+                  <div className="flex justify-between text-lg md:text-xl font-bold pt-2 border-t border-primary/20">
                     <span className="text-gradient">Total:</span>
                     <span className="text-gradient">₹{selectedInvoice.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
-              {selectedInvoice.notes && <div className="pt-4 border-t">
-                  <h3 className="font-semibold text-foreground mb-2">Notes:</h3>
-                  <p className="text-muted-foreground text-sm">{selectedInvoice.notes}</p>
+              {selectedInvoice.notes && <div className="pt-3 md:pt-4 border-t">
+                  <h3 className="font-semibold text-foreground mb-1 md:mb-2 text-sm md:text-base">Notes:</h3>
+                  <p className="text-muted-foreground text-xs md:text-sm">{selectedInvoice.notes}</p>
                 </div>}
             </div>}
         </DialogContent>
