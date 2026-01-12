@@ -239,6 +239,15 @@ const Inventory = () => {
   const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // File size limit (5MB max)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size must be less than 5MB");
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     const {
       data: {
         user
@@ -264,9 +273,18 @@ const Inventory = () => {
           toast.error("CSV must have a 'Name' column");
           return;
         }
+
+        // Row count limit (1000 max)
+        const MAX_ROWS = 1000;
+        const dataLines = lines.slice(1);
+        if (dataLines.length > MAX_ROWS) {
+          toast.error(`Maximum ${MAX_ROWS} products per import. Your file has ${dataLines.length} rows.`);
+          return;
+        }
+
         const productsToImport = [];
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+        for (let i = 0; i < dataLines.length; i++) {
+          const values = dataLines[i].split(',').map(v => v.replace(/"/g, '').trim());
           const name = values[nameIdx];
           if (!name) continue;
           productsToImport.push({
