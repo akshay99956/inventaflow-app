@@ -21,6 +21,7 @@ import BalanceSheet from "./pages/BalanceSheet";
 import Settings from "./pages/Settings";
 import Clients from "./pages/Clients";
 import ProfitAnalytics from "./pages/ProfitAnalytics";
+import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
@@ -104,6 +105,11 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute>
                   <AppLayout>
                     <Settings />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute>
+                  <AppLayout>
+                    <Search />
                   </AppLayout>
                 </ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
