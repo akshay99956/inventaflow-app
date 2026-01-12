@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, ShoppingCart, Package, Users } from "lucide-react";
+import { Home, ShoppingCart, Package, Users, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
 
 const allNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: Home, settingKey: "show_dashboard" as const },
   { path: "/invoices", label: "Sales", icon: ShoppingCart, settingKey: "show_sales" as const },
+  { path: "/bills", label: "Purchases", icon: Receipt, settingKey: "show_sales" as const },
   { path: "/inventory", label: "Inventory", icon: Package, settingKey: "show_inventory" as const },
   { path: "/clients", label: "Clients", icon: Users, settingKey: "show_clients" as const },
 ];

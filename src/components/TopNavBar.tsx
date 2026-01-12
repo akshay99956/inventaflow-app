@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, User, LogOut, Settings, Menu, Receipt, FileText, TrendingUp, PieChart } from "lucide-react";
+import { Search, Bell, User, LogOut, Settings, Menu, Receipt, FileText, TrendingUp, PieChart, Package, AlertTriangle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -29,12 +30,88 @@ const moreMenuItems = [{
   label: "Settings",
   icon: Settings
 }];
+
+type Notification = {
+  id: string;
+  type: "low_stock" | "overdue_invoice" | "overdue_bill";
+  title: string;
+  message: string;
+};
+
 export const TopNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    const newNotifications: Notification[] = [];
+
+    // Check low stock products
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, name, quantity, low_stock_threshold");
+    
+    if (products) {
+      const lowStockItems = products.filter(p => p.quantity <= p.low_stock_threshold);
+      lowStockItems.slice(0, 5).forEach(p => {
+        newNotifications.push({
+          id: `low_stock_${p.id}`,
+          type: "low_stock",
+          title: "Low Stock",
+          message: `${p.name} has only ${p.quantity} units left`,
+        });
+      });
+    }
+
+    // Check overdue invoices
+    const today = new Date().toISOString().split("T")[0];
+    const { data: overdueInvoices } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, customer_name, due_date")
+      .lt("due_date", today)
+      .neq("status", "paid")
+      .neq("status", "cancelled")
+      .limit(5);
+
+    if (overdueInvoices) {
+      overdueInvoices.forEach(inv => {
+        newNotifications.push({
+          id: `overdue_inv_${inv.id}`,
+          type: "overdue_invoice",
+          title: "Overdue Invoice",
+          message: `${inv.invoice_number} from ${inv.customer_name} is overdue`,
+        });
+      });
+    }
+
+    // Check overdue bills
+    const { data: overdueBills } = await supabase
+      .from("bills")
+      .select("id, bill_number, customer_name, bill_date")
+      .neq("status", "paid")
+      .neq("status", "cancelled")
+      .limit(5);
+
+    if (overdueBills) {
+      overdueBills.forEach(bill => {
+        newNotifications.push({
+          id: `overdue_bill_${bill.id}`,
+          type: "overdue_bill",
+          title: "Pending Bill",
+          message: `${bill.bill_number} from ${bill.customer_name} is pending`,
+        });
+      });
+    }
+
+    setNotifications(newNotifications);
+  };
 
   // Hide on landing and auth pages
   const hiddenPaths = ["/", "/auth"];
@@ -62,7 +139,7 @@ export const TopNavBar = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/inventory?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setIsSearchOpen(false);
       setSearchQuery("");
     }
@@ -83,10 +160,56 @@ export const TopNavBar = () => {
             <Search className="h-5 w-5" />
           </Button>
 
-          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+                <Bell className="h-5 w-5" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1 right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-destructive-foreground flex items-center justify-center">
+                    {notifications.length > 9 ? "9+" : notifications.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <div className="p-3 border-b">
+                <h4 className="font-semibold">Notifications</h4>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className="p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => {
+                        if (notif.type === "low_stock") navigate("/inventory");
+                        else if (notif.type === "overdue_invoice") navigate("/invoices");
+                        else navigate("/bills");
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        {notif.type === "low_stock" ? (
+                          <Package className="h-4 w-4 text-warning mt-0.5" />
+                        ) : notif.type === "overdue_invoice" ? (
+                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-info mt-0.5" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{notif.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{notif.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
