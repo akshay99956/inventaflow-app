@@ -9,7 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRupee, TrendingDown, Boxes, Download, TrendingUp, Upload, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { z } from "zod";
 import { SwipeableCard } from "@/components/SwipeableCard";
@@ -369,10 +372,56 @@ const Inventory = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Input id="category" value={formData.category} onChange={e => setFormData({
-                  ...formData,
-                  category: e.target.value
-                })} className="border-primary/20 focus:border-primary" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between border-primary/20 focus:border-primary"
+                    >
+                      {formData.category || "Select or type category..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search or add category..." 
+                        onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          <Button 
+                            variant="ghost" 
+                            className="w-full justify-start"
+                            onClick={() => {}}
+                          >
+                            Use "{formData.category}" as new category
+                          </Button>
+                        </CommandEmpty>
+                        <CommandGroup heading="Existing Categories">
+                          {[...new Set(products.map(p => p.category).filter(Boolean))].map((category) => (
+                            <CommandItem
+                              key={category}
+                              value={category || ""}
+                              onSelect={(value) => {
+                                setFormData({ ...formData, category: value });
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.category === category ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {category}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
