@@ -9,8 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft, Package } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Package, Search, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -54,6 +56,8 @@ const BillCreate = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [taxEnabled, setTaxEnabled] = useState(settings.tax_enabled);
   const [taxRate, setTaxRate] = useState(settings.default_tax_rate);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
 
   const form = useForm<BillFormData>({
     resolver: zodResolver(billSchema),
@@ -79,32 +83,38 @@ const BillCreate = () => {
     fetchProducts();
   }, []);
 
-  const addItem = () => {
-    setItems([...items, {
-      product_id: null,
-      description: "",
-      quantity: 1,
-      unit_price: 0
-    }]);
+  // Quick add product - directly adds to list
+  const quickAddProduct = (product: Product) => {
+    // Check if product already in items
+    const existingIndex = items.findIndex(item => item.product_id === product.id);
+    
+    if (existingIndex >= 0) {
+      // Increase quantity if already exists
+      const newItems = [...items];
+      newItems[existingIndex].quantity += 1;
+      setItems(newItems);
+      toast.success(`${product.name} quantity increased`);
+    } else {
+      // Add new item (remove empty items first)
+      const filteredItems = items.filter(item => item.product_id !== null || item.description !== "");
+      setItems([...filteredItems, {
+        product_id: product.id,
+        description: product.name,
+        quantity: 1,
+        unit_price: product.purchase_price
+      }]);
+      toast.success(`${product.name} added`);
+    }
+    setSearchOpen(false);
+    setProductSearch("");
   };
 
   const removeItem = (index: number) => {
     if (items.length > 1) {
       setItems(items.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleProductSelect = (index: number, productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      const newItems = [...items];
-      newItems[index] = {
-        product_id: productId,
-        description: product.name,
-        quantity: 1,
-        unit_price: product.purchase_price
-      };
-      setItems(newItems);
+    } else {
+      // Reset to empty item if last one
+      setItems([{ product_id: null, description: "", quantity: 1, unit_price: 0 }]);
     }
   };
 
@@ -248,98 +258,152 @@ const BillCreate = () => {
             </CardContent>
           </Card>
 
-          {/* Bill Items - Improved mobile UI */}
+          {/* Bill Items - Simplified Quick Add System */}
           <Card>
             <CardHeader className="py-2 px-3 md:pb-4 md:px-6 bg-primary/10">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-sm md:text-lg flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  Items
+                  Items ({items.filter(i => i.product_id).length})
                 </CardTitle>
-                <Button type="button" variant="outline" size="sm" onClick={addItem} className="h-7 text-xs md:h-9 md:text-sm">
-                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                  Add
-                </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-2 md:p-6 space-y-2 md:space-y-3">
-              {items.map((item, index) => (
-                <div key={index} className="border rounded-lg p-2 md:p-4 bg-muted/30 space-y-2">
-                  {/* Product Selection */}
-                  <div className="flex gap-2 items-start">
-                    <div className="flex-1">
-                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Select Product</label>
-                      <Select
-                        value={item.product_id || ""}
-                        onValueChange={(value) => handleProductSelect(index, value)}
-                      >
-                        <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
-                          <SelectValue placeholder="Choose product..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products.map((product) => (
-                            <SelectItem key={product.id} value={product.id} className="text-xs md:text-sm">
-                              {product.name} - ₹{product.purchase_price} (Cost)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+            <CardContent className="p-2 md:p-6 space-y-3">
+              {/* Quick Add Product Search */}
+              <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between h-10 md:h-12 text-sm md:text-base border-dashed border-2 border-primary/30 hover:border-primary"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Search & add product...</span>
                     </div>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 mt-4 text-destructive hover:text-destructive" 
-                      onClick={() => removeItem(index)} 
-                      disabled={items.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Description - Now visible */}
-                  <div>
-                    <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Description</label>
-                    <Input
-                      placeholder="Item description"
-                      value={item.description}
-                      onChange={(e) => updateItem(index, "description", e.target.value)}
-                      className="h-8 md:h-10 text-xs md:text-sm bg-background"
+                    <Plus className="h-4 w-4 text-primary" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 z-50 bg-background" align="start" sideOffset={4}>
+                  <Command>
+                    <CommandInput 
+                      placeholder="Type product name..." 
+                      value={productSearch}
+                      onValueChange={setProductSearch}
+                      className="h-10"
                     />
-                  </div>
+                    <CommandList className="max-h-[300px]">
+                      <CommandEmpty>No products found</CommandEmpty>
+                      <CommandGroup heading="Products">
+                        {products
+                          .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                          .slice(0, 20)
+                          .map((product) => {
+                            const inCart = items.find(i => i.product_id === product.id);
+                            return (
+                              <CommandItem
+                                key={product.id}
+                                value={product.name}
+                                onSelect={() => quickAddProduct(product)}
+                                className="flex justify-between items-center py-3 cursor-pointer"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{product.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Cost: {settings.currency_symbol}{product.purchase_price}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {inCart && (
+                                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
+                                      ×{inCart.quantity}
+                                    </span>
+                                  )}
+                                  <Plus className="h-4 w-4 text-primary" />
+                                </div>
+                              </CommandItem>
+                            );
+                          })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
-                  {/* Qty, Price, Amount in row */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Qty</label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                        className="h-8 md:h-10 text-xs md:text-sm text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Cost (₹)</label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unit_price}
-                        onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                        className="h-8 md:h-10 text-xs md:text-sm text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] md:text-xs text-muted-foreground mb-1 block">Amount</label>
-                      <div className="h-8 md:h-10 flex items-center justify-center font-semibold text-xs md:text-sm bg-accent/50 rounded-md">
-                        ₹{(item.quantity * item.unit_price).toFixed(0)}
-                      </div>
-                    </div>
-                  </div>
+              {/* Added Items List */}
+              {items.filter(i => i.product_id).length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  No items added yet. Search above to add products.
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-2">
+                  {items.filter(i => i.product_id).map((item, index) => {
+                    const actualIndex = items.findIndex(i => i === item);
+                    return (
+                      <div key={actualIndex} className="flex items-center gap-2 p-2 md:p-3 bg-muted/30 rounded-lg border">
+                        {/* Product Name */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm md:text-base truncate">{item.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {settings.currency_symbol}{item.unit_price} each
+                          </p>
+                        </div>
+                        
+                        {/* Quantity Controls */}
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateItem(actualIndex, "quantity", item.quantity - 1);
+                              }
+                            }}
+                          >
+                            -
+                          </Button>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
+                            className="w-12 h-8 text-center text-sm"
+                            min={1}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateItem(actualIndex, "quantity", item.quantity + 1)}
+                          >
+                            +
+                          </Button>
+                        </div>
+                        
+                        {/* Amount */}
+                        <div className="text-right min-w-[60px]">
+                          <p className="font-semibold text-sm md:text-base">
+                            {settings.currency_symbol}{(item.quantity * item.unit_price).toFixed(0)}
+                          </p>
+                        </div>
+                        
+                        {/* Delete */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => removeItem(actualIndex)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Totals - Compact */}
               <div className="border-t pt-3 mt-3 space-y-2">
