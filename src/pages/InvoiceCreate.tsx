@@ -10,7 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+
+type Client = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+};
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 type Product = {
@@ -47,6 +57,8 @@ const InvoiceCreate = () => {
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
@@ -60,7 +72,28 @@ const InvoiceCreate = () => {
   });
   useEffect(() => {
     fetchProducts();
+    fetchClients();
   }, []);
+
+  const fetchClients = async () => {
+    const { data, error } = await supabase
+      .from("clients")
+      .select("id, name, email, phone")
+      .order("name");
+    if (error) {
+      console.error("Failed to load clients:", error);
+      return;
+    }
+    setClients(data || []);
+  };
+
+  const selectClient = (client: Client) => {
+    form.setValue("customer_name", client.name);
+    if (client.email) {
+      form.setValue("customer_email", client.email);
+    }
+    setCustomerPopoverOpen(false);
+  };
   const fetchProducts = async () => {
     const {
       data,
@@ -229,11 +262,64 @@ const InvoiceCreate = () => {
             <CardContent className="space-y-4">
               <FormField control={form.control} name="customer_name" render={({
               field
-            }) => <FormItem>
+            }) => <FormItem className="flex flex-col">
                     <FormLabel className="text-sm">Customer Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter customer name" />
-                    </FormControl>
+                    <Popover open={customerPopoverOpen} onOpenChange={setCustomerPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value || "Select or type customer name..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or add customer..." 
+                            onValueChange={(value) => form.setValue("customer_name", value)}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <Button 
+                                variant="ghost" 
+                                className="w-full justify-start"
+                                onClick={() => setCustomerPopoverOpen(false)}
+                              >
+                                Use "{form.getValues("customer_name")}" as new customer
+                              </Button>
+                            </CommandEmpty>
+                            <CommandGroup heading="Existing Customers">
+                              {clients.map((client) => (
+                                <CommandItem
+                                  key={client.id}
+                                  value={client.name}
+                                  onSelect={() => selectClient(client)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === client.name ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span>{client.name}</span>
+                                    {client.email && <span className="text-xs text-muted-foreground">{client.email}</span>}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>} />
               <FormField control={form.control} name="customer_email" render={({
