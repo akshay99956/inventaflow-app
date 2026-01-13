@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSettings } from "@/contexts/SettingsContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const billSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
@@ -40,6 +43,7 @@ type Product = {
 const BillCreate = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { settings } = useSettings();
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<BillItem[]>([{
     product_id: null,
@@ -48,6 +52,8 @@ const BillCreate = () => {
     unit_price: 0
   }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [taxEnabled, setTaxEnabled] = useState(settings.tax_enabled);
+  const [taxRate, setTaxRate] = useState(settings.default_tax_rate);
 
   const form = useForm<BillFormData>({
     resolver: zodResolver(billSchema),
@@ -113,7 +119,7 @@ const BillCreate = () => {
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-    const tax = subtotal * 0.1;
+    const tax = taxEnabled ? subtotal * (taxRate / 100) : 0;
     const total = subtotal + tax;
     return { subtotal, tax, total };
   };
@@ -336,18 +342,44 @@ const BillCreate = () => {
               ))}
 
               {/* Totals - Compact */}
-              <div className="border-t pt-3 mt-3 space-y-1">
+              <div className="border-t pt-3 mt-3 space-y-2">
                 <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>{settings.currency_symbol}{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-xs md:text-sm">
-                  <span className="text-muted-foreground">Tax (10%)</span>
-                  <span>₹{tax.toFixed(2)}</span>
+                
+                {/* Tax Toggle and Rate */}
+                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="tax-toggle-bill"
+                      checked={taxEnabled}
+                      onCheckedChange={setTaxEnabled}
+                    />
+                    <Label htmlFor="tax-toggle-bill" className="text-xs md:text-sm text-muted-foreground">
+                      {settings.tax_name}
+                    </Label>
+                  </div>
+                  {taxEnabled && (
+                    <div className="flex items-center gap-1 md:gap-2">
+                      <Input
+                        type="number"
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(Number(e.target.value))}
+                        className="w-12 md:w-16 h-7 md:h-8 text-center text-xs md:text-sm"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                      />
+                      <span className="text-xs md:text-sm text-muted-foreground">%</span>
+                      <span className="font-medium text-xs md:text-sm">{settings.currency_symbol}{tax.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
+                
                 <div className="flex justify-between text-sm md:text-lg font-bold pt-1 border-t">
                   <span>Total</span>
-                  <span className="text-primary">₹{total.toFixed(2)}</span>
+                  <span className="text-primary">{settings.currency_symbol}{total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>

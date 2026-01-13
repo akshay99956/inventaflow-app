@@ -14,6 +14,11 @@ import { Plus, Trash2, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSettings } from "@/contexts/SettingsContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type Client = {
   id: string;
@@ -21,8 +26,6 @@ type Client = {
   email: string | null;
   phone: string | null;
 };
-import { toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
 type Product = {
   id: string;
   name: string;
@@ -49,6 +52,7 @@ type InvoiceItem = {
 const InvoiceCreate = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { settings } = useSettings();
   const [items, setItems] = useState<InvoiceItem[]>([{
     product_id: "",
     description: "",
@@ -59,6 +63,8 @@ const InvoiceCreate = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
+  const [taxEnabled, setTaxEnabled] = useState(settings.tax_enabled);
+  const [taxRate, setTaxRate] = useState(settings.default_tax_rate);
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
@@ -141,7 +147,7 @@ const InvoiceCreate = () => {
   };
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-    const tax = subtotal * 0.1; // 10% tax
+    const tax = taxEnabled ? subtotal * (taxRate / 100) : 0;
     const total = subtotal + tax;
     return {
       subtotal,
@@ -477,18 +483,44 @@ const InvoiceCreate = () => {
                 </div>)}
 
               {/* Totals */}
-              <div className="border-t pt-4 space-y-2">
+              <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{settings.currency_symbol}{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (10%):</span>
-                  <span className="font-medium">₹{tax.toFixed(2)}</span>
+                
+                {/* Tax Toggle and Rate */}
+                <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="tax-toggle"
+                      checked={taxEnabled}
+                      onCheckedChange={setTaxEnabled}
+                    />
+                    <Label htmlFor="tax-toggle" className="text-sm text-muted-foreground">
+                      {settings.tax_name}
+                    </Label>
+                  </div>
+                  {taxEnabled && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(Number(e.target.value))}
+                        className="w-16 h-8 text-center text-sm"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                      />
+                      <span className="text-sm text-muted-foreground">%</span>
+                      <span className="font-medium text-sm">{settings.currency_symbol}{tax.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between text-lg font-bold bg-[#f4ebeb]">
+                
+                <div className="flex justify-between text-lg font-bold bg-primary/10 p-2 rounded">
                   <span>Total:</span>
-                  <span>₹{total.toFixed(2)}</span>
+                  <span>{settings.currency_symbol}{total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
