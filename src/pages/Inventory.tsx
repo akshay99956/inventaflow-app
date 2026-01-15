@@ -108,6 +108,15 @@ const Inventory = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+  // Check if product name already exists
+  const isProductNameDuplicate = (name: string) => {
+    const normalizedName = name.trim().toLowerCase();
+    return products.some(p => 
+      p.name.trim().toLowerCase() === normalizedName && 
+      (!editingProduct || p.id !== editingProduct.id)
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validation = productSchema.safeParse(formData);
@@ -115,6 +124,13 @@ const Inventory = () => {
       toast.error(validation.error.errors[0].message);
       return;
     }
+
+    // Check for duplicate product name
+    if (isProductNameDuplicate(formData.name)) {
+      toast.error(`Product "${formData.name}" already exists!`);
+      return;
+    }
+
     const {
       data: {
         user
@@ -358,10 +374,25 @@ const Inventory = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
-                <Input id="name" value={formData.name} onChange={e => setFormData({
-                  ...formData,
-                  name: e.target.value
-                })} required className="border-primary/20 focus:border-primary" />
+                <Input 
+                  id="name" 
+                  value={formData.name} 
+                  onChange={e => setFormData({
+                    ...formData,
+                    name: e.target.value
+                  })} 
+                  required 
+                  className={cn(
+                    "border-primary/20 focus:border-primary",
+                    formData.name && isProductNameDuplicate(formData.name) && "border-destructive focus:border-destructive"
+                  )} 
+                />
+                {formData.name && isProductNameDuplicate(formData.name) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Product "{formData.name}" already exists
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sku">SKU</Label>
