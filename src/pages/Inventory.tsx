@@ -348,7 +348,7 @@ const Inventory = () => {
                 <span className="hidden sm:inline">Add Product</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md border-2 border-primary/20">
+            <DialogContent className="max-w-[25rem] border-2 border-primary/20">
               <DialogHeader>
                 <DialogTitle className="text-gradient">{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 <DialogDescription className="sr-only">
