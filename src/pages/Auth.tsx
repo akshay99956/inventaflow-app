@@ -174,7 +174,7 @@ const Auth = () => {
                   <Button type="button" variant="link" className="px-0 text-sm h-auto py-0" onClick={() => setForgotPasswordMode(true)}>
                     Forgot Password?
                   </Button>
-                  <Button type="submit" className="w-full bg-success" disabled={loading}>
+                  <Button type="submit" className="w-full bg-success text-primary font-serif text-2xl font-bold" disabled={loading}>
                     {loading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
