@@ -239,13 +239,13 @@ All colors MUST be HSL.
     max-width: 100%;
   }
 
-  /* Invoice and Inventory print styles */
-  [id="invoice-print-area"], [id="inventory-print-area"] {
+  /* Invoice, Bill, and Inventory print styles */
+  [id="invoice-print-area"], [id="bill-print-area"], [id="inventory-print-area"] {
     padding: 2rem;
   }
 
   /* Show print areas */
-  #invoice-print-area, #inventory-print-area {
+  #invoice-print-area, #bill-print-area, #inventory-print-area {
     display: block !important;
   }
 
@@ -256,12 +256,13 @@ All colors MUST be HSL.
 
   /* Show only the print area and its children */
   #invoice-print-area, #invoice-print-area *,
+  #bill-print-area, #bill-print-area *,
   #inventory-print-area, #inventory-print-area * {
     visibility: visible;
   }
 
   /* Position print area */
-  #invoice-print-area, #inventory-print-area {
+  #invoice-print-area, #bill-print-area, #inventory-print-area {
     position: absolute;
     left: 0;
     top: 0;
