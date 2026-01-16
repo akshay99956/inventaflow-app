@@ -272,9 +272,9 @@ ${selectedBill.notes ? `\n📝 Notes: ${selectedBill.notes}` : ''}
 
 Thank you for your business! 🙏`;
     
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    toast.success("Opening WhatsApp to share bill");
+    toast.success("Opening WhatsApp Web to share bill");
   };
 
   // Calculate summary stats from filtered bills
