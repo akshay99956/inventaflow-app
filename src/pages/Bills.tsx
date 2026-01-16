@@ -234,15 +234,47 @@ const Bills = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (!selectedBill) {
+      toast.error("No bill selected to print");
+      return;
+    }
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleWhatsAppShare = () => {
-    if (!selectedBill) return;
+    if (!selectedBill) {
+      toast.error("No bill selected to share");
+      return;
+    }
     
-    const message = `Bill ${selectedBill.bill_number}\n\nCustomer: ${selectedBill.customer_name}\nAmount: ₹${selectedBill.total.toFixed(2)}\n\nThank you for your business!`;
+    // Build items list
+    const itemsList = billItems.map((item, index) => 
+      `${index + 1}. ${item.description} (${item.quantity} x ₹${item.unit_price.toFixed(2)}) = ₹${item.amount.toFixed(2)}`
+    ).join('\n');
+    
+    const message = `*BILL: ${selectedBill.bill_number}*
+    
+📋 *Customer:* ${selectedBill.customer_name}
+${selectedBill.customer_email ? `📧 Email: ${selectedBill.customer_email}` : ''}
+📅 *Date:* ${new Date(selectedBill.bill_date).toLocaleDateString('en-IN')}
+
+*Items:*
+${itemsList}
+
+━━━━━━━━━━━━━━━
+💰 *Subtotal:* ₹${selectedBill.subtotal.toFixed(2)}
+📊 *Tax:* ₹${selectedBill.tax.toFixed(2)}
+*Total:* ₹${selectedBill.total.toFixed(2)}
+━━━━━━━━━━━━━━━
+${selectedBill.notes ? `\n📝 Notes: ${selectedBill.notes}` : ''}
+
+Thank you for your business! 🙏`;
+    
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    toast.success("Opening WhatsApp to share bill");
   };
 
   // Calculate summary stats from filtered bills
