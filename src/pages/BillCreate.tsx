@@ -153,6 +153,7 @@ const BillCreate = () => {
         customer_email: data.customer_email || null,
         bill_date: data.bill_date,
         notes: data.notes || null,
+        status: "active",
         subtotal,
         tax,
         total
