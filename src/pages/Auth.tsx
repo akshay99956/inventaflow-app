@@ -128,7 +128,7 @@ const Auth = () => {
           <CardTitle className="text-xl md:text-2xl">Welcome to BizManager</CardTitle>
           <CardDescription className="text-sm">Manage your business with ease</CardDescription>
         </CardHeader>
-        <CardContent className="px-4 md:px-[32px] py-[13px]">
+        <CardContent className="px-4 md:px-6">
           {forgotPasswordMode ? <div className="space-y-4">
               <Button variant="ghost" onClick={() => {
             setForgotPasswordMode(false);
@@ -174,7 +174,7 @@ const Auth = () => {
                   <Button type="button" variant="link" className="px-0 text-sm h-auto py-0" onClick={() => setForgotPasswordMode(true)}>
                     Forgot Password?
                   </Button>
-                  <Button type="submit" className="w-full bg-success text-primary font-serif text-2xl font-bold" disabled={loading}>
+                  <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
