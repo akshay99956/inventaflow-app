@@ -272,9 +272,20 @@ ${selectedBill.notes ? `\n📝 Notes: ${selectedBill.notes}` : ''}
 
 Thank you for your business! 🙏`;
     
-    const whatsappUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    toast.success("Opening WhatsApp Web to share bill");
+    // Detect mobile device
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const encodedMessage = encodeURIComponent(message);
+    
+    if (isMobileDevice) {
+      // Use WhatsApp app protocol for mobile
+      window.location.href = `whatsapp://send?text=${encodedMessage}`;
+      toast.success("Opening WhatsApp app to share bill");
+    } else {
+      // Use WhatsApp Web for desktop
+      window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+      toast.success("Opening WhatsApp Web to share bill");
+    }
   };
 
   // Calculate summary stats from filtered bills
