@@ -89,7 +89,9 @@ const InvoiceCreate = () => {
       .select("id, name, email, phone")
       .order("name");
     if (error) {
-      console.error("Failed to load clients:", error);
+      if (import.meta.env.DEV) {
+        console.error("Failed to load clients:", error);
+      }
       return;
     }
     setClients(data || []);
@@ -232,7 +234,9 @@ const InvoiceCreate = () => {
                 quantity: Math.max(0, (product as any).quantity - item.quantity)
               }).eq("id", item.product_id);
               if (updateError) {
-                console.error("Failed to update product quantity:", updateError);
+                if (import.meta.env.DEV) {
+                  console.error("Failed to update product quantity:", updateError);
+                }
               }
             }
           }
@@ -241,7 +245,9 @@ const InvoiceCreate = () => {
       toast.success("Invoice created successfully");
       navigate("/invoices");
     } catch (error) {
-      console.error("Error creating invoice:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error creating invoice:", error);
+      }
       toast.error("Failed to create invoice");
     } finally {
       setIsSubmitting(false);

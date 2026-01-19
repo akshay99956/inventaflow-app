@@ -130,7 +130,9 @@ const Bills = () => {
       .eq("bill_id", billId);
 
     if (itemsError) {
-      console.error("Failed to fetch bill items for stock restoration:", itemsError);
+      if (import.meta.env.DEV) {
+        console.error("Failed to fetch bill items for stock restoration:", itemsError);
+      }
       return false;
     }
 
@@ -143,7 +145,9 @@ const Bills = () => {
           .maybeSingle();
 
         if (productError || !product) {
-          console.error("Failed to fetch product:", productError);
+          if (import.meta.env.DEV) {
+            console.error("Failed to fetch product:", productError);
+          }
           continue;
         }
 
@@ -153,7 +157,9 @@ const Bills = () => {
           .eq("id", item.product_id);
 
         if (updateError) {
-          console.error("Failed to restore product quantity:", updateError);
+          if (import.meta.env.DEV) {
+            console.error("Failed to restore product quantity:", updateError);
+          }
         }
       }
     }

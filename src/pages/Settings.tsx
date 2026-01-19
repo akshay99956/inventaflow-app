@@ -184,7 +184,9 @@ const Settings = () => {
       setProfile((prev) => ({ ...prev, logo_url: signedUrlData.signedUrl }));
       toast({ title: "Success", description: "Logo uploaded successfully!" });
     } catch (error: any) {
-      console.error("Error uploading logo:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error uploading logo:", error);
+      }
       toast({ title: "Error", description: error.message || "Failed to upload logo", variant: "destructive" });
     } finally {
       setUploading(false);
@@ -204,7 +206,9 @@ const Settings = () => {
       setProfile((prev) => ({ ...prev, logo_url: "" }));
       toast({ title: "Success", description: "Logo removed" });
     } catch (error: any) {
-      console.error("Error removing logo:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error removing logo:", error);
+      }
       toast({ title: "Error", description: "Failed to remove logo", variant: "destructive" });
     }
   };
@@ -294,7 +298,9 @@ const Settings = () => {
     try {
       await updateSettings({ [field]: value });
     } catch (error) {
-      console.error("Error updating setting:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error updating setting:", error);
+      }
     }
   };
 
@@ -307,7 +313,9 @@ const Settings = () => {
           currency_symbol: currency.symbol 
         });
       } catch (error) {
-        console.error("Error updating currency:", error);
+        if (import.meta.env.DEV) {
+          console.error("Error updating currency:", error);
+        }
       }
     }
   };
