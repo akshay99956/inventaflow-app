@@ -98,7 +98,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching settings:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -129,7 +131,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } catch (error) {
-      console.error("Error updating settings:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error updating settings:", error);
+      }
       throw error;
     }
   };

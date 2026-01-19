@@ -167,7 +167,9 @@ const Invoices = () => {
       error: itemsError
     } = await supabase.from("invoice_items").select("product_id, quantity").eq("invoice_id", invoiceId);
     if (itemsError) {
-      console.error("Failed to fetch invoice items for stock restoration:", itemsError);
+      if (import.meta.env.DEV) {
+        console.error("Failed to fetch invoice items for stock restoration:", itemsError);
+      }
       return false;
     }
     for (const item of items || []) {
@@ -177,7 +179,9 @@ const Invoices = () => {
           error: productError
         } = await supabase.from("products").select("quantity").eq("id", item.product_id).maybeSingle();
         if (productError || !product) {
-          console.error("Failed to fetch product:", productError);
+          if (import.meta.env.DEV) {
+            console.error("Failed to fetch product:", productError);
+          }
           continue;
         }
         const {
@@ -186,7 +190,9 @@ const Invoices = () => {
           quantity: product.quantity + item.quantity
         }).eq("id", item.product_id);
         if (updateError) {
-          console.error("Failed to restore product quantity:", updateError);
+          if (import.meta.env.DEV) {
+            console.error("Failed to restore product quantity:", updateError);
+          }
         }
       }
     }

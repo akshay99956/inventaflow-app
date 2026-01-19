@@ -192,7 +192,9 @@ const BillCreate = () => {
       toast.success("Bill created successfully");
       navigate("/bills");
     } catch (error) {
-      console.error("Error creating bill:", error);
+      if (import.meta.env.DEV) {
+        console.error("Error creating bill:", error);
+      }
       toast.error("Failed to create bill");
     } finally {
       setIsSubmitting(false);
