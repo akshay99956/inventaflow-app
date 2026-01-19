@@ -291,36 +291,6 @@ export type Database = {
           },
         ]
       }
-      otp_verifications: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          mobile: string
-          otp_code: string
-          user_id: string
-          verified: boolean
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          mobile: string
-          otp_code: string
-          user_id: string
-          verified?: boolean
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          mobile?: string
-          otp_code?: string
-          user_id?: string
-          verified?: boolean
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           category: string | null
@@ -395,30 +365,6 @@ export type Database = {
           id?: string
           transaction_date?: string
           type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_pins: {
-        Row: {
-          created_at: string
-          id: string
-          pin_hash: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          pin_hash: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          pin_hash?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -503,15 +449,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      hash_pin: { Args: { pin: string }; Returns: string }
-      set_user_pin: {
-        Args: { new_pin: string; user_uuid: string }
-        Returns: boolean
-      }
-      verify_pin: {
-        Args: { input_pin: string; user_uuid: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
