@@ -13,6 +13,7 @@ import { Plus, Pencil, Trash2, Printer, Share2, AlertTriangle, Package, IndianRu
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { parseProductCSV } from "@/lib/csvUtils";
 import { toast } from "sonner";
 import { z } from "zod";
 import { SwipeableCard } from "@/components/SwipeableCard";
@@ -276,65 +277,44 @@ const Inventory = () => {
       toast.error("You must be logged in");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = async e => {
-      try {
-        const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
-        const nameIdx = headers.findIndex(h => h === 'name' || h === 'product name');
-        const skuIdx = headers.findIndex(h => h === 'sku');
-        const categoryIdx = headers.findIndex(h => h === 'category');
-        const quantityIdx = headers.findIndex(h => h === 'quantity' || h === 'qty');
-        const purchasePriceIdx = headers.findIndex(h => h.includes('purchase') || h.includes('cost'));
-        const salePriceIdx = headers.findIndex(h => h.includes('sale') || h.includes('unit') || h === 'price');
-        if (nameIdx === -1) {
-          toast.error("CSV must have a 'Name' column");
-          return;
-        }
 
-        // Row count limit (1000 max)
-        const MAX_ROWS = 1000;
-        const dataLines = lines.slice(1);
-        if (dataLines.length > MAX_ROWS) {
-          toast.error(`Maximum ${MAX_ROWS} products per import. Your file has ${dataLines.length} rows.`);
-          return;
+    try {
+      // Use papaparse for proper CSV parsing with sanitization
+      const result = await parseProductCSV(file, 1000);
+      
+      // Show any parsing errors/warnings
+      if (result.errors.length > 0) {
+        result.errors.slice(0, 3).forEach(err => toast.error(err));
+        if (result.errors.length > 3) {
+          toast.error(`And ${result.errors.length - 3} more errors...`);
         }
-
-        const productsToImport = [];
-        for (let i = 0; i < dataLines.length; i++) {
-          const values = dataLines[i].split(',').map(v => v.replace(/"/g, '').trim());
-          const name = values[nameIdx];
-          if (!name) continue;
-          productsToImport.push({
-            user_id: user.id,
-            name,
-            sku: skuIdx >= 0 ? values[skuIdx] || null : null,
-            category: categoryIdx >= 0 ? values[categoryIdx] || null : null,
-            quantity: quantityIdx >= 0 ? parseInt(values[quantityIdx]) || 0 : 0,
-            purchase_price: purchasePriceIdx >= 0 ? parseFloat(values[purchasePriceIdx]) || 0 : 0,
-            unit_price: salePriceIdx >= 0 ? parseFloat(values[salePriceIdx]) || 0 : 0,
-            low_stock_threshold: 10
-          });
-        }
-        if (productsToImport.length === 0) {
-          toast.error("No valid products found in CSV");
-          return;
-        }
-        const {
-          error
-        } = await supabase.from("products").insert(productsToImport);
-        if (error) {
-          toast.error("Error importing products: " + error.message);
-        } else {
-          toast.success(`Successfully imported ${productsToImport.length} products`);
-          fetchProducts();
-        }
-      } catch (error) {
-        toast.error("Error parsing CSV file");
       }
-    };
-    reader.readAsText(file);
+      
+      if (result.data.length === 0) {
+        if (result.errors.length === 0) {
+          toast.error("No valid products found in CSV. Ensure there is a 'Name' column.");
+        }
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // Add user_id to each product
+      const productsToImport = result.data.map(product => ({
+        ...product,
+        user_id: user.id
+      }));
+
+      const { error } = await supabase.from("products").insert(productsToImport);
+      if (error) {
+        toast.error("Error importing products. Please check your data and try again.");
+      } else {
+        toast.success(`Successfully imported ${productsToImport.length} products`);
+        fetchProducts();
+      }
+    } catch (error) {
+      toast.error("Error processing CSV file. Please ensure it's a valid CSV format.");
+    }
+    
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
   return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
