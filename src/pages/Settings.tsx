@@ -17,6 +17,7 @@ import {
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
+import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 
 const profileSchema = z.object({
   company_name: z.string().max(200, "Company name must be less than 200 characters").optional().or(z.literal("")),
@@ -184,10 +185,8 @@ const Settings = () => {
       setProfile((prev) => ({ ...prev, logo_url: signedUrlData.signedUrl }));
       toast({ title: "Success", description: "Logo uploaded successfully!" });
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error("Error uploading logo:", error);
-      }
-      toast({ title: "Error", description: error.message || "Failed to upload logo", variant: "destructive" });
+      logErrorInDev('LogoUpload', error);
+      toast({ title: "Error", description: getSafeErrorMessage(error, "Failed to upload logo"), variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -272,7 +271,8 @@ const Settings = () => {
       toast({ title: "Success", description: "Company profile saved successfully!" });
       fetchProfile();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      logErrorInDev('SaveProfile', error);
+      toast({ title: "Error", description: getSafeErrorMessage(error, "Failed to save profile"), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -284,7 +284,8 @@ const Settings = () => {
       await updateSettings(settings);
       toast({ title: "Success", description: "Settings saved successfully!" });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      logErrorInDev('SaveSettings', error);
+      toast({ title: "Error", description: getSafeErrorMessage(error, "Failed to save settings"), variant: "destructive" });
     } finally {
       setSaving(false);
     }

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
+import { getSafeAuthErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
@@ -48,7 +49,8 @@ const Auth = () => {
       }
     });
     if (error) {
-      toast.error(error.message);
+      logErrorInDev('SignUp', error);
+      toast.error(getSafeAuthErrorMessage(error));
     } else {
       toast.success("Account created successfully! Please check your email.");
       navigate("/dashboard");
@@ -73,7 +75,8 @@ const Auth = () => {
       password
     });
     if (error) {
-      toast.error(error.message);
+      logErrorInDev('SignIn', error);
+      toast.error(getSafeAuthErrorMessage(error));
     } else {
       toast.success("Signed in successfully!");
       navigate("/dashboard");
@@ -93,7 +96,8 @@ const Auth = () => {
       redirectTo: `${window.location.origin}/auth`
     });
     if (error) {
-      toast.error(error.message);
+      logErrorInDev('ForgotPassword', error);
+      toast.error(getSafeAuthErrorMessage(error));
     } else {
       toast.success("Password reset link sent to your email!");
       setOtpSent(true);
@@ -113,7 +117,8 @@ const Auth = () => {
       password: newPassword
     });
     if (error) {
-      toast.error(error.message);
+      logErrorInDev('ResetPassword', error);
+      toast.error(getSafeAuthErrorMessage(error));
     } else {
       toast.success("Password updated successfully!");
       setForgotPasswordMode(false);
