@@ -1,4 +1,10 @@
 @tailwind base;
+
+/* Security disc font for PIN display */
+.text-security-disc {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
 @tailwind components;
 @tailwind utilities;
 
