@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save } from "lucide-react";
+import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import {
   InputOTP,
@@ -21,13 +22,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
   companyName: z.string().min(2, "Company name must be at least 2 characters").max(100),
   mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15),
+});
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 interface ProfileData {
@@ -37,14 +46,18 @@ interface ProfileData {
   mobile: string;
   email: string;
   pin_enabled: boolean;
+  avatar_url: string | null;
 }
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   // PIN management state
@@ -54,6 +67,17 @@ const Profile = () => {
   const [confirmPin, setConfirmPin] = useState("");
   const [pinStep, setPinStep] = useState<"current" | "new" | "confirm">("current");
   const [pinLoading, setPinLoading] = useState(false);
+
+  // Password change state
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProfile();
@@ -83,7 +107,18 @@ const Profile = () => {
           mobile: data.mobile,
           email: data.email,
           pin_enabled: data.pin_enabled,
+          avatar_url: data.avatar_url,
         });
+
+        // Get signed URL for avatar if exists
+        if (data.avatar_url) {
+          const { data: signedData } = await supabase.storage
+            .from("avatars")
+            .createSignedUrl(data.avatar_url, 3600);
+          if (signedData?.signedUrl) {
+            setAvatarUrl(signedData.signedUrl);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -94,6 +129,84 @@ const Profile = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "Image must be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      if (profile.avatar_url) {
+        await supabase.storage.from("avatars").remove([profile.avatar_url]);
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: filePath })
+        .eq("id", profile.id);
+
+      if (updateError) throw updateError;
+
+      // Get signed URL for display
+      const { data: signedData } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(filePath, 3600);
+
+      if (signedData?.signedUrl) {
+        setAvatarUrl(signedData.signedUrl);
+      }
+
+      setProfile({ ...profile, avatar_url: filePath });
+      toast({
+        title: "Success",
+        description: "Profile picture updated",
+      });
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload profile picture",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -148,15 +261,85 @@ const Profile = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    setPasswordErrors({});
+
+    const validation = passwordSchema.safeParse({
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      validation.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setPasswordErrors(fieldErrors);
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      // First verify current password by trying to sign in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("No user email found");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        setPasswordErrors({ currentPassword: "Current password is incorrect" });
+        setPasswordLoading(false);
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: "Password changed successfully",
+      });
+      setPasswordDialogOpen(false);
+      resetPasswordDialog();
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast({
+        title: "Error",
+        description: "Failed to change password",
+        variant: "destructive",
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const resetPasswordDialog = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordErrors({});
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
+
   const handlePinToggle = async (enabled: boolean) => {
     if (!profile) return;
 
     if (enabled && !profile.pin_enabled) {
-      // Opening dialog to set new PIN
       setPinStep("new");
       setPinDialogOpen(true);
     } else if (!enabled && profile.pin_enabled) {
-      // Disable PIN - verify current PIN first
       setPinStep("current");
       setPinDialogOpen(true);
     }
@@ -179,7 +362,6 @@ const Profile = () => {
       if (!user) throw new Error("Not authenticated");
 
       if (pinStep === "current") {
-        // Verify current PIN
         const { data: isValid } = await supabase.rpc("verify_pin", {
           user_uuid: user.id,
           input_pin: currentPin,
@@ -196,9 +378,7 @@ const Profile = () => {
           return;
         }
 
-        // If disabling PIN
         if (!profile.pin_enabled) {
-          // Actually we're in the process of disabling
           await supabase
             .from("profiles")
             .update({ pin_enabled: false })
@@ -211,7 +391,6 @@ const Profile = () => {
             description: "PIN disabled successfully",
           });
         } else {
-          // Move to new PIN step for changing
           setPinStep("new");
           setCurrentPin("");
         }
@@ -238,7 +417,6 @@ const Profile = () => {
           return;
         }
 
-        // Set new PIN
         await supabase.rpc("set_user_pin", {
           user_uuid: user.id,
           new_pin: newPin,
@@ -277,6 +455,15 @@ const Profile = () => {
     setPinStep("current");
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -299,6 +486,50 @@ const Profile = () => {
         <h1 className="text-2xl font-bold">Profile Settings</h1>
         <p className="text-muted-foreground">Manage your personal information and security</p>
       </div>
+
+      {/* Avatar Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Profile Picture
+          </CardTitle>
+          <CardDescription>Upload a profile picture</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center gap-6">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={avatarUrl || undefined} alt={profile.full_name} />
+              <AvatarFallback className="text-lg bg-primary/10">
+                {getInitials(profile.full_name)}
+              </AvatarFallback>
+            </Avatar>
+            {uploadingAvatar && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              {profile.avatar_url ? "Change Picture" : "Upload Picture"}
+            </Button>
+            <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 2MB.</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Personal Information */}
       <Card>
@@ -387,9 +618,28 @@ const Profile = () => {
             <Shield className="h-5 w-5" />
             Security Settings
           </CardTitle>
-          <CardDescription>Manage your PIN and security preferences</CardDescription>
+          <CardDescription>Manage your password, PIN and security preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Password Section */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Password
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Change your account password
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
+              Change Password
+            </Button>
+          </div>
+
+          <Separator />
+
+          {/* PIN Section */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="flex items-center gap-2">
@@ -429,6 +679,113 @@ const Profile = () => {
           Save Changes
         </Button>
       </div>
+
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={(open) => {
+        if (!open) resetPasswordDialog();
+        setPasswordDialogOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Change Password
+            </DialogTitle>
+            <DialogDescription>
+              Enter your current password and choose a new one
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                >
+                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {passwordErrors.currentPassword && (
+                <p className="text-sm text-destructive">{passwordErrors.currentPassword}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {passwordErrors.newPassword && (
+                <p className="text-sm text-destructive">{passwordErrors.newPassword}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {passwordErrors.confirmPassword && (
+                <p className="text-sm text-destructive">{passwordErrors.confirmPassword}</p>
+              )}
+            </div>
+
+            <Button
+              onClick={handleChangePassword}
+              disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
+              className="w-full"
+            >
+              {passwordLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Update Password"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* PIN Dialog */}
       <Dialog open={pinDialogOpen} onOpenChange={(open) => {
