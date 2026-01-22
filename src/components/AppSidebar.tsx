@@ -1,4 +1,4 @@
-import { Home, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart, ShoppingCart } from "lucide-react";
+import { Home, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart, ShoppingCart, UserCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
@@ -33,6 +33,10 @@ const menuItems = [{
   title: "Reports",
   url: "/profit-analytics",
   icon: PieChart
+}, {
+  title: "Profile",
+  url: "/profile",
+  icon: UserCircle
 }, {
   title: "Settings",
   url: "/settings",
