@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings } from "lucide-react";
 import { z } from "zod";
 import {
   InputOTP,
@@ -110,7 +111,6 @@ const Profile = () => {
           avatar_url: data.avatar_url,
         });
 
-        // Get signed URL for avatar if exists
         if (data.avatar_url) {
           const { data: signedData } = await supabase.storage
             .from("avatars")
@@ -136,7 +136,6 @@ const Profile = () => {
     const file = event.target.files?.[0];
     if (!file || !profile) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Error",
@@ -146,7 +145,6 @@ const Profile = () => {
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -164,19 +162,16 @@ const Profile = () => {
       const fileExt = file.name.split(".").pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
 
-      // Delete old avatar if exists
       if (profile.avatar_url) {
         await supabase.storage.from("avatars").remove([profile.avatar_url]);
       }
 
-      // Upload new avatar
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: filePath })
@@ -184,7 +179,6 @@ const Profile = () => {
 
       if (updateError) throw updateError;
 
-      // Get signed URL for display
       const { data: signedData } = await supabase.storage
         .from("avatars")
         .createSignedUrl(filePath, 3600);
@@ -283,7 +277,6 @@ const Profile = () => {
 
     setPasswordLoading(true);
     try {
-      // First verify current password by trying to sign in
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.email) throw new Error("No user email found");
 
@@ -298,7 +291,6 @@ const Profile = () => {
         return;
       }
 
-      // Update password
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -467,7 +459,10 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -475,209 +470,265 @@ const Profile = () => {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">Profile not found</p>
+        <div className="text-center">
+          <User className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+          <p className="text-muted-foreground">Profile not found</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-2xl py-6 px-4 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground">Manage your personal information and security</p>
+    <div className="min-h-screen pb-24 md:pb-8">
+      {/* Hero Header Section */}
+      <div className="gradient-primary relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.08%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30" />
+        <div className="container max-w-4xl py-8 px-4 relative">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Avatar with Upload */}
+            <div className="relative group">
+              <Avatar className="h-28 w-28 border-4 border-white/20 shadow-xl">
+                <AvatarImage src={avatarUrl || undefined} alt={profile.full_name} className="object-cover" />
+                <AvatarFallback className="text-2xl font-semibold bg-white/20 text-white">
+                  {getInitials(profile.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-white" />
+                ) : (
+                  <Camera className="h-6 w-6 text-white" />
+                )}
+              </button>
+            </div>
+            
+            {/* User Info */}
+            <div className="text-center sm:text-left text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold">{profile.full_name}</h1>
+              <p className="text-white/80 mt-1">{profile.email}</p>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
+                <Badge variant="secondary" className="bg-white/20 text-white border-0 hover:bg-white/30">
+                  <Building2 className="h-3 w-3 mr-1" />
+                  {profile.company_name}
+                </Badge>
+                {profile.pin_enabled && (
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 hover:bg-white/30">
+                    <Shield className="h-3 w-3 mr-1" />
+                    PIN Protected
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Avatar Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Profile Picture
-          </CardTitle>
-          <CardDescription>Upload a profile picture</CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center gap-6">
-          <div className="relative">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={avatarUrl || undefined} alt={profile.full_name} />
-              <AvatarFallback className="text-lg bg-primary/10">
-                {getInitials(profile.full_name)}
-              </AvatarFallback>
-            </Avatar>
-            {uploadingAvatar && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
-                <Loader2 className="h-6 w-6 animate-spin" />
+      {/* Main Content */}
+      <div className="container max-w-4xl px-4 -mt-6 relative z-10">
+        <div className="grid gap-6">
+          {/* Personal Information Card */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Personal Information</CardTitle>
+                    <CardDescription>Update your personal details</CardDescription>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarUpload}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingAvatar}
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              {profile.avatar_url ? "Change Picture" : "Upload Picture"}
-            </Button>
-            <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 2MB.</p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={profile.full_name}
+                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="h-11"
+                  />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive">{errors.fullName}</p>
+                  )}
+                </div>
 
-      {/* Personal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Personal Information
-          </CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              value={profile.full_name}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-              placeholder="Enter your full name"
-            />
-            {errors.fullName && (
-              <p className="text-sm text-destructive">{errors.fullName}</p>
-            )}
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mobile" className="text-sm font-medium flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    Mobile Number
+                  </Label>
+                  <Input
+                    id="mobile"
+                    value={profile.mobile}
+                    onChange={(e) => setProfile({ ...profile, mobile: e.target.value })}
+                    placeholder="Enter your mobile number"
+                    className="h-11"
+                  />
+                  {errors.mobile && (
+                    <p className="text-sm text-destructive">{errors.mobile}</p>
+                  )}
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email
-            </Label>
-            <Input
-              id="email"
-              value={profile.email}
-              disabled
-              className="bg-muted"
-            />
-            <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    value={profile.email}
+                    disabled
+                    className="h-11 bg-muted pr-10"
+                  />
+                  <CheckCircle2 className="h-4 w-4 text-success absolute right-3 top-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-xs text-muted-foreground">Email is verified and cannot be changed</p>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="mobile" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Mobile Number
-            </Label>
-            <Input
-              id="mobile"
-              value={profile.mobile}
-              onChange={(e) => setProfile({ ...profile, mobile: e.target.value })}
-              placeholder="Enter your mobile number"
-            />
-            {errors.mobile && (
-              <p className="text-sm text-destructive">{errors.mobile}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          {/* Company Information Card */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full gradient-secondary flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Company Information</CardTitle>
+                  <CardDescription>Your business details</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
+                <Input
+                  id="companyName"
+                  value={profile.company_name}
+                  onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
+                  placeholder="Enter your company name"
+                  className="h-11"
+                />
+                {errors.companyName && (
+                  <p className="text-sm text-destructive">{errors.companyName}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Company Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Company Information
-          </CardTitle>
-          <CardDescription>Your business details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input
-              id="companyName"
-              value={profile.company_name}
-              onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
-              placeholder="Enter your company name"
-            />
-            {errors.companyName && (
-              <p className="text-sm text-destructive">{errors.companyName}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          {/* Security Settings Card */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full gradient-warm flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Security Settings</CardTitle>
+                  <CardDescription>Manage your password and PIN</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-0">
+              {/* Password Section */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Lock className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Password</p>
+                    <p className="text-sm text-muted-foreground">
+                      Change your account password
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>
+                  Change
+                </Button>
+              </div>
 
-      {/* Security Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Security Settings
-          </CardTitle>
-          <CardDescription>Manage your password, PIN and security preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Password Section */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Change your account password
-              </p>
-            </div>
-            <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
-              Change Password
-            </Button>
-          </div>
-
-          <Separator />
-
-          {/* PIN Section */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4" />
-                PIN Login
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Enable quick login with a 4-digit PIN
-              </p>
-            </div>
-            <Switch
-              checked={profile.pin_enabled}
-              onCheckedChange={handlePinToggle}
-            />
-          </div>
-
-          {profile.pin_enabled && (
-            <>
               <Separator />
-              <Button variant="outline" onClick={handleChangePIN}>
-                <KeyRound className="h-4 w-4 mr-2" />
-                Change PIN
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSaveProfile} disabled={saving}>
-          {saving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          Save Changes
-        </Button>
+              {/* PIN Section */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <KeyRound className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">PIN Login</p>
+                    <p className="text-sm text-muted-foreground">
+                      Quick login with 4-digit PIN
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={profile.pin_enabled}
+                  onCheckedChange={handlePinToggle}
+                />
+              </div>
+
+              {profile.pin_enabled && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        <Settings className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Update PIN</p>
+                        <p className="text-sm text-muted-foreground">
+                          Change your current PIN
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleChangePIN}>
+                      Change PIN
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSaveProfile} 
+              disabled={saving}
+              size="lg"
+              className="min-w-[160px] shadow-lg"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Save Changes
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Password Change Dialog */}
@@ -687,13 +738,17 @@ const Profile = () => {
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Change Password
-            </DialogTitle>
-            <DialogDescription>
-              Enter your current password and choose a new one
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center">
+                <Lock className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle>Change Password</DialogTitle>
+                <DialogDescription>
+                  Enter your current password and choose a new one
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -706,15 +761,16 @@ const Profile = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
+                  className="h-11 pr-12"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 >
-                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showCurrentPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               {passwordErrors.currentPassword && (
@@ -731,15 +787,16 @@ const Profile = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
+                  className="h-11 pr-12"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showNewPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               {passwordErrors.newPassword && (
@@ -756,15 +813,16 @@ const Profile = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
+                  className="h-11 pr-12"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
               {passwordErrors.confirmPassword && (
@@ -775,7 +833,7 @@ const Profile = () => {
             <Button
               onClick={handleChangePassword}
               disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
-              className="w-full"
+              className="w-full h-11"
             >
               {passwordLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -794,32 +852,38 @@ const Profile = () => {
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5" />
-              {pinStep === "current" && "Enter Current PIN"}
-              {pinStep === "new" && "Enter New PIN"}
-              {pinStep === "confirm" && "Confirm New PIN"}
-            </DialogTitle>
-            <DialogDescription>
-              {pinStep === "current" && "Enter your current 4-digit PIN to continue"}
-              {pinStep === "new" && "Create a new 4-digit PIN"}
-              {pinStep === "confirm" && "Re-enter your new PIN to confirm"}
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-warm flex items-center justify-center">
+                <KeyRound className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle>
+                  {pinStep === "current" && "Enter Current PIN"}
+                  {pinStep === "new" && "Create New PIN"}
+                  {pinStep === "confirm" && "Confirm Your PIN"}
+                </DialogTitle>
+                <DialogDescription>
+                  {pinStep === "current" && "Enter your current 4-digit PIN to continue"}
+                  {pinStep === "new" && "Create a new 4-digit PIN"}
+                  {pinStep === "confirm" && "Re-enter your new PIN to confirm"}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="flex flex-col items-center gap-4 py-4">
+          <div className="flex flex-col items-center gap-6 py-6">
             {pinStep === "current" && (
               <InputOTP
                 maxLength={4}
                 value={currentPin}
                 onChange={setCurrentPin}
-                className="gap-2"
+                className="gap-3"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} className="text-security-disc" />
-                  <InputOTPSlot index={1} className="text-security-disc" />
-                  <InputOTPSlot index={2} className="text-security-disc" />
-                  <InputOTPSlot index={3} className="text-security-disc" />
+                <InputOTPGroup className="gap-3">
+                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -829,13 +893,13 @@ const Profile = () => {
                 maxLength={4}
                 value={newPin}
                 onChange={setNewPin}
-                className="gap-2"
+                className="gap-3"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} className="text-security-disc" />
-                  <InputOTPSlot index={1} className="text-security-disc" />
-                  <InputOTPSlot index={2} className="text-security-disc" />
-                  <InputOTPSlot index={3} className="text-security-disc" />
+                <InputOTPGroup className="gap-3">
+                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -845,13 +909,13 @@ const Profile = () => {
                 maxLength={4}
                 value={confirmPin}
                 onChange={setConfirmPin}
-                className="gap-2"
+                className="gap-3"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} className="text-security-disc" />
-                  <InputOTPSlot index={1} className="text-security-disc" />
-                  <InputOTPSlot index={2} className="text-security-disc" />
-                  <InputOTPSlot index={3} className="text-security-disc" />
+                <InputOTPGroup className="gap-3">
+                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -863,12 +927,12 @@ const Profile = () => {
                 (pinStep === "new" && newPin.length !== 4) ||
                 (pinStep === "confirm" && confirmPin.length !== 4)
               )}
-              className="w-full"
+              className="w-full h-11"
             >
               {pinLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                pinStep === "confirm" ? "Confirm" : "Continue"
+                pinStep === "confirm" ? "Confirm PIN" : "Continue"
               )}
             </Button>
           </div>
