@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings } from "lucide-react";
+import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings, Smartphone, Edit3 } from "lucide-react";
 import { z } from "zod";
 import {
   InputOTP,
@@ -28,8 +28,12 @@ import {
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
   companyName: z.string().min(2, "Company name must be at least 2 characters").max(100),
-  mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15),
 });
+
+const mobileSchema = z.string()
+  .min(10, "Mobile number must be at least 10 digits")
+  .max(15, "Mobile number must be at most 15 digits")
+  .regex(/^[0-9]+$/, "Mobile number must contain only digits");
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(6, "Password must be at least 6 characters"),
@@ -79,6 +83,14 @@ const Profile = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
+
+  // Mobile change state
+  const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
+  const [mobileLoading, setMobileLoading] = useState(false);
+  const [newMobile, setNewMobile] = useState("");
+  const [mobileOtp, setMobileOtp] = useState("");
+  const [mobileStep, setMobileStep] = useState<"enter" | "verify">("enter");
+  const [mobileError, setMobileError] = useState("");
 
   useEffect(() => {
     fetchProfile();
@@ -212,7 +224,6 @@ const Profile = () => {
     const validation = profileSchema.safeParse({
       fullName: profile.full_name,
       companyName: profile.company_name,
-      mobile: profile.mobile,
     });
 
     if (!validation.success) {
@@ -233,7 +244,6 @@ const Profile = () => {
         .update({
           full_name: profile.full_name,
           company_name: profile.company_name,
-          mobile: profile.mobile,
         })
         .eq("id", profile.id);
 
@@ -253,6 +263,76 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleMobileChange = async () => {
+    if (!profile) return;
+    setMobileError("");
+
+    if (mobileStep === "enter") {
+      const validation = mobileSchema.safeParse(newMobile);
+      if (!validation.success) {
+        setMobileError(validation.error.errors[0].message);
+        return;
+      }
+
+      if (newMobile === profile.mobile) {
+        setMobileError("New mobile number must be different");
+        return;
+      }
+
+      setMobileLoading(true);
+      // Simulate OTP send - In production, integrate with SMS service
+      setTimeout(() => {
+        setMobileStep("verify");
+        setMobileLoading(false);
+        toast({
+          title: "OTP Sent",
+          description: `Verification code sent to ${newMobile}`,
+        });
+      }, 1000);
+    } else if (mobileStep === "verify") {
+      if (mobileOtp.length !== 6) {
+        setMobileError("Please enter the 6-digit OTP");
+        return;
+      }
+
+      setMobileLoading(true);
+      try {
+        // For demo: accept any 6-digit OTP
+        // In production: verify OTP via edge function
+        const { error } = await supabase
+          .from("profiles")
+          .update({ mobile: newMobile })
+          .eq("id", profile.id);
+
+        if (error) throw error;
+
+        setProfile({ ...profile, mobile: newMobile });
+        setMobileDialogOpen(false);
+        resetMobileDialog();
+        toast({
+          title: "Success",
+          description: "Mobile number updated successfully",
+        });
+      } catch (error) {
+        console.error("Error updating mobile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update mobile number",
+          variant: "destructive",
+        });
+      } finally {
+        setMobileLoading(false);
+      }
+    }
+  };
+
+  const resetMobileDialog = () => {
+    setNewMobile("");
+    setMobileOtp("");
+    setMobileStep("enter");
+    setMobileError("");
   };
 
   const handleChangePassword = async () => {
@@ -573,16 +653,24 @@ const Profile = () => {
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     Mobile Number
                   </Label>
-                  <Input
-                    id="mobile"
-                    value={profile.mobile}
-                    onChange={(e) => setProfile({ ...profile, mobile: e.target.value })}
-                    placeholder="Enter your mobile number"
-                    className="h-11"
-                  />
-                  {errors.mobile && (
-                    <p className="text-sm text-destructive">{errors.mobile}</p>
-                  )}
+                  <div className="relative">
+                    <Input
+                      id="mobile"
+                      value={profile.mobile}
+                      disabled
+                      className="h-11 bg-muted pr-20"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-xs"
+                      onClick={() => setMobileDialogOpen(true)}
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Change
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Verified via OTP</p>
                 </div>
               </div>
 
@@ -649,6 +737,26 @@ const Profile = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-0">
+              {/* Mobile Number Section */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Smartphone className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Mobile Number</p>
+                    <p className="text-sm text-muted-foreground">
+                      {profile.mobile}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setMobileDialogOpen(true)}>
+                  Change
+                </Button>
+              </div>
+
+              <Separator />
+
               {/* Password Section */}
               <div className="flex items-center justify-between py-4">
                 <div className="flex items-center gap-4">
@@ -933,6 +1041,99 @@ const Profile = () => {
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 pinStep === "confirm" ? "Confirm PIN" : "Continue"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Change Dialog */}
+      <Dialog open={mobileDialogOpen} onOpenChange={(open) => {
+        if (!open) resetMobileDialog();
+        setMobileDialogOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-secondary flex items-center justify-center">
+                <Smartphone className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle>
+                  {mobileStep === "enter" ? "Change Mobile Number" : "Verify OTP"}
+                </DialogTitle>
+                <DialogDescription>
+                  {mobileStep === "enter" 
+                    ? "Enter your new mobile number" 
+                    : `Enter the 6-digit code sent to ${newMobile}`}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {mobileStep === "enter" ? (
+              <div className="space-y-2">
+                <Label htmlFor="newMobile">New Mobile Number</Label>
+                <Input
+                  id="newMobile"
+                  type="tel"
+                  value={newMobile}
+                  onChange={(e) => setNewMobile(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Enter new mobile number"
+                  className="h-11"
+                  maxLength={15}
+                />
+                {mobileError && (
+                  <p className="text-sm text-destructive">{mobileError}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Current: {profile.mobile}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <InputOTP
+                  maxLength={6}
+                  value={mobileOtp}
+                  onChange={setMobileOtp}
+                  className="gap-2"
+                >
+                  <InputOTPGroup className="gap-2">
+                    <InputOTPSlot index={0} className="h-12 w-10 text-lg" />
+                    <InputOTPSlot index={1} className="h-12 w-10 text-lg" />
+                    <InputOTPSlot index={2} className="h-12 w-10 text-lg" />
+                    <InputOTPSlot index={3} className="h-12 w-10 text-lg" />
+                    <InputOTPSlot index={4} className="h-12 w-10 text-lg" />
+                    <InputOTPSlot index={5} className="h-12 w-10 text-lg" />
+                  </InputOTPGroup>
+                </InputOTP>
+                {mobileError && (
+                  <p className="text-sm text-destructive">{mobileError}</p>
+                )}
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    setMobileStep("enter");
+                    setMobileOtp("");
+                  }}
+                >
+                  Change number
+                </Button>
+              </div>
+            )}
+
+            <Button
+              onClick={handleMobileChange}
+              disabled={mobileLoading || (mobileStep === "enter" ? !newMobile : mobileOtp.length !== 6)}
+              className="w-full h-11"
+            >
+              {mobileLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                mobileStep === "enter" ? "Send OTP" : "Verify & Update"
               )}
             </Button>
           </div>
