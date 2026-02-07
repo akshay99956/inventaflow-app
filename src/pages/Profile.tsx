@@ -35,6 +35,11 @@ const mobileSchema = z.string()
   .max(15, "Mobile number must be at most 15 digits")
   .regex(/^[0-9]+$/, "Mobile number must contain only digits");
 
+const emailChangeSchema = z.object({
+  newEmail: z.string().email("Invalid email address").max(255),
+  password: z.string().min(6, "Password is required to change email"),
+});
+
 const passwordSchema = z.object({
   currentPassword: z.string().min(6, "Password must be at least 6 characters"),
   newPassword: z.string().min(6, "Password must be at least 6 characters"),
@@ -91,6 +96,15 @@ const Profile = () => {
   const [mobileOtp, setMobileOtp] = useState("");
   const [mobileStep, setMobileStep] = useState<"enter" | "verify">("enter");
   const [mobileError, setMobileError] = useState("");
+
+  // Email change state
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
+  const [emailStep, setEmailStep] = useState<"enter" | "sent">("enter");
+  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProfile();
@@ -299,8 +313,6 @@ const Profile = () => {
 
       setMobileLoading(true);
       try {
-        // For demo: accept any 6-digit OTP
-        // In production: verify OTP via edge function
         const { error } = await supabase
           .from("profiles")
           .update({ mobile: newMobile })
@@ -333,6 +345,82 @@ const Profile = () => {
     setMobileOtp("");
     setMobileStep("enter");
     setMobileError("");
+  };
+
+  const handleChangeEmail = async () => {
+    if (!profile) return;
+    setEmailErrors({});
+
+    if (emailStep === "enter") {
+      const validation = emailChangeSchema.safeParse({
+        newEmail,
+        password: emailPassword,
+      });
+
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setEmailErrors(fieldErrors);
+        return;
+      }
+
+      if (newEmail === profile.email) {
+        setEmailErrors({ newEmail: "New email must be different from current email" });
+        return;
+      }
+
+      setEmailLoading(true);
+      try {
+        // Verify password first
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.email) throw new Error("No user found");
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: emailPassword,
+        });
+
+        if (signInError) {
+          setEmailErrors({ password: "Incorrect password" });
+          setEmailLoading(false);
+          return;
+        }
+
+        // Request email change via Supabase Auth
+        const { error: updateError } = await supabase.auth.updateUser({
+          email: newEmail,
+        });
+
+        if (updateError) throw updateError;
+
+        setEmailStep("sent");
+        toast({
+          title: "Verification Email Sent",
+          description: "Please check both your old and new email inbox to confirm the change.",
+        });
+      } catch (error: any) {
+        console.error("Error changing email:", error);
+        toast({
+          title: "Error",
+          description: error?.message || "Failed to change email",
+          variant: "destructive",
+        });
+      } finally {
+        setEmailLoading(false);
+      }
+    }
+  };
+
+  const resetEmailDialog = () => {
+    setNewEmail("");
+    setEmailPassword("");
+    setShowEmailPassword(false);
+    setEmailStep("enter");
+    setEmailErrors({});
   };
 
   const handleChangePassword = async () => {
@@ -684,11 +772,19 @@ const Profile = () => {
                     id="email"
                     value={profile.email}
                     disabled
-                    className="h-11 bg-muted pr-10"
+                    className="h-11 bg-muted pr-20"
                   />
-                  <CheckCircle2 className="h-4 w-4 text-success absolute right-3 top-1/2 -translate-y-1/2" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-xs"
+                    onClick={() => setEmailDialogOpen(true)}
+                  >
+                    <Edit3 className="h-3 w-3 mr-1" />
+                    Change
+                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Email is verified and cannot be changed</p>
+                <p className="text-xs text-muted-foreground">Verified email — change requires confirmation</p>
               </div>
             </CardContent>
           </Card>
@@ -732,11 +828,31 @@ const Profile = () => {
                 </div>
                 <div>
                   <CardTitle className="text-lg">Security Settings</CardTitle>
-                  <CardDescription>Manage your password and PIN</CardDescription>
+                  <CardDescription>Manage your account security</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-0">
+              {/* Email Section */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Email Address</p>
+                    <p className="text-sm text-muted-foreground">
+                      {profile.email}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
+                  Change
+                </Button>
+              </div>
+
+              <Separator />
+
               {/* Mobile Number Section */}
               <div className="flex items-center justify-between py-4">
                 <div className="flex items-center gap-4">
@@ -838,6 +954,116 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Change Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={(open) => {
+        if (!open) resetEmailDialog();
+        setEmailDialogOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-cool flex items-center justify-center">
+                <Mail className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle>
+                  {emailStep === "enter" ? "Change Email Address" : "Verification Sent"}
+                </DialogTitle>
+                <DialogDescription>
+                  {emailStep === "enter" 
+                    ? "Enter your new email and verify with your password" 
+                    : "Check your inbox to confirm the change"}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {emailStep === "enter" ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="newEmail">New Email Address</Label>
+                  <Input
+                    id="newEmail"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter new email address"
+                    className="h-11"
+                  />
+                  {emailErrors.newEmail && (
+                    <p className="text-sm text-destructive">{emailErrors.newEmail}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Current: {profile.email}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="emailPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="emailPassword"
+                      type={showEmailPassword ? "text" : "password"}
+                      value={emailPassword}
+                      onChange={(e) => setEmailPassword(e.target.value)}
+                      placeholder="Enter your password to confirm"
+                      className="h-11 pr-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowEmailPassword(!showEmailPassword)}
+                    >
+                      {showEmailPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                    </Button>
+                  </div>
+                  {emailErrors.password && (
+                    <p className="text-sm text-destructive">{emailErrors.password}</p>
+                  )}
+                </div>
+
+                <Button
+                  onClick={handleChangeEmail}
+                  disabled={emailLoading || !newEmail || !emailPassword}
+                  className="w-full h-11"
+                >
+                  {emailLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Send Verification Email"
+                  )}
+                </Button>
+              </>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="h-16 w-16 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="space-y-2">
+                  <p className="font-medium">Verification email sent!</p>
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a confirmation link to <strong>{newEmail}</strong>. Please check both your old and new email inbox to complete the change.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEmailDialogOpen(false);
+                    resetEmailDialog();
+                  }}
+                  className="w-full h-11"
+                >
+                  Done
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Password Change Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={(open) => {
