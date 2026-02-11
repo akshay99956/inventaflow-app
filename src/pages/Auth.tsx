@@ -400,8 +400,8 @@ const Auth = () => {
               </form>
             ) : (
               <div className="text-center space-y-4">
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-green-700 dark:text-green-300">
+                <div className="p-4 bg-success/10 rounded-lg">
+                  <p className="text-success">
                     Reset link sent! Check your email inbox.
                   </p>
                 </div>
@@ -794,155 +794,126 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Business Background with Features */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
+    <div className="flex min-h-screen bg-background">
+      {/* Left Side - Branding Panel */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 relative overflow-hidden">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${authBgImage})` }}
         />
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/70 to-purple-900/80" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/95 via-primary/80 to-accent/60" />
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-8 xl:p-12 text-white w-full">
-          {/* Logo & Title */}
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl xl:text-3xl font-bold">DC Finance</h1>
-                <p className="text-white/80 text-sm">Business Management Suite</p>
-              </div>
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
+              <p className="text-white/60 text-xs font-medium tracking-wider uppercase">Business Suite</p>
             </div>
           </div>
           
-          {/* Features Grid */}
-          <div className="space-y-6">
-            <h2 className="text-xl xl:text-2xl font-semibold">
-              Complete Business Solution
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <FeatureCard 
-                icon={<Package className="w-6 h-6" />}
-                title="Inventory"
-                description="Track stock & products"
-              />
-              <FeatureCard 
-                icon={<TrendingUp className="w-6 h-6" />}
-                title="Profit & Loss"
-                description="Real-time analytics"
-              />
-              <FeatureCard 
-                icon={<BarChart3 className="w-6 h-6" />}
-                title="Balance Sheet"
-                description="Financial overview"
-              />
-              <FeatureCard 
-                icon={<Users className="w-6 h-6" />}
-                title="Clients"
-                description="Manage relationships"
-              />
+          {/* Hero Text */}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
+                Manage Your<br />Business Smarter
+              </h2>
+              <p className="text-white/70 text-base max-w-sm leading-relaxed">
+                Invoicing, inventory, analytics & client management — everything in one powerful platform.
+              </p>
+            </div>
+            
+            {/* Feature Pills */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { icon: <Package className="w-3.5 h-3.5" />, label: "Inventory" },
+                { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Analytics" },
+                { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
+                { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" },
+              ].map((f) => (
+                <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium">
+                  {f.icon}
+                  {f.label}
+                </div>
+              ))}
             </div>
           </div>
           
-          {/* Testimonial/Quote */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-            <p className="text-white/90 italic text-sm xl:text-base">
-              "Streamline your grocery business with powerful invoicing, inventory management, and financial insights - all in one place."
-            </p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg font-bold">
-                DC
-              </div>
-              <div>
-                <p className="font-medium text-sm">DC Finance Pro</p>
-                <p className="text-white/70 text-xs">Trusted by 1000+ businesses</p>
-              </div>
+          {/* Stats / Social Proof */}
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-2xl font-bold">1K+</p>
+              <p className="text-white/50 text-xs font-medium">Businesses</p>
+            </div>
+            <div className="w-px h-8 bg-white/20" />
+            <div>
+              <p className="text-2xl font-bold">50K+</p>
+              <p className="text-white/50 text-xs font-medium">Invoices</p>
+            </div>
+            <div className="w-px h-8 bg-white/20" />
+            <div>
+              <p className="text-2xl font-bold">99.9%</p>
+              <p className="text-white/50 text-xs font-medium">Uptime</p>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Right Side - Mobile Mockup with Auth Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-background to-muted/30">
-        {/* Mobile Frame */}
-        <div className="w-full max-w-md">
-          {/* Mobile Header - Only visible on lg+ */}
-          <div className="hidden lg:block mb-6 text-center">
-            <h2 className="text-lg font-semibold text-foreground">
-              📱 Mobile-Ready Experience
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Access your business anywhere, anytime
-            </p>
-          </div>
-          
-          {/* Phone Mockup Frame */}
-          <div className="relative mx-auto lg:max-w-[380px]">
-            {/* Phone Border - Visible on lg+ */}
-            <div className="hidden lg:block absolute -inset-3 bg-gradient-to-b from-gray-800 to-gray-900 rounded-[3rem] shadow-2xl" />
-            <div className="hidden lg:block absolute -inset-2 bg-gradient-to-b from-gray-700 to-gray-800 rounded-[2.5rem]" />
-            
-            {/* Phone Notch */}
-            <div className="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-2xl z-20" />
-            
-            {/* Screen Content */}
-            <div className="relative lg:bg-background lg:rounded-[2rem] lg:overflow-hidden lg:border-4 lg:border-gray-800">
-              {/* Status Bar - Phone mockup only */}
-              <div className="hidden lg:flex items-center justify-between px-6 py-2 bg-muted/50 text-xs text-muted-foreground">
-                <span>9:41</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-2 bg-green-500 rounded-sm" />
-                  <span>100%</span>
-                </div>
-              </div>
-              
-              {/* Auth Card Content */}
-              <Card className="border-0 shadow-none lg:rounded-none">
-                <CardHeader className="space-y-1 text-center pb-4">
-                  {/* Mobile Logo - Only on mobile */}
-                  <div className="lg:hidden flex items-center justify-center gap-2 mb-2">
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-primary" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl sm:text-2xl font-bold text-primary">
-                    Welcome Back
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Sign in to manage your business
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="px-4 sm:px-6">
-                  {renderContent()}
-                </CardContent>
-              </Card>
-              
-              {/* Home Indicator - Phone mockup only */}
-              <div className="hidden lg:flex justify-center pb-2 pt-1">
-                <div className="w-32 h-1 bg-gray-400 rounded-full" />
-              </div>
+      {/* Right Side - Auth Form */}
+      <div className="w-full lg:w-[55%] xl:w-1/2 flex items-center justify-center p-5 sm:p-8 lg:p-12">
+        <div className="w-full max-w-[440px]">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">DC Finance</h1>
+              <p className="text-xs text-muted-foreground">Business Suite</p>
             </div>
           </div>
+
+          {/* Welcome Header */}
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              {authMode === 'signin' || authMode === 'signup' ? 'Welcome Back' : 
+               authMode === 'forgot-password' ? 'Reset Password' :
+               authMode === 'forgot-pin' ? 'Reset PIN' :
+               authMode === 'setup-pin' ? 'Set Up PIN' :
+               'New Password'}
+            </h2>
+            <p className="text-muted-foreground mt-1.5 text-sm">
+              {authMode === 'signin' || authMode === 'signup' ? 'Sign in to manage your business dashboard' : 
+               authMode === 'forgot-password' ? 'We\'ll send you a reset link' :
+               authMode === 'forgot-pin' ? 'Verify your identity first' :
+               authMode === 'setup-pin' ? 'Create a quick-access PIN' :
+               'Choose a strong password'}
+            </p>
+          </div>
+
+          {/* Auth Form Card */}
+          <Card className="border border-border/50 shadow-xl shadow-primary/5">
+            <CardContent className="p-5 sm:p-6">
+              {renderContent()}
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Secured with end-to-end encryption • © 2025 DC Finance
+          </p>
         </div>
       </div>
     </div>
   );
 };
-
-// Feature Card Component
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
-  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-colors">
-    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-3">
-      {icon}
-    </div>
-    <h3 className="font-semibold text-sm">{title}</h3>
-    <p className="text-white/70 text-xs mt-1">{description}</p>
-  </div>
-);
 
 export default Auth;
