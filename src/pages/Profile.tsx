@@ -648,52 +648,41 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
-      {/* Hero Header Section */}
+      {/* Compact Hero Header */}
       <div className="gradient-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.08%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30" />
-        <div className="container max-w-4xl py-8 px-4 relative">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Avatar with Upload */}
-            <div className="relative group">
-              <Avatar className="h-28 w-28 border-4 border-white/20 shadow-xl">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.06%22%3E%3Cpath%20d%3D%22M20%2018v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-40" />
+        <div className="container max-w-5xl py-6 px-4 sm:px-6 relative">
+          <div className="flex items-center gap-5">
+            {/* Avatar */}
+            <div className="relative group shrink-0">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-[3px] border-primary-foreground/20 shadow-xl ring-2 ring-primary-foreground/10">
                 <AvatarImage src={avatarUrl || undefined} alt={profile.full_name} className="object-cover" />
-                <AvatarFallback className="text-2xl font-semibold bg-white/20 text-white">
+                <AvatarFallback className="text-xl font-bold bg-primary-foreground/15 text-primary-foreground">
                   {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute inset-0 flex items-center justify-center bg-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer backdrop-blur-sm"
               >
-                {uploadingAvatar ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-white" />
-                ) : (
-                  <Camera className="h-6 w-6 text-white" />
-                )}
+                {uploadingAvatar ? <Loader2 className="h-5 w-5 animate-spin text-primary-foreground" /> : <Camera className="h-5 w-5 text-primary-foreground" />}
               </button>
             </div>
-            
             {/* User Info */}
-            <div className="text-center sm:text-left text-white">
-              <h1 className="text-2xl sm:text-3xl font-bold">{profile.full_name}</h1>
-              <p className="text-white/80 mt-1">{profile.email}</p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
-                <Badge variant="secondary" className="bg-white/20 text-white border-0 hover:bg-white/30">
+            <div className="min-w-0 text-primary-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">{profile.full_name}</h1>
+              <p className="text-primary-foreground/70 text-sm truncate mt-0.5">{profile.email}</p>
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                <Badge variant="secondary" className="bg-primary-foreground/15 text-primary-foreground border-0 text-xs font-medium hover:bg-primary-foreground/20">
                   <Building2 className="h-3 w-3 mr-1" />
                   {profile.company_name}
                 </Badge>
                 {profile.pin_enabled && (
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0 hover:bg-white/30">
+                  <Badge variant="secondary" className="bg-primary-foreground/15 text-primary-foreground border-0 text-xs font-medium hover:bg-primary-foreground/20">
                     <Shield className="h-3 w-3 mr-1" />
-                    PIN Protected
+                    PIN Active
                   </Badge>
                 )}
               </div>
@@ -703,256 +692,173 @@ const Profile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-4xl px-4 -mt-6 relative z-10">
-        <div className="grid gap-6">
-          {/* Personal Information Card */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Personal Information</CardTitle>
-                    <CardDescription>Update your personal details</CardDescription>
-                  </div>
+      <div className="container max-w-5xl px-4 sm:px-6 -mt-4 relative z-10 space-y-5">
+        {/* Two-column: Personal + Company */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {/* Personal Information */}
+          <Card className="shadow-md border-border/50">
+            <CardHeader className="pb-3 pt-5 px-5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                  <User className="h-4 w-4 text-primary-foreground" />
                 </div>
+                <CardTitle className="text-base">Personal Info</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={profile.full_name}
-                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                    placeholder="Enter your full name"
-                    className="h-11"
-                  />
-                  {errors.fullName && (
-                    <p className="text-sm text-destructive">{errors.fullName}</p>
-                  )}
-                </div>
+            <CardContent className="px-5 pb-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName" className="text-xs font-medium text-muted-foreground">Full Name</Label>
+                <Input
+                  id="fullName"
+                  value={profile.full_name}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                  placeholder="Your full name"
+                  className="h-10"
+                />
+                {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="mobile" className="text-sm font-medium flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    Mobile Number
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="mobile"
-                      value={profile.mobile}
-                      disabled
-                      className="h-11 bg-muted pr-20"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-xs"
-                      onClick={() => setMobileDialogOpen(true)}
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Change
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Verified via OTP</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" /> Email
+                </Label>
+                <div className="relative">
+                  <Input id="email" value={profile.email} disabled className="h-10 bg-muted/50 pr-16 text-sm" />
+                  <Button variant="ghost" size="sm" className="absolute right-0.5 top-1/2 -translate-y-1/2 h-7 text-xs px-2 text-primary" onClick={() => setEmailDialogOpen(true)}>
+                    <Edit3 className="h-3 w-3 mr-1" /> Change
+                  </Button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  Email Address
+              <div className="space-y-1.5">
+                <Label htmlFor="mobile" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" /> Mobile
                 </Label>
                 <div className="relative">
-                  <Input
-                    id="email"
-                    value={profile.email}
-                    disabled
-                    className="h-11 bg-muted pr-20"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-xs"
-                    onClick={() => setEmailDialogOpen(true)}
-                  >
-                    <Edit3 className="h-3 w-3 mr-1" />
-                    Change
+                  <Input id="mobile" value={profile.mobile} disabled className="h-10 bg-muted/50 pr-16 text-sm" />
+                  <Button variant="ghost" size="sm" className="absolute right-0.5 top-1/2 -translate-y-1/2 h-7 text-xs px-2 text-primary" onClick={() => setMobileDialogOpen(true)}>
+                    <Edit3 className="h-3 w-3 mr-1" /> Change
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Verified email — change requires confirmation</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Company Information Card */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full gradient-secondary flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-white" />
+          {/* Company Information */}
+          <Card className="shadow-md border-border/50">
+            <CardHeader className="pb-3 pt-5 px-5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg gradient-secondary flex items-center justify-center shrink-0">
+                  <Building2 className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <div>
-                  <CardTitle className="text-lg">Company Information</CardTitle>
-                  <CardDescription>Your business details</CardDescription>
-                </div>
+                <CardTitle className="text-base">Company Info</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
+            <CardContent className="px-5 pb-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="companyName" className="text-xs font-medium text-muted-foreground">Company Name</Label>
                 <Input
                   id="companyName"
                   value={profile.company_name}
                   onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
-                  placeholder="Enter your company name"
-                  className="h-11"
+                  placeholder="Your company name"
+                  className="h-10"
                 />
-                {errors.companyName && (
-                  <p className="text-sm text-destructive">{errors.companyName}</p>
-                )}
+                {errors.companyName && <p className="text-xs text-destructive">{errors.companyName}</p>}
+              </div>
+
+              {/* Save Button inside company card */}
+              <div className="pt-2">
+                <Button onClick={handleSaveProfile} disabled={saving} className="w-full h-10">
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Save Changes
+                </Button>
               </div>
             </CardContent>
           </Card>
-
-          {/* Security Settings Card */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full gradient-warm flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Security Settings</CardTitle>
-                  <CardDescription>Manage your account security</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-0">
-              {/* Email Section */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Email Address</p>
-                    <p className="text-sm text-muted-foreground">
-                      {profile.email}
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
-                  Change
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Mobile Number Section */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Smartphone className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Mobile Number</p>
-                    <p className="text-sm text-muted-foreground">
-                      {profile.mobile}
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setMobileDialogOpen(true)}>
-                  Change
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Password Section */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Lock className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Password</p>
-                    <p className="text-sm text-muted-foreground">
-                      Change your account password
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>
-                  Change
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* PIN Section */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <KeyRound className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">PIN Login</p>
-                    <p className="text-sm text-muted-foreground">
-                      Quick login with 4-digit PIN
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={profile.pin_enabled}
-                  onCheckedChange={handlePinToggle}
-                />
-              </div>
-
-              {profile.pin_enabled && (
-                <>
-                  <Separator />
-                  <div className="flex items-center justify-between py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                        <Settings className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Update PIN</p>
-                        <p className="text-sm text-muted-foreground">
-                          Change your current PIN
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={handleChangePIN}>
-                      Change PIN
-                    </Button>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleSaveProfile} 
-              disabled={saving}
-              size="lg"
-              className="min-w-[160px] shadow-lg"
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Changes
-            </Button>
-          </div>
         </div>
+
+        {/* Security Settings — Full Width */}
+        <Card className="shadow-md border-border/50">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg gradient-warm flex items-center justify-center shrink-0">
+                <Shield className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div>
+                <CardTitle className="text-base">Security</CardTitle>
+                <CardDescription className="text-xs">Manage passwords, PIN & account access</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <div className="grid sm:grid-cols-2 gap-3">
+              {/* Password */}
+              <button
+                onClick={() => setPasswordDialogOpen(true)}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                  <Lock className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Password</p>
+                  <p className="text-xs text-muted-foreground">Change account password</p>
+                </div>
+                <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+
+              {/* Email */}
+              <button
+                onClick={() => setEmailDialogOpen(true)}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-secondary/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+              >
+                <div className="h-9 w-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0 group-hover:bg-secondary/15 transition-colors">
+                  <Mail className="h-4 w-4 text-secondary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                </div>
+                <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+
+              {/* Mobile */}
+              <button
+                onClick={() => setMobileDialogOpen(true)}
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-accent/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+              >
+                <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/15 transition-colors">
+                  <Smartphone className="h-4 w-4 text-accent" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Mobile</p>
+                  <p className="text-xs text-muted-foreground">{profile.mobile}</p>
+                </div>
+                <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+
+              {/* PIN */}
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60">
+                <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                  <KeyRound className="h-4 w-4 text-warning" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">PIN Login</p>
+                  <p className="text-xs text-muted-foreground">Quick 4-digit access</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {profile.pin_enabled && (
+                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={handleChangePIN}>
+                      Change
+                    </Button>
+                  )}
+                  <Switch checked={profile.pin_enabled} onCheckedChange={handlePinToggle} />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Email Change Dialog */}
