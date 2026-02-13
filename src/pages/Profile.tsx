@@ -556,10 +556,10 @@ const Profile = () => {
           setCurrentPin("");
         }
       } else if (pinStep === "new") {
-        if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+        if (newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
           toast({
             title: "Error",
-            description: "PIN must be exactly 4 digits",
+            description: "PIN must be exactly 6 digits",
             variant: "destructive",
           });
           setPinLoading(false);
@@ -858,7 +858,7 @@ const Profile = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-foreground">PIN Login</p>
-                  <p className="text-xs text-muted-foreground">Quick 4-digit access</p>
+                  <p className="text-xs text-muted-foreground">Quick 6-digit access</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {profile.pin_enabled && (
@@ -1116,8 +1116,8 @@ const Profile = () => {
                   {pinStep === "confirm" && "Confirm Your PIN"}
                 </DialogTitle>
                 <DialogDescription>
-                  {pinStep === "current" && "Enter your current 4-digit PIN to continue"}
-                  {pinStep === "new" && "Create a new 4-digit PIN"}
+                  {pinStep === "current" && "Enter your current 6-digit PIN to continue"}
+                  {pinStep === "new" && "Create a new 6-digit PIN"}
                   {pinStep === "confirm" && "Re-enter your new PIN to confirm"}
                 </DialogDescription>
               </div>
@@ -1127,7 +1127,7 @@ const Profile = () => {
           <div className="flex flex-col items-center gap-6 py-6">
             {pinStep === "current" && (
               <InputOTP
-                maxLength={4}
+                maxLength={6}
                 value={currentPin}
                 onChange={setCurrentPin}
                 className="gap-3"
@@ -1137,13 +1137,15 @@ const Profile = () => {
                   <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
 
             {pinStep === "new" && (
               <InputOTP
-                maxLength={4}
+                maxLength={6}
                 value={newPin}
                 onChange={setNewPin}
                 className="gap-3"
@@ -1153,13 +1155,15 @@ const Profile = () => {
                   <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
 
             {pinStep === "confirm" && (
               <InputOTP
-                maxLength={4}
+                maxLength={6}
                 value={confirmPin}
                 onChange={setConfirmPin}
                 className="gap-3"
@@ -1169,6 +1173,8 @@ const Profile = () => {
                   <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -1176,9 +1182,9 @@ const Profile = () => {
             <Button
               onClick={handlePinSubmit}
               disabled={pinLoading || (
-                (pinStep === "current" && currentPin.length !== 4) ||
-                (pinStep === "new" && newPin.length !== 4) ||
-                (pinStep === "confirm" && confirmPin.length !== 4)
+                (pinStep === "current" && currentPin.length !== 6) ||
+                (pinStep === "new" && newPin.length !== 6) ||
+                (pinStep === "confirm" && confirmPin.length !== 6)
               )}
               className="w-full h-11"
             >

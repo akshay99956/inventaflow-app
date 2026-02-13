@@ -21,7 +21,7 @@ const signupSchema = z.object({
   mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15),
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
-  pin: z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must be 4 digits"),
+  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits"),
 });
 
 const signinSchema = z.object({
@@ -31,7 +31,7 @@ const signinSchema = z.object({
 
 const pinSigninSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
-  pin: z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must be 4 digits"),
+  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits"),
 });
 
 type AuthMode = 'signin' | 'signup' | 'forgot-password' | 'forgot-pin' | 'reset-password' | 'setup-pin';
@@ -307,8 +307,8 @@ const Auth = () => {
   const handleSetupPin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!/^\d{4}$/.test(newPin)) {
-      toast.error("PIN must be exactly 4 digits");
+    if (!/^\d{6}$/.test(newPin)) {
+      toast.error("PIN must be exactly 6 digits");
       return;
     }
 
@@ -484,20 +484,20 @@ const Auth = () => {
             <div className="text-center mb-4">
               <Shield className="h-12 w-12 mx-auto text-primary mb-2" />
               <h3 className="text-lg font-semibold">Set Up Your PIN</h3>
-              <p className="text-sm text-muted-foreground">Create a 4-digit PIN for quick login</p>
+              <p className="text-sm text-muted-foreground">Create a 6-digit PIN for quick login</p>
             </div>
             
             <form onSubmit={handleSetupPin} className="space-y-6">
               <div className="flex flex-col items-center space-y-4">
-                <Label>Enter 4-digit PIN</Label>
+                <Label>Enter 6-digit PIN</Label>
                 <div className="relative">
                   <InputOTP
-                    maxLength={4}
+                    maxLength={6}
                     value={newPin}
                     onChange={setNewPin}
                   >
                     <InputOTPGroup>
-                      {[0, 1, 2, 3].map((index) => (
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
                         <InputOTPSlot 
                           key={index} 
                           index={index}
@@ -517,7 +517,7 @@ const Auth = () => {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading || newPin.length !== 4}>
+              <Button type="submit" className="w-full" disabled={loading || newPin.length !== 6}>
                 {loading ? "Setting up..." : "Set PIN"}
               </Button>
             </form>
@@ -601,15 +601,15 @@ const Auth = () => {
                 
                 {usePinLogin ? (
                   <div className="space-y-2">
-                    <Label>Enter 4-digit PIN</Label>
+                    <Label>Enter 6-digit PIN</Label>
                     <div className="flex justify-center relative">
                       <InputOTP
-                        maxLength={4}
+                        maxLength={6}
                         value={pin}
                         onChange={setPin}
                       >
                         <InputOTPGroup>
-                          {[0, 1, 2, 3].map((index) => (
+                          {[0, 1, 2, 3, 4, 5].map((index) => (
                             <InputOTPSlot 
                               key={index} 
                               index={index}
@@ -751,15 +751,15 @@ const Auth = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Create 4-digit PIN (for quick login) *</Label>
+                  <Label>Create 6-digit PIN (for quick login) *</Label>
                   <div className="flex justify-center relative">
                     <InputOTP
-                      maxLength={4}
+                      maxLength={6}
                       value={pin}
                       onChange={setPin}
                     >
                       <InputOTPGroup>
-                        {[0, 1, 2, 3].map((index) => (
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
                           <InputOTPSlot 
                             key={index} 
                             index={index}
