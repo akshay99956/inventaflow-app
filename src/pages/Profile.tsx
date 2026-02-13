@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -794,9 +795,12 @@ const Profile = () => {
           <CardContent className="px-5 pb-5">
             <div className="grid sm:grid-cols-2 gap-3">
               {/* Password */}
-              <button
+              <motion.button
                 onClick={() => setPasswordDialogOpen(true)}
                 className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
                   <Lock className="h-4 w-4 text-primary" />
@@ -806,12 +810,15 @@ const Profile = () => {
                   <p className="text-xs text-muted-foreground">Change account password</p>
                 </div>
                 <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
+              </motion.button>
 
               {/* Email */}
-              <button
+              <motion.button
                 onClick={() => setEmailDialogOpen(true)}
                 className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-secondary/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 <div className="h-9 w-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0 group-hover:bg-secondary/15 transition-colors">
                   <Mail className="h-4 w-4 text-secondary" />
@@ -821,12 +828,15 @@ const Profile = () => {
                   <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
                 </div>
                 <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
+              </motion.button>
 
               {/* Mobile */}
-              <button
+              <motion.button
                 onClick={() => setMobileDialogOpen(true)}
                 className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-accent/30 hover:bg-muted/40 transition-all duration-200 text-left group"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/15 transition-colors">
                   <Smartphone className="h-4 w-4 text-accent" />
@@ -836,10 +846,13 @@ const Profile = () => {
                   <p className="text-xs text-muted-foreground">{profile.mobile}</p>
                 </div>
                 <Edit3 className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
+              </motion.button>
 
               {/* PIN */}
-              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60">
+              <motion.div className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60"
+                whileHover={{ scale: 1.02, y: -2 }}
+                transition={{ duration: 0.2 }}
+              >
                 <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
                   <KeyRound className="h-4 w-4 text-warning" />
                 </div>
@@ -855,7 +868,7 @@ const Profile = () => {
                   )}
                   <Switch checked={profile.pin_enabled} onCheckedChange={handlePinToggle} />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </CardContent>
         </Card>
