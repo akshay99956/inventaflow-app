@@ -9,6 +9,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TopNavBar } from "@/components/TopNavBar";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { ThemeProvider } from "next-themes";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -38,8 +40,9 @@ const AppLayout = ({
           <TopNavBar />
         </div>
         {/* Desktop Header */}
-        <header className="hidden md:flex h-14 border-b items-center px-4 bg-background sticky top-0 z-10">
+        <header className="hidden md:flex h-14 border-b items-center px-4 bg-background sticky top-0 z-10 justify-between">
           <SidebarTrigger />
+          <ThemeToggle />
         </header>
         <div className="flex-1">
           {children}
@@ -49,9 +52,10 @@ const AppLayout = ({
     </div>
   </SidebarProvider>;
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SettingsProvider>
-      <TooltipProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <SettingsProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -121,8 +125,9 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </TooltipProvider>
-    </SettingsProvider>
-  </QueryClientProvider>
+        </TooltipProvider>
+      </SettingsProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 export default App;
