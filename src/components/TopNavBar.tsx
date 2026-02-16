@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search, Bell, User, LogOut, Settings, Menu, Receipt, FileText, TrendingUp, PieChart, Package, AlertTriangle, Clock } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -156,6 +157,7 @@ export const TopNavBar = () => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} className="h-9 w-9">
             <Search className="h-5 w-5" />
           </Button>
