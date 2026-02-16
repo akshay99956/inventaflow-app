@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X,
-  Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone
+  Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -56,6 +57,7 @@ const dateFormats = [
 ];
 
 const Settings = () => {
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
@@ -337,7 +339,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-6 h-auto">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-6 h-auto">
           <TabsTrigger value="company" className="text-xs md:text-sm py-2">
             <Building2 className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Company</span>
@@ -361,6 +363,10 @@ const Settings = () => {
           <TabsTrigger value="invoicing" className="text-xs md:text-sm py-2">
             <Settings2 className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Invoicing</span>
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="text-xs md:text-sm py-2">
+            <Palette className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Theme</span>
           </TabsTrigger>
         </TabsList>
 
@@ -790,6 +796,42 @@ const Settings = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Appearance Tab */}
+        <TabsContent value="appearance" className="space-y-4">
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Palette className="h-5 w-5 text-primary" />
+                Appearance
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm">Choose your preferred theme</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { value: "light", label: "Light", icon: Sun, desc: "Light mode" },
+                  { value: "dark", label: "Dark", icon: Moon, desc: "Dark mode" },
+                  { value: "system", label: "System", icon: Monitor, desc: "Follow system" },
+                ].map(({ value, label, icon: Icon, desc }) => (
+                  <button
+                    key={value}
+                    onClick={() => setTheme(value)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Icon className={`h-6 w-6 ${theme === value ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className="text-sm font-medium">{label}</span>
+                    <span className="text-xs text-muted-foreground">{desc}</span>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>
