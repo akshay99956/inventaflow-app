@@ -10,6 +10,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TopNavBar } from "@/components/TopNavBar";
 import { PageTransition } from "@/components/PageTransition";
 import { useBackStack } from "@/hooks/useBackStack";
+import { useScrollPreservation } from "@/hooks/useScrollPreservation";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -36,6 +37,7 @@ const AppLayout = ({
 }) => {
   const location = useLocation();
   useBackStack();
+  useScrollPreservation();
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
