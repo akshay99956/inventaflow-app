@@ -2,12 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TopNavBar } from "@/components/TopNavBar";
+import { PageTransition } from "@/components/PageTransition";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -31,26 +32,33 @@ const AppLayout = ({
   children
 }: {
   children: React.ReactNode;
-}) => <SidebarProvider>
-    <div className="flex min-h-screen w-full">
-      <AppSidebar />
-      <main className="flex-1 pb-16 md:pb-0 flex flex-col">
-        {/* Mobile Top Nav */}
-        <div className="md:hidden">
-          <TopNavBar />
-        </div>
-        {/* Desktop Header */}
-        <header className="hidden md:flex h-14 border-b items-center px-4 bg-background sticky top-0 z-10 justify-between">
-          <SidebarTrigger />
-          <ThemeToggle />
-        </header>
-        <div className="flex-1">
-          {children}
-        </div>
-      </main>
-      <MobileBottomNav />
-    </div>
-  </SidebarProvider>;
+}) => {
+  const location = useLocation();
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <main className="flex-1 pb-16 md:pb-0 flex flex-col">
+          {/* Mobile Top Nav */}
+          <div className="md:hidden">
+            <TopNavBar />
+          </div>
+          {/* Desktop Header */}
+          <header className="hidden md:flex h-14 border-b items-center px-4 bg-background sticky top-0 z-10 justify-between">
+            <SidebarTrigger />
+            <ThemeToggle />
+          </header>
+          <div className="flex-1">
+            <PageTransition key={location.pathname}>
+              {children}
+            </PageTransition>
+          </div>
+        </main>
+        <MobileBottomNav />
+      </div>
+    </SidebarProvider>
+  );
+};
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
