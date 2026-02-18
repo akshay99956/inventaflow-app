@@ -77,7 +77,7 @@ const Invoices = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const togglePrintColumn = (col: InvoicePrintColumn) => {
-    setSelectedPrintColumns(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]);
+    setSelectedPrintColumns((prev) => prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]);
   };
   const fetchInvoices = async () => {
     const {
@@ -110,16 +110,16 @@ const Invoices = () => {
   useEffect(() => {
     let result = [...invoices];
     if (filters.dateFrom) {
-      result = result.filter(inv => inv.issue_date >= filters.dateFrom);
+      result = result.filter((inv) => inv.issue_date >= filters.dateFrom);
     }
     if (filters.dateTo) {
-      result = result.filter(inv => inv.issue_date <= filters.dateTo);
+      result = result.filter((inv) => inv.issue_date <= filters.dateTo);
     }
     if (filters.clientId) {
-      result = result.filter(inv => inv.client_id === filters.clientId);
+      result = result.filter((inv) => inv.client_id === filters.clientId);
     }
     if (filters.status) {
-      result = result.filter(inv => inv.status === filters.status);
+      result = result.filter((inv) => inv.status === filters.status);
     }
     setFilteredInvoices(result);
   }, [invoices, filters]);
@@ -147,7 +147,7 @@ const Invoices = () => {
     let message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}`;
     if (invoiceItems.length > 0) {
       message += `\n\nItems:`;
-      invoiceItems.forEach(item => {
+      invoiceItems.forEach((item) => {
         let itemLine = `\n• ${item.description}`;
         const details: string[] = [];
         if (selectedPrintColumns.includes('quantity')) details.push(`Qty: ${item.quantity}`);
@@ -268,15 +268,15 @@ const Invoices = () => {
 
   // Calculate summary stats from filtered invoices
   const totalInvoices = filteredInvoices.length;
-  const paidInvoices = filteredInvoices.filter(inv => inv.status === "paid");
-  const pendingInvoices = filteredInvoices.filter(inv => inv.status === "sent" || inv.status === "draft");
+  const paidInvoices = filteredInvoices.filter((inv) => inv.status === "paid");
+  const pendingInvoices = filteredInvoices.filter((inv) => inv.status === "sent" || inv.status === "draft");
   const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.total, 0);
   const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.total, 0);
   const handleCSVExport = () => {
     const headers = ['Invoice #', 'Customer', 'Email', 'Issue Date', 'Due Date', 'Status', 'Subtotal', 'Tax', 'Total'];
-    const rows = filteredInvoices.map(inv => [inv.invoice_number, inv.customer_name, inv.customer_email || '', inv.issue_date, inv.due_date || '', inv.status, inv.subtotal.toFixed(2), inv.tax.toFixed(2), inv.total.toFixed(2)]);
+    const rows = filteredInvoices.map((inv) => [inv.invoice_number, inv.customer_name, inv.customer_email || '', inv.issue_date, inv.due_date || '', inv.status, inv.subtotal.toFixed(2), inv.tax.toFixed(2), inv.total.toFixed(2)]);
     const dateRange = filters.dateFrom || filters.dateTo ? `_${filters.dateFrom || 'start'}_to_${filters.dateTo || 'end'}` : `_${new Date().toISOString().split('T')[0]}`;
-    const csvContent = [filters.dateFrom || filters.dateTo ? `Date Range: ${filters.dateFrom || 'All'} to ${filters.dateTo || 'All'}` : '', headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].filter(Boolean).join('\n');
+    const csvContent = [filters.dateFrom || filters.dateTo ? `Date Range: ${filters.dateFrom || 'All'} to ${filters.dateTo || 'All'}` : '', headers.join(','), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))].filter(Boolean).join('\n');
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;'
     });
@@ -311,7 +311,7 @@ const Invoices = () => {
 
       {/* Summary Cards */}
       {/* Summary Cards - Inline on mobile */}
-      <div className="grid grid-cols-4 gap-2 md:gap-4 shadow-md rounded-sm opacity-80 border-[#f8f7f7] border-0 border-none bg-[#d8eaf3]">
+      <div className="grid grid-cols-4 gap-2 md:gap-4 shadow-md rounded-sm opacity-80 border-[#f8f7f7] border-0 border-none bg-muted">
         <Card className="border-0 shadow-sm overflow-hidden">
           <div className="h-1 gradient-primary" />
           <CardContent className="p-2 md:p-6">
@@ -355,7 +355,7 @@ const Invoices = () => {
 
       {/* Mobile Invoice Cards - Compact Modern Design */}
       {isMobile && <div className="space-y-2">
-          {filteredInvoices.map(invoice => <Card key={invoice.id} className={`border-0 shadow-sm overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}>
+          {filteredInvoices.map((invoice) => <Card key={invoice.id} className={`border-0 shadow-sm overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}>
               <div className={`h-0.5 ${invoice.status === "paid" ? "bg-success" : invoice.status === "overdue" ? "bg-warning" : invoice.status === "cancelled" ? "bg-destructive" : "gradient-primary"}`} />
               <CardContent className="p-3">
                 {/* Main Row - Tap to view */}
@@ -384,12 +384,12 @@ const Invoices = () => {
                 {/* Compact Action Row */}
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
                   {/* Status Dropdown - Compact */}
-                  <Select value={invoice.status} onValueChange={value => handleStatusChange(invoice.id, value, invoice.status)}>
+                  <Select value={invoice.status} onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}>
                     <SelectTrigger className="h-7 w-24 text-xs border-0 bg-muted/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {invoiceStatusOptions.map(option => <SelectItem key={option.value} value={option.value} className="text-xs">
+                      {invoiceStatusOptions.map((option) => <SelectItem key={option.value} value={option.value} className="text-xs">
                           {option.label}
                         </SelectItem>)}
                     </SelectContent>
@@ -455,20 +455,20 @@ const Invoices = () => {
                     <TableCell className="font-medium text-primary">{invoice.invoice_number}</TableCell>
                     <TableCell>{invoice.customer_name}</TableCell>
                     <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <Select value={invoice.status} onValueChange={value => handleStatusChange(invoice.id, value, invoice.status)}>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select value={invoice.status} onValueChange={(value) => handleStatusChange(invoice.id, value, invoice.status)}>
                         <SelectTrigger className="w-[120px] h-8 border-0 bg-transparent">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {invoiceStatusOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                          {invoiceStatusOptions.map((option) => <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>)}
                         </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell className="font-semibold text-right">₹{invoice.total.toLocaleString('en-IN')}</TableCell>
-                    <TableCell onClick={e => e.stopPropagation()}>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" onClick={() => handleInvoiceClick(invoice)}>
                           <Eye className="h-4 w-4" />
@@ -498,7 +498,7 @@ const Invoices = () => {
               <div className="print:hidden p-3 md:p-4 bg-muted/30 rounded-lg">
                 <Label className="text-xs md:text-sm font-medium mb-2 block">Select columns for print/share:</Label>
                 <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-4">
-                  {(Object.keys(invoicePrintColumnLabels) as InvoicePrintColumn[]).map(col => <div key={col} className="flex items-center space-x-2">
+                  {(Object.keys(invoicePrintColumnLabels) as InvoicePrintColumn[]).map((col) => <div key={col} className="flex items-center space-x-2">
                       <Checkbox id={`inv-col-${col}`} checked={selectedPrintColumns.includes(col)} onCheckedChange={() => togglePrintColumn(col)} />
                       <Label htmlFor={`inv-col-${col}`} className="text-xs md:text-sm cursor-pointer">
                         {invoicePrintColumnLabels[col]}
