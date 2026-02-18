@@ -213,38 +213,33 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      // First, we need to get the user by email and verify PIN
-      // For PIN login, we'll use a workaround: store email+PIN temporarily and verify
-      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: sessionStorage.getItem(`temp_pwd_${email}`) || password,
+      // Server-side PIN verification via edge function
+      const response = await supabase.functions.invoke('pin-auth', {
+        body: { email, pin },
       });
 
-      if (signInError) {
-        // If we can't sign in with stored password, fall back to regular auth
-        toast.error("PIN login requires initial password authentication. Please use password login first.");
-        setUsePinLogin(false);
+      if (response.error || !response.data?.token_hash) {
+        const errorMsg = response.data?.error || "Invalid PIN or email. Please try again.";
+        toast.error(errorMsg);
         setLoading(false);
         return;
       }
 
-      if (user) {
-        // Verify PIN
-        const { data: pinValid, error: pinError } = await supabase.rpc('verify_pin', {
-          user_uuid: user.id,
-          input_pin: pin
-        });
+      // Complete sign-in using the server-generated magic link token
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: response.data.token_hash,
+        type: 'magiclink',
+      });
 
-        if (pinError || !pinValid) {
-          await supabase.auth.signOut();
-          toast.error("Invalid PIN. Please try again.");
-          setLoading(false);
-          return;
-        }
-
-        toast.success("Signed in successfully!");
-        navigate("/dashboard");
+      if (verifyError) {
+        logErrorInDev('PinVerifyOtp', verifyError);
+        toast.error("Authentication failed. Please try again.");
+        setLoading(false);
+        return;
       }
+
+      toast.success("Signed in successfully!");
+      navigate("/dashboard");
     } catch (error: any) {
       logErrorInDev('PinSignIn', error);
       toast.error(getSafeAuthErrorMessage(error));
