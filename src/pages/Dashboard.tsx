@@ -38,7 +38,7 @@ const Dashboard = () => {
       } = await supabase.from("invoices").select("*");
       const totalProducts = products?.length || 0;
       const totalInvoices = invoices?.length || 0;
-      const pendingInvoices = invoices?.filter(inv => inv.status !== "paid").length || 0;
+      const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
       const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
       const totalStockValue = products?.reduce((sum, product) => sum + product.quantity * product.unit_price, 0) || 0;
       setStats({
@@ -114,7 +114,7 @@ const Dashboard = () => {
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
     const headers = Object.keys(data[0]);
-    const csvContent = [headers.join(","), ...data.map(row => headers.map(header => `"${row[header] ?? ""}"`).join(","))].join("\n");
+    const csvContent = [headers.join(","), ...data.map((row) => headers.map((header) => `"${row[header] ?? ""}"`).join(","))].join("\n");
     const blob = new Blob([csvContent], {
       type: "text/csv;charset=utf-8;"
     });
@@ -137,7 +137,7 @@ const Dashboard = () => {
       exportToCSV(topProducts, `top-products-${date}`);
     }
     if (outstandingInvoices.length > 0) {
-      const invoiceData = outstandingInvoices.map(inv => ({
+      const invoiceData = outstandingInvoices.map((inv) => ({
         customer_name: inv.customer_name,
         invoice_number: inv.invoice_number,
         due_date: format(new Date(inv.due_date), "MMM dd, yyyy"),
@@ -170,9 +170,9 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 bg-primary-foreground">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 bg-card">
         <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-[#efe7f3]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-muted">
             <CardTitle className="text-xs md:text-sm font-medium">Total Products</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -183,7 +183,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-[#f1e4e4]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-muted">
             <CardTitle className="text-xs md:text-sm font-medium">Stock Value</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -196,7 +196,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-[#d6e9f0]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-muted">
             <CardTitle className="text-xs md:text-sm font-medium">Pending</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -207,7 +207,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-[#d9eacd]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6 md:pb-2 bg-muted">
             <CardTitle className="text-xs md:text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -222,7 +222,7 @@ const Dashboard = () => {
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
-          <CardHeader className="p-3 md:p-6 pb-2 bg-[#e6e5e5]">
+          <CardHeader className="p-3 md:p-6 pb-2 bg-muted">
             <CardTitle className="text-sm md:text-lg">Revenue Trends</CardTitle>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
@@ -240,7 +240,7 @@ const Dashboard = () => {
                 }} interval="preserveStartEnd" />
                   <YAxis tick={{
                   fontSize: 9
-                }} width={40} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                }} width={40} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Line type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{
                   fill: "hsl(var(--chart-1))",
@@ -253,7 +253,7 @@ const Dashboard = () => {
         </Card>
 
         <Card>
-          <CardHeader className="p-3 md:p-6 pb-2 bg-[#e6e5e5]">
+          <CardHeader className="p-3 md:p-6 pb-2 bg-muted">
             <CardTitle className="text-sm md:text-lg">Top Products</CardTitle>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
@@ -268,7 +268,7 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tick={{
                   fontSize: 9
-                }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                   <YAxis dataKey="name" type="category" width={50} tick={{
                   fontSize: 8
                 }} />
@@ -282,12 +282,12 @@ const Dashboard = () => {
       </div>
 
       <Card>
-        <CardHeader className="p-4 md:p-6 px-[15px] my-0 bg-[#ededed]">
+        <CardHeader className="p-4 md:p-6 px-[15px] my-0 bg-muted">
           <CardTitle className="text-base md:text-lg">Outstanding Invoices</CardTitle>
         </CardHeader>
         <CardContent className="p-3 md:p-6 pt-0">
           <div className="space-y-3">
-            {outstandingInvoices.length === 0 ? <p className="text-muted-foreground text-center py-4 text-sm">No outstanding invoices</p> : outstandingInvoices.map(invoice => <div key={invoice.id} className="flex items-center justify-between p-3 md:p-4 border rounded-lg gap-2">
+            {outstandingInvoices.length === 0 ? <p className="text-muted-foreground text-center py-4 text-sm">No outstanding invoices</p> : outstandingInvoices.map((invoice) => <div key={invoice.id} className="flex items-center justify-between p-3 md:p-4 border rounded-lg gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm md:text-base truncate">{invoice.customer_name}</p>
                     <p className="text-xs md:text-sm text-muted-foreground">
