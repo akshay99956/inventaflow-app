@@ -69,7 +69,7 @@ export const DocumentFilters = ({
   };
   const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.clientId || filters.status;
   return <Card className="border-0 shadow-sm bg-gradient-to-r from-muted/30 to-muted/10">
-      <CardContent className="py-2 md:py-4 px-2 md:px-6 bg-primary-foreground">
+      <CardContent className="py-2 md:py-4 px-2 md:px-6 bg-muted">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Filter Icon - Hidden on mobile */}
           <div className="hidden md:flex items-center gap-2 text-muted-foreground">
