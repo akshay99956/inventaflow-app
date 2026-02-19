@@ -560,14 +560,14 @@ const Auth = () => {
 
       default:
         return (
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue="signin" className="w-full px-[42px]">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4 px-0">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
@@ -803,14 +803,14 @@ const Auth = () => {
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full opacity-100 border-0 border-none px-[63px]">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">DJ FINEX </h1>
+              <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
               <p className="text-white/60 text-xs font-medium tracking-wider uppercase">Business Suite</p>
             </div>
           </div>
@@ -818,7 +818,7 @@ const Auth = () => {
           {/* Hero Text */}
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="xl:text-4xl font-bold leading-tight tracking-tight text-amber-300 bg-transparent text-5xl px-0 font-serif">
+              <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
                 Manage Your<br />Business Smarter
               </h2>
               <p className="text-white/70 text-base max-w-sm leading-relaxed">
@@ -834,7 +834,7 @@ const Auth = () => {
               { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
               { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" }].
               map((f) =>
-              <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium">
+              <div key={f.label} className="flex items-center gap-1.5 py-1.5 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium bg-transparent px-[8px] text-chart-3">
                   {f.icon}
                   {f.label}
                 </div>
@@ -843,7 +843,7 @@ const Auth = () => {
           </div>
           
           {/* Stats / Social Proof */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 px-[113px]">
             <div>
               <p className="text-2xl font-bold">1K+</p>
               <p className="text-white/50 text-xs font-medium">Businesses</p>
