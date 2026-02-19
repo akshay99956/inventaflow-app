@@ -581,7 +581,7 @@ const Auth = () => {
                 </div>
                 
                 {/* Login method toggle */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-900">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     {usePinLogin ? <KeyRound className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     <span className="text-sm font-medium">
@@ -818,7 +818,7 @@ const Auth = () => {
           {/* Hero Text */}
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="xl:text-4xl font-bold leading-tight tracking-tight text-5xl">
+              <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight text-amber-500">
                 Manage Your<br />Business Smarter
               </h2>
               <p className="text-white/70 text-base max-w-sm leading-relaxed">
@@ -834,7 +834,7 @@ const Auth = () => {
               { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
               { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" }].
               map((f) =>
-              <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium">
+              <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium text-destructive">
                   {f.icon}
                   {f.label}
                 </div>
