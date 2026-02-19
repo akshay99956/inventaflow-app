@@ -805,20 +805,20 @@ const Auth = () => {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
           {/* Logo */}
-          <div className="flex items-center px-[124px] bg-transparent gap-[35px] text-success shadow-xl opacity-100">
+          <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-              <BarChart3 className="text-white w-[80px] h-[80px]" />
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
-              <p className="text-xs font-medium tracking-wider uppercase text-warning">Business Suite</p>
+              <h1 className="text-xl font-bold tracking-tight">DJ FINEX </h1>
+              <p className="text-white/60 text-xs font-medium tracking-wider uppercase">Business Suite</p>
             </div>
           </div>
           
           {/* Hero Text */}
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
+              <h2 className="xl:text-4xl font-bold leading-tight tracking-tight text-amber-300 bg-transparent text-5xl px-0 font-serif">
                 Manage Your<br />Business Smarter
               </h2>
               <p className="text-white/70 text-base max-w-sm leading-relaxed">
