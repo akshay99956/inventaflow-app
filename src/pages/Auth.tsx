@@ -21,17 +21,17 @@ const signupSchema = z.object({
   mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15),
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
-  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits"),
+  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits")
 });
 
 const signinSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
-  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100)
 });
 
 const pinSigninSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
-  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits"),
+  pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d{6}$/, "PIN must be 6 digits")
 });
 
 type AuthMode = 'signin' | 'signup' | 'forgot-password' | 'forgot-pin' | 'reset-password' | 'setup-pin';
@@ -46,7 +46,7 @@ const Auth = () => {
   const [pin, setPin] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPin, setNewPin] = useState("");
-  
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +54,7 @@ const Auth = () => {
   const [usePinLogin, setUsePinLogin] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
   const [otpSent, setOtpSent] = useState(false);
-  
+
   const navigate = useNavigate();
 
   // Check if user is already logged in
@@ -70,23 +70,23 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = signupSchema.safeParse({
       fullName,
       companyName,
       mobile,
       email,
       password,
-      pin,
+      pin
     });
-    
+
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
     }
 
     setLoading(true);
-    
+
     try {
       // 1. Create user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -96,26 +96,26 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
-            mobile: mobile,
+            mobile: mobile
           }
         }
       });
 
       if (authError) throw authError;
-      
+
       if (authData.user) {
         // 2. Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            full_name: fullName,
-            company_name: companyName,
-            mobile: mobile,
-            email: email,
-            pin_enabled: true,
-          });
-        
+        const { error: profileError } = await supabase.
+        from('profiles').
+        insert({
+          user_id: authData.user.id,
+          full_name: fullName,
+          company_name: companyName,
+          mobile: mobile,
+          email: email,
+          pin_enabled: true
+        });
+
         if (profileError) {
           logErrorInDev('ProfileCreation', profileError);
         }
@@ -125,32 +125,32 @@ const Auth = () => {
           user_uuid: authData.user.id,
           new_pin: pin
         });
-        
+
         if (pinError) {
           logErrorInDev('PinSetup', pinError);
         }
 
         // 4. Create company profile
-        const { error: companyError } = await supabase
-          .from('company_profile')
-          .insert({
-            user_id: authData.user.id,
-            company_name: companyName,
-            phone: mobile,
-            email: email,
-          });
-        
+        const { error: companyError } = await supabase.
+        from('company_profile').
+        insert({
+          user_id: authData.user.id,
+          company_name: companyName,
+          phone: mobile,
+          email: email
+        });
+
         if (companyError) {
           logErrorInDev('CompanyProfileCreation', companyError);
         }
 
         // 5. Create default user settings
-        const { error: settingsError } = await supabase
-          .from('user_settings')
-          .insert({
-            user_id: authData.user.id,
-          });
-        
+        const { error: settingsError } = await supabase.
+        from('user_settings').
+        insert({
+          user_id: authData.user.id
+        });
+
         if (settingsError) {
           logErrorInDev('SettingsCreation', settingsError);
         }
@@ -162,13 +162,13 @@ const Auth = () => {
       logErrorInDev('SignUp', error);
       toast.error(getSafeAuthErrorMessage(error));
     }
-    
+
     setLoading(false);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (usePinLogin) {
       await handlePinSignIn();
     } else {
@@ -178,17 +178,17 @@ const Auth = () => {
 
   const handlePasswordSignIn = async () => {
     const validation = signinSchema.safeParse({ email, password });
-    
+
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
     }
 
     setLoading(true);
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
-      password,
+      password
     });
 
     if (error) {
@@ -198,24 +198,24 @@ const Auth = () => {
       toast.success("Signed in successfully!");
       navigate("/dashboard");
     }
-    
+
     setLoading(false);
   };
 
   const handlePinSignIn = async () => {
     const validation = pinSigninSchema.safeParse({ email, pin });
-    
+
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
     }
 
     setLoading(true);
-    
+
     try {
       // Server-side PIN verification via edge function
       const response = await supabase.functions.invoke('pin-auth', {
-        body: { email, pin },
+        body: { email, pin }
       });
 
       if (response.error || !response.data?.token_hash) {
@@ -228,7 +228,7 @@ const Auth = () => {
       // Complete sign-in using the server-generated magic link token
       const { error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: response.data.token_hash,
-        type: 'magiclink',
+        type: 'magiclink'
       });
 
       if (verifyError) {
@@ -244,20 +244,20 @@ const Auth = () => {
       logErrorInDev('PinSignIn', error);
       toast.error(getSafeAuthErrorMessage(error));
     }
-    
+
     setLoading(false);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       toast.error("Please enter your email address");
       return;
     }
 
     setLoading(true);
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth?mode=reset-password`
     });
@@ -269,20 +269,20 @@ const Auth = () => {
       toast.success("Password reset link sent to your email!");
       setOtpSent(true);
     }
-    
+
     setLoading(false);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newPassword || newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
-    
+
     const { error } = await supabase.auth.updateUser({
       password: newPassword
     });
@@ -295,23 +295,23 @@ const Auth = () => {
       setAuthMode('signin');
       setNewPassword("");
     }
-    
+
     setLoading(false);
   };
 
   const handleSetupPin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!/^\d{6}$/.test(newPin)) {
       toast.error("PIN must be exactly 6 digits");
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast.error("Please sign in first to set up PIN");
         setAuthMode('signin');
@@ -323,14 +323,14 @@ const Auth = () => {
         user_uuid: user.id,
         new_pin: newPin
       });
-      
+
       if (pinError) throw pinError;
 
       // Update profile to enable PIN
-      await supabase
-        .from('profiles')
-        .update({ pin_enabled: true })
-        .eq('user_id', user.id);
+      await supabase.
+      from('profiles').
+      update({ pin_enabled: true }).
+      eq('user_id', user.id);
 
       toast.success("PIN set up successfully! You can now use PIN to login.");
       navigate("/dashboard");
@@ -338,7 +338,7 @@ const Auth = () => {
       logErrorInDev('SetupPin', error);
       toast.error("Failed to set up PIN. Please try again.");
     }
-    
+
     setLoading(false);
   };
 
@@ -376,25 +376,25 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground">Enter your email to receive a reset link</p>
             </div>
             
-            {!otpSent ? (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
+            {!otpSent ?
+            <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reset-email">Email</Label>
                   <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required />
+
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Sending..." : "Send Reset Link"}
                 </Button>
-              </form>
-            ) : (
-              <div className="text-center space-y-4">
+              </form> :
+
+            <div className="text-center space-y-4">
                 <div className="p-4 bg-success/10 rounded-lg">
                   <p className="text-success">
                     Reset link sent! Check your email inbox.
@@ -404,9 +404,9 @@ const Auth = () => {
                   Back to Sign In
                 </Button>
               </div>
-            )}
-          </div>
-        );
+            }
+          </div>);
+
 
       case 'forgot-pin':
         return (
@@ -442,8 +442,8 @@ const Auth = () => {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                  required />
+
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pin-reset-password">Password</Label>
@@ -453,15 +453,15 @@ const Auth = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                    required />
+
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                    onClick={() => setShowPassword(!showPassword)}>
+
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -470,8 +470,8 @@ const Auth = () => {
                 {loading ? "Verifying..." : "Verify & Reset PIN"}
               </Button>
             </form>
-          </div>
-        );
+          </div>);
+
 
       case 'setup-pin':
         return (
@@ -489,16 +489,16 @@ const Auth = () => {
                   <InputOTP
                     maxLength={6}
                     value={newPin}
-                    onChange={setNewPin}
-                  >
+                    onChange={setNewPin}>
+
                     <InputOTPGroup>
-                      {[0, 1, 2, 3, 4, 5].map((index) => (
-                        <InputOTPSlot 
-                          key={index} 
-                          index={index}
-                          className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`}
-                        />
-                      ))}
+                      {[0, 1, 2, 3, 4, 5].map((index) =>
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`} />
+
+                      )}
                     </InputOTPGroup>
                   </InputOTP>
                   <Button
@@ -506,8 +506,8 @@ const Auth = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute -right-10 top-1/2 -translate-y-1/2"
-                    onClick={() => setShowPin(!showPin)}
-                  >
+                    onClick={() => setShowPin(!showPin)}>
+
                     {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -516,8 +516,8 @@ const Auth = () => {
                 {loading ? "Setting up..." : "Set PIN"}
               </Button>
             </form>
-          </div>
-        );
+          </div>);
+
 
       case 'reset-password':
         return (
@@ -538,15 +538,15 @@ const Auth = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    minLength={6}
-                  />
+                    minLength={6} />
+
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                    onClick={() => setShowPassword(!showPassword)}>
+
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -555,8 +555,8 @@ const Auth = () => {
                 {loading ? "Updating..." : "Update Password"}
               </Button>
             </form>
-          </div>
-        );
+          </div>);
+
 
       default:
         return (
@@ -567,7 +567,7 @@ const Auth = () => {
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4 px-[60px]">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
@@ -576,12 +576,12 @@ const Auth = () => {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                    required />
+
                 </div>
                 
                 {/* Login method toggle */}
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg px-[32px]">
                   <div className="flex items-center gap-2">
                     {usePinLogin ? <KeyRound className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     <span className="text-sm font-medium">
@@ -590,79 +590,79 @@ const Auth = () => {
                   </div>
                   <Switch
                     checked={usePinLogin}
-                    onCheckedChange={setUsePinLogin}
-                  />
+                    onCheckedChange={setUsePinLogin} />
+
                 </div>
                 
-                {usePinLogin ? (
-                  <div className="space-y-2">
+                {usePinLogin ?
+                <div className="space-y-2">
                     <Label>Enter 6-digit PIN</Label>
                     <div className="flex justify-center relative">
                       <InputOTP
-                        maxLength={6}
-                        value={pin}
-                        onChange={setPin}
-                      >
+                      maxLength={6}
+                      value={pin}
+                      onChange={setPin}>
+
                         <InputOTPGroup>
-                          {[0, 1, 2, 3, 4, 5].map((index) => (
-                            <InputOTPSlot 
-                              key={index} 
-                              index={index}
-                              className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`}
-                            />
-                          ))}
+                          {[0, 1, 2, 3, 4, 5].map((index) =>
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`} />
+
+                        )}
                         </InputOTPGroup>
                       </InputOTP>
                       <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute -right-10 top-1/2 -translate-y-1/2"
-                        onClick={() => setShowPin(!showPin)}
-                      >
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -right-10 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowPin(!showPin)}>
+
                         {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                     <Button
-                      type="button"
-                      variant="link"
-                      className="px-0 text-sm h-auto py-0"
-                      onClick={() => setAuthMode('forgot-pin')}
-                    >
+                    type="button"
+                    variant="link"
+                    className="px-0 text-sm h-auto py-0"
+                    onClick={() => setAuthMode('forgot-pin')}>
+
                       Forgot PIN?
                     </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
+                  </div> :
+
+                <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
                       <Input
-                        id="signin-password"
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
+                      id="signin-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required />
+
                       <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3"
+                      onClick={() => setShowPassword(!showPassword)}>
+
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                     <Button
-                      type="button"
-                      variant="link"
-                      className="px-0 text-sm h-auto py-0"
-                      onClick={() => setAuthMode('forgot-password')}
-                    >
+                    type="button"
+                    variant="link"
+                    className="px-0 text-sm h-auto py-0"
+                    onClick={() => setAuthMode('forgot-password')}>
+
                       Forgot Password?
                     </Button>
                   </div>
-                )}
+                }
                 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
@@ -681,8 +681,8 @@ const Auth = () => {
                       placeholder="John Doe"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      required
-                    />
+                      required />
+
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-company">Company Name *</Label>
@@ -692,8 +692,8 @@ const Auth = () => {
                       placeholder="Acme Corp"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      required
-                    />
+                      required />
+
                   </div>
                 </div>
                 
@@ -706,8 +706,8 @@ const Auth = () => {
                       placeholder="+91 9876543210"
                       value={mobile}
                       onChange={(e) => setMobile(e.target.value)}
-                      required
-                    />
+                      required />
+
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email *</Label>
@@ -717,8 +717,8 @@ const Auth = () => {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                      required />
+
                   </div>
                 </div>
                 
@@ -731,15 +731,15 @@ const Auth = () => {
                       placeholder="Min 6 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                      required />
+
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                      onClick={() => setShowPassword(!showPassword)}>
+
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -751,16 +751,16 @@ const Auth = () => {
                     <InputOTP
                       maxLength={6}
                       value={pin}
-                      onChange={setPin}
-                    >
+                      onChange={setPin}>
+
                       <InputOTPGroup>
-                        {[0, 1, 2, 3, 4, 5].map((index) => (
-                          <InputOTPSlot 
-                            key={index} 
-                            index={index}
-                            className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`}
-                          />
-                        ))}
+                        {[0, 1, 2, 3, 4, 5].map((index) =>
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className={`w-12 h-12 text-lg ${!showPin ? 'text-security-disc' : ''}`} />
+
+                        )}
                       </InputOTPGroup>
                     </InputOTP>
                     <Button
@@ -768,8 +768,8 @@ const Auth = () => {
                       variant="ghost"
                       size="sm"
                       className="absolute -right-10 top-1/2 -translate-y-1/2"
-                      onClick={() => setShowPin(!showPin)}
-                    >
+                      onClick={() => setShowPin(!showPin)}>
+
                       {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -783,8 +783,8 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-          </Tabs>
-        );
+          </Tabs>);
+
     }
   };
 
@@ -793,10 +793,10 @@ const Auth = () => {
       {/* Left Side - Branding Panel */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 relative overflow-hidden">
         {/* Background Image */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${authBgImage})` }}
-        />
+          style={{ backgroundImage: `url(${authBgImage})` }} />
+
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/95 via-primary/80 to-accent/60" />
         {/* Decorative Pattern */}
@@ -829,16 +829,16 @@ const Auth = () => {
             {/* Feature Pills */}
             <div className="flex flex-wrap gap-2">
               {[
-                { icon: <Package className="w-3.5 h-3.5" />, label: "Inventory" },
-                { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Analytics" },
-                { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
-                { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" },
-              ].map((f) => (
-                <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium">
+              { icon: <Package className="w-3.5 h-3.5" />, label: "Inventory" },
+              { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Analytics" },
+              { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
+              { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" }].
+              map((f) =>
+              <div key={f.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/10 text-xs font-medium">
                   {f.icon}
                   {f.label}
                 </div>
-              ))}
+              )}
             </div>
           </div>
           
@@ -879,18 +879,18 @@ const Auth = () => {
           {/* Welcome Header */}
           <div className="mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              {authMode === 'signin' || authMode === 'signup' ? 'Welcome Back' : 
-               authMode === 'forgot-password' ? 'Reset Password' :
-               authMode === 'forgot-pin' ? 'Reset PIN' :
-               authMode === 'setup-pin' ? 'Set Up PIN' :
-               'New Password'}
+              {authMode === 'signin' || authMode === 'signup' ? 'Welcome Back' :
+              authMode === 'forgot-password' ? 'Reset Password' :
+              authMode === 'forgot-pin' ? 'Reset PIN' :
+              authMode === 'setup-pin' ? 'Set Up PIN' :
+              'New Password'}
             </h2>
             <p className="text-muted-foreground mt-1.5 text-sm">
-              {authMode === 'signin' || authMode === 'signup' ? 'Sign in to manage your business dashboard' : 
-               authMode === 'forgot-password' ? 'We\'ll send you a reset link' :
-               authMode === 'forgot-pin' ? 'Verify your identity first' :
-               authMode === 'setup-pin' ? 'Create a quick-access PIN' :
-               'Choose a strong password'}
+              {authMode === 'signin' || authMode === 'signup' ? 'Sign in to manage your business dashboard' :
+              authMode === 'forgot-password' ? 'We\'ll send you a reset link' :
+              authMode === 'forgot-pin' ? 'Verify your identity first' :
+              authMode === 'setup-pin' ? 'Create a quick-access PIN' :
+              'Choose a strong password'}
             </p>
           </div>
 
@@ -907,8 +907,8 @@ const Auth = () => {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Auth;
