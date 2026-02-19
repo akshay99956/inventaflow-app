@@ -567,7 +567,7 @@ const Auth = () => {
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4 px-[60px]">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
@@ -581,7 +581,7 @@ const Auth = () => {
                 </div>
                 
                 {/* Login method toggle */}
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg px-[32px]">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     {usePinLogin ? <KeyRound className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     <span className="text-sm font-medium">
@@ -805,13 +805,13 @@ const Auth = () => {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center px-[124px] bg-transparent gap-[35px] text-success shadow-xl opacity-100">
             <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-              <BarChart3 className="w-6 h-6 text-white" />
+              <BarChart3 className="text-white w-[80px] h-[80px]" />
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
-              <p className="text-white/60 text-xs font-medium tracking-wider uppercase">Business Suite</p>
+              <p className="text-xs font-medium tracking-wider uppercase text-warning">Business Suite</p>
             </div>
           </div>
           
