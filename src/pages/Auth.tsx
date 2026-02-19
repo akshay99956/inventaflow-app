@@ -803,14 +803,14 @@ const Auth = () => {
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full py-[125px]">
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-white/15 backdrop-blur-md flex items-center justify-center border-4 border-destructive rounded-lg">
-              <BarChart3 className="w-6 h-6 text-warning-foreground bg-success-foreground" />
+            <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight bg-transparent text-amber-200">DC Finance</h1>
+              <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
               <p className="text-white/60 text-xs font-medium tracking-wider uppercase">Business Suite</p>
             </div>
           </div>
@@ -843,7 +843,7 @@ const Auth = () => {
           </div>
           
           {/* Stats / Social Proof */}
-          <div className="flex items-center gap-6 py-[9px]">
+          <div className="flex items-center gap-6">
             <div>
               <p className="text-2xl font-bold">1K+</p>
               <p className="text-white/50 text-xs font-medium">Businesses</p>
@@ -896,7 +896,7 @@ const Auth = () => {
 
           {/* Auth Form Card */}
           <Card className="border border-border/50 shadow-xl shadow-primary/5">
-            <CardContent className="p-5 sm:p-6">
+            <CardContent className="p-5 sm:p-6 mx-0">
               {renderContent()}
             </CardContent>
           </Card>
