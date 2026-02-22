@@ -371,7 +371,7 @@ const BillCreate = () => {
                           type="number"
                           value={item.quantity}
                           onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
-                          className="w-12 h-8 text-center text-sm px-[30px]"
+                          className="w-12 h-8 text-center text-sm px-[9px]"
                           min={1} />
 
                           <Button
