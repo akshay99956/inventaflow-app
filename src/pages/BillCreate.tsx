@@ -72,10 +72,10 @@ const BillCreate = () => {
   // Fetch products for selection
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, purchase_price, unit_price, quantity")
-        .order("name");
+      const { data, error } = await supabase.
+      from("products").
+      select("id, name, purchase_price, unit_price, quantity").
+      order("name");
       if (!error && data) {
         setProducts(data);
       }
@@ -86,8 +86,8 @@ const BillCreate = () => {
   // Quick add product - directly adds to list
   const quickAddProduct = (product: Product) => {
     // Check if product already in items
-    const existingIndex = items.findIndex(item => item.product_id === product.id);
-    
+    const existingIndex = items.findIndex((item) => item.product_id === product.id);
+
     if (existingIndex >= 0) {
       // Increase quantity if already exists
       const newItems = [...items];
@@ -96,7 +96,7 @@ const BillCreate = () => {
       toast.success(`${product.name} quantity increased`);
     } else {
       // Add new item (remove empty items first)
-      const filteredItems = items.filter(item => item.product_id !== null || item.description !== "");
+      const filteredItems = items.filter((item) => item.product_id !== null || item.description !== "");
       setItems([...filteredItems, {
         product_id: product.id,
         description: product.name,
@@ -161,16 +161,16 @@ const BillCreate = () => {
 
       if (billError) throw billError;
 
-      const itemsToInsert = items
-        .filter(item => item.description && item.quantity > 0 && item.unit_price > 0)
-        .map(item => ({
-          bill_id: bill.id,
-          product_id: item.product_id,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          amount: item.quantity * item.unit_price
-        }));
+      const itemsToInsert = items.
+      filter((item) => item.description && item.quantity > 0 && item.unit_price > 0).
+      map((item) => ({
+        bill_id: bill.id,
+        product_id: item.product_id,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        amount: item.quantity * item.unit_price
+      }));
 
       if (itemsToInsert.length > 0) {
         const { error: itemsError } = await supabase.from("bill_items").insert(itemsToInsert);
@@ -179,7 +179,7 @@ const BillCreate = () => {
         // Update product quantities (add stock for purchases/bills)
         for (const item of itemsToInsert) {
           if (item.product_id) {
-            const product = products.find(p => p.id === item.product_id);
+            const product = products.find((p) => p.id === item.product_id);
             if (product) {
               await supabase.from("products").update({
                 quantity: product.quantity + item.quantity
@@ -230,34 +230,34 @@ const BillCreate = () => {
             </CardHeader>
             <CardContent className="p-3 md:p-6 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <FormField control={form.control} name="customer_name" render={({ field }) => (
-                  <FormItem>
+                <FormField control={form.control} name="customer_name" render={({ field }) =>
+                <FormItem>
                     <FormLabel className="text-xs md:text-sm">Supplier Name *</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Enter name" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )} />
-                <FormField control={form.control} name="bill_date" render={({ field }) => (
-                  <FormItem>
+                } />
+                <FormField control={form.control} name="bill_date" render={({ field }) =>
+                <FormItem>
                     <FormLabel className="text-xs md:text-sm">Bill Date *</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )} />
+                } />
               </div>
-              <FormField control={form.control} name="customer_email" render={({ field }) => (
-                <FormItem>
+              <FormField control={form.control} name="customer_email" render={({ field }) =>
+              <FormItem>
                   <FormLabel className="text-xs md:text-sm">Email (Optional)</FormLabel>
                   <FormControl>
                     <Input {...field} type="email" placeholder="email@example.com" className="h-9 text-sm" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )} />
+              } />
             </CardContent>
           </Card>
 
@@ -267,7 +267,7 @@ const BillCreate = () => {
               <div className="flex justify-between items-center">
                 <CardTitle className="text-sm md:text-lg flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  Items ({items.filter(i => i.product_id).length})
+                  Items ({items.filter((i) => i.product_id).length})
                 </CardTitle>
               </div>
             </CardHeader>
@@ -278,8 +278,8 @@ const BillCreate = () => {
                   <Button
                     variant="outline"
                     role="combobox"
-                    className="w-full justify-between h-10 md:h-12 text-sm md:text-base border-dashed border-2 border-primary/30 hover:border-primary"
-                  >
+                    className="w-full justify-between h-10 md:h-12 text-sm md:text-base border-dashed border-2 border-primary/30 hover:border-primary">
+
                     <div className="flex items-center gap-2">
                       <Search className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Search & add product...</span>
@@ -289,27 +289,27 @@ const BillCreate = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0 z-50 bg-background" align="start" sideOffset={4}>
                   <Command>
-                    <CommandInput 
-                      placeholder="Type product name..." 
+                    <CommandInput
+                      placeholder="Type product name..."
                       value={productSearch}
                       onValueChange={setProductSearch}
-                      className="h-10"
-                    />
+                      className="h-10" />
+
                     <CommandList className="max-h-[300px]">
                       <CommandEmpty>No products found</CommandEmpty>
                       <CommandGroup heading="Products">
-                        {products
-                          .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                          .slice(0, 20)
-                          .map((product) => {
-                            const inCart = items.find(i => i.product_id === product.id);
-                            return (
-                              <CommandItem
-                                key={product.id}
-                                value={product.name}
-                                onSelect={() => quickAddProduct(product)}
-                                className="flex justify-between items-center py-3 cursor-pointer"
-                              >
+                        {products.
+                        filter((p) => p.name.toLowerCase().includes(productSearch.toLowerCase())).
+                        slice(0, 20).
+                        map((product) => {
+                          const inCart = items.find((i) => i.product_id === product.id);
+                          return (
+                            <CommandItem
+                              key={product.id}
+                              value={product.name}
+                              onSelect={() => quickAddProduct(product)}
+                              className="flex justify-between items-center py-3 cursor-pointer">
+
                                 <div className="flex flex-col">
                                   <span className="font-medium">{product.name}</span>
                                   <span className="text-xs text-muted-foreground">
@@ -317,16 +317,16 @@ const BillCreate = () => {
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {inCart && (
-                                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
+                                  {inCart &&
+                                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
                                       ×{inCart.quantity}
                                     </span>
-                                  )}
+                                }
                                   <Plus className="h-4 w-4 text-primary" />
                                 </div>
-                              </CommandItem>
-                            );
-                          })}
+                              </CommandItem>);
+
+                        })}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -334,16 +334,16 @@ const BillCreate = () => {
               </Popover>
 
               {/* Added Items List */}
-              {items.filter(i => i.product_id).length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground text-sm">
+              {items.filter((i) => i.product_id).length === 0 ?
+              <div className="text-center py-6 text-muted-foreground text-sm">
                   No items added yet. Search above to add products.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {items.filter(i => i.product_id).map((item, index) => {
-                    const actualIndex = items.findIndex(i => i === item);
-                    return (
-                      <div key={actualIndex} className="flex items-center gap-2 p-2 md:p-3 bg-muted/30 rounded-lg border">
+                </div> :
+
+              <div className="space-y-2">
+                  {items.filter((i) => i.product_id).map((item, index) => {
+                  const actualIndex = items.findIndex((i) => i === item);
+                  return (
+                    <div key={actualIndex} className="flex items-center gap-2 p-2 md:p-3 bg-muted/30 rounded-lg border">
                         {/* Product Name */}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm md:text-base truncate">{item.description}</p>
@@ -355,32 +355,32 @@ const BillCreate = () => {
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-1">
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              if (item.quantity > 1) {
-                                updateItem(actualIndex, "quantity", item.quantity - 1);
-                              }
-                            }}
-                          >
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => {
+                            if (item.quantity > 1) {
+                              updateItem(actualIndex, "quantity", item.quantity - 1);
+                            }
+                          }}>
+
                             -
                           </Button>
                           <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
-                            className="w-12 h-8 text-center text-sm"
-                            min={1}
-                          />
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
+                          className="w-12 h-8 text-center text-sm px-[30px]"
+                          min={1} />
+
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateItem(actualIndex, "quantity", item.quantity + 1)}
-                          >
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => updateItem(actualIndex, "quantity", item.quantity + 1)}>
+
                             +
                           </Button>
                         </div>
@@ -394,19 +394,19 @@ const BillCreate = () => {
                         
                         {/* Delete */}
                         <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeItem(actualIndex)}
-                        >
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => removeItem(actualIndex)}>
+
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    );
-                  })}
+                      </div>);
+
+                })}
                 </div>
-              )}
+              }
 
               {/* Totals - Compact */}
               <div className="border-t pt-3 mt-3 space-y-2">
@@ -421,27 +421,27 @@ const BillCreate = () => {
                     <Switch
                       id="tax-toggle-bill"
                       checked={taxEnabled}
-                      onCheckedChange={setTaxEnabled}
-                    />
+                      onCheckedChange={setTaxEnabled} />
+
                     <Label htmlFor="tax-toggle-bill" className="text-xs md:text-sm text-muted-foreground">
                       {settings.tax_name}
                     </Label>
                   </div>
-                  {taxEnabled && (
-                    <div className="flex items-center gap-1 md:gap-2">
+                  {taxEnabled &&
+                  <div className="flex items-center gap-1 md:gap-2">
                       <Input
-                        type="number"
-                        value={taxRate}
-                        onChange={(e) => setTaxRate(Number(e.target.value))}
-                        className="w-12 md:w-16 h-7 md:h-8 text-center text-xs md:text-sm"
-                        min={0}
-                        max={100}
-                        step={0.1}
-                      />
+                      type="number"
+                      value={taxRate}
+                      onChange={(e) => setTaxRate(Number(e.target.value))}
+                      className="w-12 md:w-16 h-7 md:h-8 text-center text-xs md:text-sm"
+                      min={0}
+                      max={100}
+                      step={0.1} />
+
                       <span className="text-xs md:text-sm text-muted-foreground">%</span>
                       <span className="font-medium text-xs md:text-sm">{settings.currency_symbol}{tax.toFixed(2)}</span>
                     </div>
-                  )}
+                  }
                 </div>
                 
                 <div className="flex justify-between text-sm md:text-lg font-bold pt-1 border-t">
@@ -458,45 +458,45 @@ const BillCreate = () => {
               <CardTitle className="text-sm md:text-lg">Notes</CardTitle>
             </CardHeader>
             <CardContent className="p-3 md:p-6">
-              <FormField control={form.control} name="notes" render={({ field }) => (
-                <FormItem>
+              <FormField control={form.control} name="notes" render={({ field }) =>
+              <FormItem>
                   <FormControl>
-                    <Textarea 
-                      {...field}
-                      placeholder="Additional notes (optional)" 
-                      className="min-h-[60px] md:min-h-[80px] text-xs md:text-sm" 
-                    />
+                    <Textarea
+                    {...field}
+                    placeholder="Additional notes (optional)"
+                    className="min-h-[60px] md:min-h-[80px] text-xs md:text-sm" />
+
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )} />
+              } />
             </CardContent>
           </Card>
 
           {/* Action Buttons - Fixed on mobile */}
           <div className="fixed bottom-16 left-0 right-0 p-3 bg-background border-t md:relative md:bottom-auto md:border-0 md:p-0 md:bg-transparent">
             <div className="flex gap-2 max-w-4xl mx-auto">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate("/bills")} 
-                className="flex-1 md:flex-none h-10 text-sm"
-              >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/bills")}
+                className="flex-1 md:flex-none h-10 text-sm">
+
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
-                className="flex-1 md:flex-none h-10 text-sm bg-primary hover:bg-primary/90"
-              >
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 md:flex-none h-10 text-sm bg-primary hover:bg-primary/90">
+
                 {isSubmitting ? "Creating..." : "Create Bill"}
               </Button>
             </div>
           </div>
         </form>
       </Form>
-    </div>
-  );
+    </div>);
+
 };
 
 export default BillCreate;
