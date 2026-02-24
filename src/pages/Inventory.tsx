@@ -87,15 +87,15 @@ const Inventory = () => {
   useEffect(() => {
     let filtered = products;
     if (searchTerm) {
-      filtered = filtered.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) || product.description?.toLowerCase().includes(searchTerm.toLowerCase()));
+      filtered = filtered.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) || product.description?.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     if (categoryFilter) {
-      filtered = filtered.filter(product => product.category === categoryFilter);
+      filtered = filtered.filter((product) => product.category === categoryFilter);
     }
     setFilteredProducts(filtered);
   }, [searchTerm, categoryFilter, products]);
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold);
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
+  const lowStockProducts = products.filter((p) => p.quantity <= p.low_stock_threshold);
   useEffect(() => {
     fetchProducts();
     const channel = supabase.channel("products-changes").on("postgres_changes", {
@@ -112,9 +112,9 @@ const Inventory = () => {
   // Check if product name already exists
   const isProductNameDuplicate = (name: string) => {
     const normalizedName = name.trim().toLowerCase();
-    return products.some(p => 
-      p.name.trim().toLowerCase() === normalizedName && 
-      (!editingProduct || p.id !== editingProduct.id)
+    return products.some((p) =>
+    p.name.trim().toLowerCase() === normalizedName && (
+    !editingProduct || p.id !== editingProduct.id)
     );
   };
 
@@ -214,7 +214,7 @@ const Inventory = () => {
     if (selectedPrintColumns.includes('total_value')) message += `\nTotal Stock Value: ₹${totalValue.toFixed(2)}`;
     if (selectedPrintColumns.includes('profit')) message += `\nTotal Profit Margin: ₹${totalProfit.toFixed(2)}`;
     message += `\n\n`;
-    message += filteredProducts.map(p => {
+    message += filteredProducts.map((p) => {
       let line = `• ${p.name}`;
       const details: string[] = [];
       if (selectedPrintColumns.includes('quantity')) details.push(`Qty: ${p.quantity}`);
@@ -232,7 +232,7 @@ const Inventory = () => {
     window.open(whatsappUrl, '_blank');
   };
   const togglePrintColumn = (col: PrintColumn) => {
-    setSelectedPrintColumns(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]);
+    setSelectedPrintColumns((prev) => prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]);
   };
   const totalInventoryValue = filteredProducts.reduce((sum, p) => sum + p.quantity * p.unit_price, 0);
   const totalProfitMargin = filteredProducts.reduce((sum, p) => sum + (p.unit_price - p.purchase_price) * p.quantity, 0);
@@ -244,8 +244,8 @@ const Inventory = () => {
   };
   const handleCSVExport = () => {
     const headers = ['Name', 'SKU', 'Category', 'Quantity', 'Purchase Price', 'Sale Price', 'Profit Margin', 'Profit %', 'Total Value', 'Total Profit'];
-    const rows = filteredProducts.map(p => [p.name, p.sku || '', p.category || '', p.quantity, p.purchase_price.toFixed(2), p.unit_price.toFixed(2), getProfitMargin(p).toFixed(2), getProfitPercentage(p).toFixed(2) + '%', (p.quantity * p.unit_price).toFixed(2), (getProfitMargin(p) * p.quantity).toFixed(2)]);
-    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+    const rows = filteredProducts.map((p) => [p.name, p.sku || '', p.category || '', p.quantity, p.purchase_price.toFixed(2), p.unit_price.toFixed(2), getProfitMargin(p).toFixed(2), getProfitPercentage(p).toFixed(2) + '%', (p.quantity * p.unit_price).toFixed(2), (getProfitMargin(p) * p.quantity).toFixed(2)]);
+    const csvContent = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))].join('\n');
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;'
     });
@@ -281,15 +281,15 @@ const Inventory = () => {
     try {
       // Use papaparse for proper CSV parsing with sanitization
       const result = await parseProductCSV(file, 1000);
-      
+
       // Show any parsing errors/warnings
       if (result.errors.length > 0) {
-        result.errors.slice(0, 3).forEach(err => toast.error(err));
+        result.errors.slice(0, 3).forEach((err) => toast.error(err));
         if (result.errors.length > 3) {
           toast.error(`And ${result.errors.length - 3} more errors...`);
         }
       }
-      
+
       if (result.data.length === 0) {
         if (result.errors.length === 0) {
           toast.error("No valid products found in CSV. Ensure there is a 'Name' column.");
@@ -299,7 +299,7 @@ const Inventory = () => {
       }
 
       // Add user_id to each product
-      const productsToImport = result.data.map(product => ({
+      const productsToImport = result.data.map((product) => ({
         ...product,
         user_id: user.id
       }));
@@ -314,7 +314,7 @@ const Inventory = () => {
     } catch (error) {
       toast.error("Error processing CSV file. Please ensure it's a valid CSV format.");
     }
-    
+
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
   return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
@@ -354,29 +354,29 @@ const Inventory = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
-                <Input 
-                  id="name" 
-                  value={formData.name} 
-                  onChange={e => setFormData({
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({
                     ...formData,
                     name: e.target.value
-                  })} 
-                  required 
+                  })}
+                  required
                   className={cn(
                     "border-primary/20 focus:border-primary",
                     formData.name && isProductNameDuplicate(formData.name) && "border-destructive focus:border-destructive"
-                  )} 
-                />
-                {formData.name && isProductNameDuplicate(formData.name) && (
-                  <p className="text-xs text-destructive flex items-center gap-1">
+                  )} />
+
+                {formData.name && isProductNameDuplicate(formData.name) &&
+                <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" />
                     Product "{formData.name}" already exists
                   </p>
-                )}
+                }
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sku">SKU</Label>
-                <Input id="sku" value={formData.sku} onChange={e => setFormData({
+                <Input id="sku" value={formData.sku} onChange={(e) => setFormData({
                   ...formData,
                   sku: e.target.value
                 })} className="border-primary/20 focus:border-primary" />
@@ -388,46 +388,46 @@ const Inventory = () => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      className="w-full justify-between border-primary/20 focus:border-primary"
-                    >
+                      className="w-full justify-between border-primary/20 focus:border-primary">
+
                       {formData.category || "Select or type category..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[90%] p-0" align="start">
                     <Command>
-                      <CommandInput 
-                        placeholder="Search or add category..." 
-                        onValueChange={(value) => setFormData({ ...formData, category: value })}
-                      />
+                      <CommandInput
+                        placeholder="Search or add category..."
+                        onValueChange={(value) => setFormData({ ...formData, category: value })} />
+
                       <CommandList>
                         <CommandEmpty>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             className="w-full justify-start"
-                            onClick={() => {}}
-                          >
+                            onClick={() => {}}>
+
                             Use "{formData.category}" as new category
                           </Button>
                         </CommandEmpty>
                         <CommandGroup heading="Existing Categories">
-                          {[...new Set(products.map(p => p.category).filter(Boolean))].map((category) => (
-                            <CommandItem
-                              key={category}
-                              value={category || ""}
-                              onSelect={(value) => {
-                                setFormData({ ...formData, category: value });
-                              }}
-                            >
+                          {[...new Set(products.map((p) => p.category).filter(Boolean))].map((category) =>
+                          <CommandItem
+                            key={category}
+                            value={category || ""}
+                            onSelect={(value) => {
+                              setFormData({ ...formData, category: value });
+                            }}>
+
                               <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  formData.category === category ? "opacity-100" : "opacity-0"
-                                )}
-                              />
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.category === category ? "opacity-100" : "opacity-0"
+                              )} />
+
                               {category}
                             </CommandItem>
-                          ))}
+                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -437,14 +437,14 @@ const Inventory = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantity *</Label>
-                  <Input id="quantity" type="number" value={formData.quantity} onChange={e => setFormData({
+                  <Input id="quantity" type="number" value={formData.quantity} onChange={(e) => setFormData({
                     ...formData,
                     quantity: Number(e.target.value)
                   })} required className="border-primary/20 focus:border-primary" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="purchase_price">Purchase Price *</Label>
-                  <Input id="purchase_price" type="number" step="0.01" value={formData.purchase_price} onChange={e => setFormData({
+                  <Input id="purchase_price" type="number" step="0.01" value={formData.purchase_price} onChange={(e) => setFormData({
                     ...formData,
                     purchase_price: Number(e.target.value)
                   })} required className="border-warning/20 focus:border-warning" />
@@ -453,7 +453,7 @@ const Inventory = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="unit_price">Sale Price *</Label>
-                  <Input id="unit_price" type="number" step="0.01" value={formData.unit_price} onChange={e => setFormData({
+                  <Input id="unit_price" type="number" step="0.01" value={formData.unit_price} onChange={(e) => setFormData({
                     ...formData,
                     unit_price: Number(e.target.value)
                   })} required className="border-primary/20 focus:border-primary" />
@@ -461,7 +461,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
-                <Input id="low_stock_threshold" type="number" value={formData.low_stock_threshold} onChange={e => setFormData({
+                <Input id="low_stock_threshold" type="number" value={formData.low_stock_threshold} onChange={(e) => setFormData({
                   ...formData,
                   low_stock_threshold: Number(e.target.value)
                 })} className="border-warning/20 focus:border-warning" />
@@ -469,7 +469,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Input id="description" value={formData.description} onChange={e => setFormData({
+                <Input id="description" value={formData.description} onChange={(e) => setFormData({
                   ...formData,
                   description: e.target.value
                 })} className="border-primary/20 focus:border-primary" />
@@ -567,7 +567,7 @@ const Inventory = () => {
           <AlertTitle className="text-destructive font-bold text-sm md:text-base">Low Stock Alert</AlertTitle>
           <AlertDescription className="text-destructive/80 text-xs md:text-sm">
             {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low: 
-            <span className="font-semibold"> {lowStockProducts.slice(0, 3).map(p => p.name).join(", ")}{lowStockProducts.length > 3 ? ` +${lowStockProducts.length - 3} more` : ''}</span>
+            <span className="font-semibold"> {lowStockProducts.slice(0, 3).map((p) => p.name).join(", ")}{lowStockProducts.length > 3 ? ` +${lowStockProducts.length - 3} more` : ''}</span>
           </AlertDescription>
         </Alert>}
 
@@ -585,7 +585,7 @@ const Inventory = () => {
             <div className="print:hidden p-4 bg-muted/30 rounded-lg">
               <Label className="text-sm font-medium mb-3 block">Select columns to include:</Label>
               <div className="flex flex-wrap gap-4">
-                {(Object.keys(printColumnLabels) as PrintColumn[]).map(col => <div key={col} className="flex items-center space-x-2">
+                {(Object.keys(printColumnLabels) as PrintColumn[]).map((col) => <div key={col} className="flex items-center space-x-2">
                     <Checkbox id={`col-${col}`} checked={selectedPrintColumns.includes(col)} onCheckedChange={() => togglePrintColumn(col)} />
                     <Label htmlFor={`col-${col}`} className="text-sm cursor-pointer">
                       {printColumnLabels[col]}
@@ -627,7 +627,7 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map(product => <TableRow key={product.id}>
+                  {filteredProducts.map((product) => <TableRow key={product.id}>
                       {selectedPrintColumns.includes('name') && <TableCell className="font-medium">{product.name}</TableCell>}
                       {selectedPrintColumns.includes('sku') && <TableCell>{product.sku || "-"}</TableCell>}
                       {selectedPrintColumns.includes('quantity') && <TableCell className="text-right">{product.quantity}</TableCell>}
@@ -682,10 +682,10 @@ const Inventory = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <Input placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="flex-1 border-primary/20 focus:border-primary" />
-              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2">
+              <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 border-primary/20 focus:border-primary" />
+              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2">
                 <option value="">All Categories</option>
-                {categories.map(cat => <option key={cat} value={cat || ""}>
+                {categories.map((cat) => <option key={cat} value={cat || ""}>
                     {cat}
                   </option>)}
               </select>
@@ -695,9 +695,9 @@ const Inventory = () => {
 
         {/* Mobile Card View - Compact */}
         {isMobile ? <CardContent className="p-2 space-y-2">
-            {filteredProducts.map(product => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}>
+            {filteredProducts.map((product) => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}>
                 <div className={`h-0.5 ${isLowStock(product) ? "bg-destructive" : "gradient-primary"}`} />
-                <CardContent className="p-3">
+                <CardContent className="p-3 px-[9px] py-0">
                   {/* Main Row */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
