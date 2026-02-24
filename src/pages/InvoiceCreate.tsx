@@ -84,10 +84,10 @@ const InvoiceCreate = () => {
   }, []);
 
   const fetchClients = async () => {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("id, name, email, phone")
-      .order("name");
+    const { data, error } = await supabase.
+    from("clients").
+    select("id, name, email, phone").
+    order("name");
     if (error) {
       if (import.meta.env.DEV) {
         console.error("Failed to load clients:", error);
@@ -105,10 +105,10 @@ const InvoiceCreate = () => {
     setCustomerPopoverOpen(false);
   };
   const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, description, unit_price, sku, quantity")
-      .order("name");
+    const { data, error } = await supabase.
+    from("products").
+    select("id, name, description, unit_price, sku, quantity").
+    order("name");
     if (error) {
       toast.error("Failed to load products");
       return;
@@ -119,8 +119,8 @@ const InvoiceCreate = () => {
   // Quick add product - directly adds to list
   const quickAddProduct = (product: Product) => {
     // Check if product already in items
-    const existingIndex = items.findIndex(item => item.product_id === product.id);
-    
+    const existingIndex = items.findIndex((item) => item.product_id === product.id);
+
     if (existingIndex >= 0) {
       // Increase quantity if already exists
       const newItems = [...items];
@@ -129,7 +129,7 @@ const InvoiceCreate = () => {
       toast.success(`${product.name} quantity increased`);
     } else {
       // Add new item (remove empty items first)
-      const filteredItems = items.filter(item => item.product_id !== "" || item.description !== "");
+      const filteredItems = items.filter((item) => item.product_id !== "" || item.description !== "");
       setItems([...filteredItems, {
         product_id: product.id,
         description: product.name,
@@ -209,7 +209,7 @@ const InvoiceCreate = () => {
       if (invoiceError) throw invoiceError;
 
       // Create invoice items
-      const itemsToInsert = items.filter(item => item.description && item.quantity > 0 && item.unit_price > 0).map(item => ({
+      const itemsToInsert = items.filter((item) => item.description && item.quantity > 0 && item.unit_price > 0).map((item) => ({
         invoice_id: invoice.id,
         product_id: item.product_id || null,
         description: item.description,
@@ -226,7 +226,7 @@ const InvoiceCreate = () => {
         // Decrease product quantities in inventory
         for (const item of itemsToInsert) {
           if (item.product_id) {
-            const product = products.find(p => p.id === item.product_id);
+            const product = products.find((p) => p.id === item.product_id);
             if (product) {
               const {
                 error: updateError
@@ -291,13 +291,13 @@ const InvoiceCreate = () => {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-full justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}>
+
                             {field.value || "Select or type customer name..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -305,39 +305,39 @@ const InvoiceCreate = () => {
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0" align="start">
                         <Command>
-                          <CommandInput 
-                            placeholder="Search or add customer..." 
-                            onValueChange={(value) => form.setValue("customer_name", value)}
-                          />
+                          <CommandInput
+                      placeholder="Search or add customer..."
+                      onValueChange={(value) => form.setValue("customer_name", value)} />
+
                           <CommandList>
                             <CommandEmpty>
-                              <Button 
-                                variant="ghost" 
-                                className="w-full justify-start"
-                                onClick={() => setCustomerPopoverOpen(false)}
-                              >
+                              <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => setCustomerPopoverOpen(false)}>
+
                                 Use "{form.getValues("customer_name")}" as new customer
                               </Button>
                             </CommandEmpty>
                             <CommandGroup heading="Existing Customers">
-                              {clients.map((client) => (
-                                <CommandItem
-                                  key={client.id}
-                                  value={client.name}
-                                  onSelect={() => selectClient(client)}
-                                >
+                              {clients.map((client) =>
+                        <CommandItem
+                          key={client.id}
+                          value={client.name}
+                          onSelect={() => selectClient(client)}>
+
                                   <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === client.name ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === client.name ? "opacity-100" : "opacity-0"
+                            )} />
+
                                   <div className="flex flex-col">
                                     <span>{client.name}</span>
                                     {client.email && <span className="text-xs text-muted-foreground">{client.email}</span>}
                                   </div>
                                 </CommandItem>
-                              ))}
+                        )}
                             </CommandGroup>
                           </CommandList>
                         </Command>
@@ -419,7 +419,7 @@ const InvoiceCreate = () => {
               <div className="flex justify-between items-center">
                 <CardTitle className="text-sm md:text-lg flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  Items ({items.filter(i => i.product_id).length})
+                  Items ({items.filter((i) => i.product_id).length})
                 </CardTitle>
               </div>
             </CardHeader>
@@ -428,10 +428,10 @@ const InvoiceCreate = () => {
               <Popover open={searchOpen} onOpenChange={setSearchOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between h-10 md:h-12 text-sm md:text-base border-dashed border-2 border-primary/30 hover:border-primary"
-                  >
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between h-10 md:h-12 text-sm md:text-base border-dashed border-2 border-primary/30 hover:border-primary">
+
                     <div className="flex items-center gap-2">
                       <Search className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Search & add product...</span>
@@ -441,27 +441,27 @@ const InvoiceCreate = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0 z-50 bg-background" align="start" sideOffset={4}>
                   <Command>
-                    <CommandInput 
-                      placeholder="Type product name..." 
-                      value={productSearch}
-                      onValueChange={setProductSearch}
-                      className="h-10"
-                    />
+                    <CommandInput
+                    placeholder="Type product name..."
+                    value={productSearch}
+                    onValueChange={setProductSearch}
+                    className="h-10" />
+
                     <CommandList className="max-h-[300px]">
                       <CommandEmpty>No products found</CommandEmpty>
                       <CommandGroup heading="Products">
-                        {products
-                          .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                          .slice(0, 20)
-                          .map((product) => {
-                            const inCart = items.find(i => i.product_id === product.id);
-                            return (
-                              <CommandItem
-                                key={product.id}
-                                value={product.name}
-                                onSelect={() => quickAddProduct(product)}
-                                className="flex justify-between items-center py-3 cursor-pointer"
-                              >
+                        {products.
+                      filter((p) => p.name.toLowerCase().includes(productSearch.toLowerCase())).
+                      slice(0, 20).
+                      map((product) => {
+                        const inCart = items.find((i) => i.product_id === product.id);
+                        return (
+                          <CommandItem
+                            key={product.id}
+                            value={product.name}
+                            onSelect={() => quickAddProduct(product)}
+                            className="flex justify-between items-center py-3 cursor-pointer">
+
                                 <div className="flex flex-col">
                                   <span className="font-medium">{product.name}</span>
                                   <span className="text-xs text-muted-foreground">
@@ -469,16 +469,16 @@ const InvoiceCreate = () => {
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {inCart && (
-                                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
+                                  {inCart &&
+                              <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
                                       ×{inCart.quantity}
                                     </span>
-                                  )}
+                              }
                                   <Plus className="h-4 w-4 text-primary" />
                                 </div>
-                              </CommandItem>
-                            );
-                          })}
+                              </CommandItem>);
+
+                      })}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -486,16 +486,16 @@ const InvoiceCreate = () => {
               </Popover>
 
               {/* Added Items List */}
-              {items.filter(i => i.product_id).length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground text-sm">
+              {items.filter((i) => i.product_id).length === 0 ?
+            <div className="text-center py-6 text-muted-foreground text-sm">
                   No items added yet. Search above to add products.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {items.filter(i => i.product_id).map((item, index) => {
-                    const actualIndex = items.findIndex(i => i === item);
-                    return (
-                      <div key={actualIndex} className="flex items-center gap-2 p-2 md:p-3 bg-muted/30 rounded-lg border">
+                </div> :
+
+            <div className="space-y-2">
+                  {items.filter((i) => i.product_id).map((item, index) => {
+                const actualIndex = items.findIndex((i) => i === item);
+                return (
+                  <div key={actualIndex} className="flex items-center gap-2 p-2 md:p-3 bg-muted/30 rounded-lg border">
                         {/* Product Name */}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm md:text-base truncate">{item.description}</p>
@@ -507,32 +507,32 @@ const InvoiceCreate = () => {
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-1">
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              if (item.quantity > 1) {
-                                updateItem(actualIndex, "quantity", item.quantity - 1);
-                              }
-                            }}
-                          >
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          if (item.quantity > 1) {
+                            updateItem(actualIndex, "quantity", item.quantity - 1);
+                          }
+                        }}>
+
                             -
                           </Button>
                           <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
-                            className="w-12 h-8 text-center text-sm"
-                            min={1}
-                          />
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
+                        className="w-12 h-8 text-center text-sm"
+                        min={1} />
+
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateItem(actualIndex, "quantity", item.quantity + 1)}
-                          >
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateItem(actualIndex, "quantity", item.quantity + 1)}>
+
                             +
                           </Button>
                         </div>
@@ -546,19 +546,19 @@ const InvoiceCreate = () => {
                         
                         {/* Delete */}
                         <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeItem(actualIndex)}
-                        >
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => removeItem(actualIndex)}>
+
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    );
-                  })}
+                      </div>);
+
+              })}
                 </div>
-              )}
+            }
 
               {/* Totals - Compact */}
               <div className="border-t pt-3 mt-3 space-y-2">
@@ -571,29 +571,29 @@ const InvoiceCreate = () => {
                 <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted/50">
                   <div className="flex items-center gap-2">
                     <Switch
-                      id="tax-toggle"
-                      checked={taxEnabled}
-                      onCheckedChange={setTaxEnabled}
-                    />
+                    id="tax-toggle"
+                    checked={taxEnabled}
+                    onCheckedChange={setTaxEnabled} />
+
                     <Label htmlFor="tax-toggle" className="text-xs md:text-sm text-muted-foreground">
                       {settings.tax_name}
                     </Label>
                   </div>
-                  {taxEnabled && (
-                    <div className="flex items-center gap-1 md:gap-2">
+                  {taxEnabled &&
+                <div className="flex items-center gap-1 md:gap-2">
                       <Input
-                        type="number"
-                        value={taxRate}
-                        onChange={(e) => setTaxRate(Number(e.target.value))}
-                        className="w-14 md:w-16 h-8 text-center text-sm"
-                        min={0}
-                        max={100}
-                        step={0.1}
-                      />
+                    type="number"
+                    value={taxRate}
+                    onChange={(e) => setTaxRate(Number(e.target.value))}
+                    className="w-14 md:w-16 h-8 text-center text-sm px-[7px]"
+                    min={0}
+                    max={100}
+                    step={0.1} />
+
                       <span className="text-xs md:text-sm text-muted-foreground">%</span>
                       <span className="font-medium text-sm">{settings.currency_symbol}{tax.toFixed(2)}</span>
                     </div>
-                  )}
+                }
                 </div>
                 
                 <div className="flex justify-between text-base md:text-lg font-bold bg-primary/10 p-2 rounded">
