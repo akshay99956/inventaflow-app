@@ -523,7 +523,7 @@ const InvoiceCreate = () => {
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateItem(actualIndex, "quantity", parseInt(e.target.value) || 1)}
-                        className="w-12 h-8 text-center text-sm"
+                        className="w-12 h-8 text-center text-sm px-0"
                         min={1} />
 
                           <Button
