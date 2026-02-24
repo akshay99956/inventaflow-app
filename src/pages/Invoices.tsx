@@ -357,7 +357,7 @@ const Invoices = () => {
       {isMobile && <div className="space-y-2">
           {filteredInvoices.map((invoice) => <Card key={invoice.id} className={`border-0 shadow-sm overflow-hidden ${invoice.status === "cancelled" ? "opacity-60" : ""}`}>
               <div className={`h-0.5 ${invoice.status === "paid" ? "bg-success" : invoice.status === "overdue" ? "bg-warning" : invoice.status === "cancelled" ? "bg-destructive" : "gradient-primary"}`} />
-              <CardContent className="p-3">
+              <CardContent className="p-3 px-[13px] py-0">
                 {/* Main Row - Tap to view */}
                 <div className="flex items-center justify-between gap-2" onClick={() => handleInvoiceClick(invoice)}>
                   <div className="min-w-0 flex-1">
