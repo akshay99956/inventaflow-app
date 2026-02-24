@@ -484,7 +484,7 @@ const Inventory = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5 py-0">
         <Card className="border-2 border-primary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
           <CardContent className="p-3 md:pt-6 md:p-6">
             <div className="flex items-center justify-between gap-2">
@@ -562,7 +562,7 @@ const Inventory = () => {
         </Card>
       </div>
 
-      {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10">
+      {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10 px-[24px] py-0 my-[5px]">
           <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
           <AlertTitle className="text-destructive font-bold text-sm md:text-base">Low Stock Alert</AlertTitle>
           <AlertDescription className="text-destructive/80 text-xs md:text-sm">
@@ -666,11 +666,11 @@ const Inventory = () => {
 
       {/* Search and Filter Section */}
       <Card className="border-2 border-accent/20 shadow-colorful">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 pb-4">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 pb-4 px-[16px] py-[5px]">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
               <div>
-                <CardTitle className="text-gradient">Products</CardTitle>
+                <CardTitle className="text-gradient font-bold text-sm">Products</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Total Stock Value: <span className="font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', {
                     maximumFractionDigits: 0
@@ -681,7 +681,7 @@ const Inventory = () => {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <div className="flex flex-col sm:flex-row gap-3 w-full px-0 py-0">
               <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 border-primary/20 focus:border-primary" />
               <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="flex h-10 w-full sm:w-48 rounded-md border border-secondary/30 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2">
                 <option value="">All Categories</option>
