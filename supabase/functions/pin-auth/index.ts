@@ -33,6 +33,24 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // Rate limit: max 5 attempts per email in last 5 minutes
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { count: recentAttempts } = await adminClient
+      .from("pin_auth_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("email", email.toLowerCase().trim())
+      .gte("created_at", fiveMinAgo);
+
+    if (recentAttempts !== null && recentAttempts >= 5) {
+      return new Response(
+        JSON.stringify({ error: "Too many attempts. Please try again later." }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // 1. Look up user by email with PIN enabled
     const { data: profile, error: profileError } = await adminClient
       .from("profiles")
@@ -53,6 +71,12 @@ Deno.serve(async (req) => {
     const { data: pinValid, error: pinError } = await adminClient.rpc("verify_pin", {
       user_uuid: profile.user_id,
       input_pin: pin,
+    });
+
+    // Log the attempt
+    await adminClient.from("pin_auth_attempts").insert({
+      email: email.toLowerCase().trim(),
+      success: !pinError && !!pinValid,
     });
 
     if (pinError || !pinValid) {

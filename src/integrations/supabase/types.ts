@@ -321,6 +321,27 @@ export type Database = {
         }
         Relationships: []
       }
+      pin_auth_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
