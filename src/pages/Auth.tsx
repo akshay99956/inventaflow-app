@@ -695,10 +695,12 @@ const Auth = () => {
                   disabled={loading}
                   onClick={async () => {
                     setLoading(true);
-                    const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) {
+                    try {
+                      const result = await lovable.auth.signInWithOAuth("apple");
+                      if (result.error) {
+                        toast.error("Apple sign-in failed. Please try again.");
+                      }
+                    } catch (err) {
                       toast.error("Apple sign-in failed. Please try again.");
                     }
                     setLoading(false);
@@ -717,11 +719,13 @@ const Auth = () => {
                   disabled={loading}
                   onClick={async () => {
                     setLoading(true);
-                    const { error } = await lovable.auth.signInWithOAuth("google", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) {
-                      toast.error("Google sign-in failed. Please try again.");
+                    try {
+                      const result = await lovable.auth.signInWithOAuth("google");
+                      if (result.error) {
+                        toast.error("Google sign-in failed: " + result.error.message);
+                      }
+                    } catch (err: any) {
+                      toast.error("Google sign-in failed: " + (err?.message || "Please try again."));
                     }
                     setLoading(false);
                   }}
