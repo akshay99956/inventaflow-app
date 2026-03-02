@@ -58,8 +58,14 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Check if user is already logged in
+  // Check if user is already logged in and listen for auth state changes (e.g. OAuth callback)
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        navigate("/dashboard");
+      }
+    });
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -67,6 +73,10 @@ const Auth = () => {
       }
     };
     checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
