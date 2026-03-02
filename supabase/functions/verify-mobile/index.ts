@@ -77,8 +77,8 @@ Deno.serve(async (req) => {
       });
 
       // TODO: In production, send OTP via SMS service (Twilio, AWS SNS, etc.)
-      // For development, the OTP is logged server-side only
-      console.log(`[DEV] OTP for user ${user.id}: ${otpCode}`);
+      // OTP is stored in the database and should be sent via SMS
+      console.log(`OTP generated for user ${user.id} at ${new Date().toISOString()}`);
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,

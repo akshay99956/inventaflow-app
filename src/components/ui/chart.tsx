@@ -58,6 +58,15 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+const sanitizeColor = (color: string | undefined): string | null => {
+  if (!color) return null;
+  // Allow hex, rgb/rgba, hsl/hsla, and CSS color names (alphanumeric only)
+  if (/^(#[0-9A-Fa-f]{3,8}|rgba?\([\d\s,%.]+\)|hsla?\([\d\s,%.\/]+\)|[a-zA-Z]{1,30})$/.test(color)) {
+    return color;
+  }
+  return null;
+};
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -74,7 +83,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+    const color = sanitizeColor(itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color);
     return color ? `  --color-${key}: ${color};` : null;
   })
   .join("\n")}
