@@ -312,15 +312,26 @@ const Profile = () => {
       }
 
       setMobileLoading(true);
-      // Simulate OTP send - In production, integrate with SMS service
-      setTimeout(() => {
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-mobile", {
+          body: { action: "send", mobile: newMobile },
+        });
+
+        if (error || !data?.success) {
+          setMobileError(data?.error || "Failed to send OTP");
+          return;
+        }
+
         setMobileStep("verify");
-        setMobileLoading(false);
         toast({
           title: "OTP Sent",
           description: `Verification code sent to ${newMobile}`,
         });
-      }, 1000);
+      } catch (error) {
+        setMobileError("Failed to send OTP. Please try again.");
+      } finally {
+        setMobileLoading(false);
+      }
     } else if (mobileStep === "verify") {
       if (mobileOtp.length !== 6) {
         setMobileError("Please enter the 6-digit OTP");
@@ -329,12 +340,14 @@ const Profile = () => {
 
       setMobileLoading(true);
       try {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ mobile: newMobile })
-          .eq("id", profile.id);
+        const { data, error } = await supabase.functions.invoke("verify-mobile", {
+          body: { action: "verify", mobile: newMobile, otp: mobileOtp },
+        });
 
-        if (error) throw error;
+        if (error || !data?.success) {
+          setMobileError(data?.error || "Verification failed");
+          return;
+        }
 
         setProfile({ ...profile, mobile: newMobile });
         setMobileDialogOpen(false);
@@ -344,12 +357,7 @@ const Profile = () => {
           description: "Mobile number updated successfully",
         });
       } catch (error) {
-        console.error("Error updating mobile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update mobile number",
-          variant: "destructive",
-        });
+        setMobileError("Failed to verify OTP. Please try again.");
       } finally {
         setMobileLoading(false);
       }
