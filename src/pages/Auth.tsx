@@ -197,17 +197,22 @@ const Auth = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
+      if (error) {
+        logErrorInDev('SignIn', error);
+        toast.error(getSafeAuthErrorMessage(error));
+      } else {
+        toast.success("Signed in successfully!");
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
       logErrorInDev('SignIn', error);
       toast.error(getSafeAuthErrorMessage(error));
-    } else {
-      toast.success("Signed in successfully!");
-      navigate("/dashboard");
     }
 
     setLoading(false);

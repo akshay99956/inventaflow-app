@@ -144,6 +144,12 @@ export function getSafeAuthErrorMessage(error: any): string {
     return AUTH_ERROR_MAP[code];
   }
   
+  // Check for network/fetch errors first
+  if (error?.name === 'AuthRetryableFetchError' || 
+      (message && /failed to fetch/i.test(message))) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
   // Check message patterns for auth-specific errors
   if (message) {
     if (/invalid.*password/i.test(message) || /user.*not.*found/i.test(message)) {
