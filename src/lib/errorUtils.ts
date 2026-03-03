@@ -56,6 +56,8 @@ const ERROR_MESSAGE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   { pattern: /network/i, message: 'Network error. Please check your connection' },
   { pattern: /timeout/i, message: 'Request timed out. Please try again' },
   { pattern: /invalid password/i, message: 'Invalid email or password' },
+  { pattern: /invalid.*login.*credentials/i, message: 'Invalid email or password' },
+  { pattern: /invalid.*credentials/i, message: 'Invalid email or password' },
   { pattern: /email not confirmed/i, message: 'Please verify your email address' },
   { pattern: /already registered/i, message: 'An account with this email already exists' },
   { pattern: /rate limit/i, message: 'Too many attempts. Please try again later' },
@@ -152,7 +154,7 @@ export function getSafeAuthErrorMessage(error: any): string {
 
   // Check message patterns for auth-specific errors
   if (message) {
-    if (/invalid.*password/i.test(message) || /user.*not.*found/i.test(message)) {
+    if (/invalid.*password/i.test(message) || /user.*not.*found/i.test(message) || /invalid.*login.*credentials/i.test(message) || /invalid.*credentials/i.test(message)) {
       return 'Invalid email or password';
     }
     if (/email.*not.*confirmed/i.test(message)) {
