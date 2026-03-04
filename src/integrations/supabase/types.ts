@@ -347,12 +347,16 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          expiry_date: string | null
           id: string
           low_stock_threshold: number
+          manufacturing_date: string | null
           name: string
           purchase_price: number
           quantity: number
           sku: string | null
+          storage_location: string | null
+          supplier_name: string | null
           unit_price: number
           updated_at: string
           user_id: string
@@ -361,12 +365,16 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           id?: string
           low_stock_threshold?: number
+          manufacturing_date?: string | null
           name: string
           purchase_price?: number
           quantity?: number
           sku?: string | null
+          storage_location?: string | null
+          supplier_name?: string | null
           unit_price?: number
           updated_at?: string
           user_id: string
@@ -375,12 +383,16 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           id?: string
           low_stock_threshold?: number
+          manufacturing_date?: string | null
           name?: string
           purchase_price?: number
           quantity?: number
           sku?: string | null
+          storage_location?: string | null
+          supplier_name?: string | null
           unit_price?: number
           updated_at?: string
           user_id?: string
