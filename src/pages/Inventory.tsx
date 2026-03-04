@@ -26,7 +26,11 @@ const productSchema = z.object({
   purchase_price: z.number().min(0, "Purchase price must be positive"),
   unit_price: z.number().min(0, "Sale price must be positive"),
   category: z.string().max(100).optional(),
-  low_stock_threshold: z.number().min(0, "Threshold must be positive")
+  low_stock_threshold: z.number().min(0, "Threshold must be positive"),
+  supplier_name: z.string().max(200).optional(),
+  storage_location: z.string().max(200).optional(),
+  manufacturing_date: z.string().optional(),
+  expiry_date: z.string().optional()
 });
 type Product = {
   id: string;
@@ -38,6 +42,10 @@ type Product = {
   unit_price: number;
   category: string | null;
   low_stock_threshold: number;
+  supplier_name: string | null;
+  storage_location: string | null;
+  manufacturing_date: string | null;
+  expiry_date: string | null;
 };
 type PrintColumn = 'name' | 'sku' | 'quantity' | 'purchase_price' | 'unit_price' | 'profit' | 'total_value';
 const printColumnLabels: Record<PrintColumn, string> = {
@@ -68,7 +76,11 @@ const Inventory = () => {
     purchase_price: 0,
     unit_price: 0,
     category: "",
-    low_stock_threshold: 10
+    low_stock_threshold: 10,
+    supplier_name: "",
+    storage_location: "",
+    manufacturing_date: "",
+    expiry_date: ""
   });
   const fetchProducts = async () => {
     const {
@@ -138,12 +150,17 @@ const Inventory = () => {
       }
     } = await supabase.auth.getUser();
     if (!user) return;
+    const submitData = {
+      ...formData,
+      supplier_name: formData.supplier_name || null,
+      storage_location: formData.storage_location || null,
+      manufacturing_date: formData.manufacturing_date || null,
+      expiry_date: formData.expiry_date || null
+    };
     if (editingProduct) {
       const {
         error
-      } = await supabase.from("products").update({
-        ...formData
-      }).eq("id", editingProduct.id);
+      } = await supabase.from("products").update(submitData).eq("id", editingProduct.id);
       if (error) {
         toast.error("Error updating product");
       } else {
@@ -153,7 +170,7 @@ const Inventory = () => {
       const {
         error
       } = await supabase.from("products").insert([{
-        ...formData,
+        ...submitData,
         user_id: user.id
       }]);
       if (error) {
@@ -187,7 +204,11 @@ const Inventory = () => {
       purchase_price: product.purchase_price || 0,
       unit_price: product.unit_price,
       category: product.category || "",
-      low_stock_threshold: product.low_stock_threshold
+      low_stock_threshold: product.low_stock_threshold,
+      supplier_name: product.supplier_name || "",
+      storage_location: product.storage_location || "",
+      manufacturing_date: product.manufacturing_date || "",
+      expiry_date: product.expiry_date || ""
     });
     setIsDialogOpen(true);
   };
@@ -200,7 +221,11 @@ const Inventory = () => {
       purchase_price: 0,
       unit_price: 0,
       category: "",
-      low_stock_threshold: 10
+      low_stock_threshold: 10,
+      supplier_name: "",
+      storage_location: "",
+      manufacturing_date: "",
+      expiry_date: ""
     });
     setEditingProduct(null);
   };
@@ -457,6 +482,56 @@ const Inventory = () => {
                     ...formData,
                     unit_price: Number(e.target.value)
                   })} required className="border-primary/20 focus:border-primary" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profit_display">Profit / Unit</Label>
+                  <div className={cn(
+                    "flex items-center h-10 rounded-md border px-3 text-sm font-semibold",
+                    (formData.unit_price - formData.purchase_price) >= 0
+                      ? "border-success/30 bg-success/10 text-success"
+                      : "border-destructive/30 bg-destructive/10 text-destructive"
+                  )}>
+                    ₹{(formData.unit_price - formData.purchase_price).toFixed(2)}
+                    {formData.purchase_price > 0 && (
+                      <span className="ml-1 text-xs opacity-70">
+                        ({((formData.unit_price - formData.purchase_price) / formData.purchase_price * 100).toFixed(1)}%)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Supplier & Storage */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="supplier_name">Supplier Name</Label>
+                  <Input id="supplier_name" value={formData.supplier_name} onChange={(e) => setFormData({
+                    ...formData,
+                    supplier_name: e.target.value
+                  })} placeholder="Supplier" className="border-primary/20 focus:border-primary" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="storage_location">Storage Location</Label>
+                  <Input id="storage_location" value={formData.storage_location} onChange={(e) => setFormData({
+                    ...formData,
+                    storage_location: e.target.value
+                  })} placeholder="Warehouse, Shop..." className="border-primary/20 focus:border-primary" />
+                </div>
+              </div>
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="manufacturing_date">Mfg Date</Label>
+                  <Input id="manufacturing_date" type="date" value={formData.manufacturing_date} onChange={(e) => setFormData({
+                    ...formData,
+                    manufacturing_date: e.target.value
+                  })} className="border-primary/20 focus:border-primary" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expiry_date">Expiry Date</Label>
+                  <Input id="expiry_date" type="date" value={formData.expiry_date} onChange={(e) => setFormData({
+                    ...formData,
+                    expiry_date: e.target.value
+                  })} className="border-warning/20 focus:border-warning" />
                 </div>
               </div>
               <div className="space-y-2">
