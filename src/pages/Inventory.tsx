@@ -369,14 +369,14 @@ const Inventory = () => {
                 <span className="hidden sm:inline">Add Product</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[25rem] border-2 border-primary/20">
+            <DialogContent className="w-[95vw] max-w-lg border-2 border-primary/20 max-h-[90vh] overflow-y-auto p-4 sm:p-6">
               <DialogHeader>
                 <DialogTitle className="text-gradient">{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 <DialogDescription className="sr-only">
                   {editingProduct ? "Edit product details" : "Add a new product to inventory"}
                 </DialogDescription>
               </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
                 <Input
