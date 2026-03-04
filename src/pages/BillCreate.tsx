@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 const billSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
   customer_email: z.string().email("Invalid email").optional().or(z.literal("")),
+  customer_phone: z.string().optional().or(z.literal("")),
   bill_date: z.string().min(1, "Bill date is required"),
   notes: z.string().optional()
 });
@@ -64,6 +65,7 @@ const BillCreate = () => {
     defaultValues: {
       customer_name: "",
       customer_email: "",
+      customer_phone: "",
       bill_date: new Date().toISOString().split("T")[0],
       notes: ""
     }
@@ -249,15 +251,26 @@ const BillCreate = () => {
                   </FormItem>
                 } />
               </div>
-              <FormField control={form.control} name="customer_email" render={({ field }) =>
-              <FormItem>
-                  <FormLabel className="text-xs md:text-sm">Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" placeholder="email@example.com" className="h-9 text-sm" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              } />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField control={form.control} name="customer_email" render={({ field }) =>
+                <FormItem>
+                    <FormLabel className="text-xs md:text-sm">Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" placeholder="email@example.com" className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                } />
+                <FormField control={form.control} name="customer_phone" render={({ field }) =>
+                <FormItem>
+                    <FormLabel className="text-xs md:text-sm">Phone (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="tel" placeholder="Phone number" className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                } />
+              </div>
             </CardContent>
           </Card>
 
@@ -348,7 +361,19 @@ const BillCreate = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm md:text-base truncate">{item.description}</p>
                           <p className="text-xs text-muted-foreground">
-                            {settings.currency_symbol}{item.unit_price} each
+                            {settings.currency_symbol}{item.unit_price} cost
+                            {(() => {
+                              const product = products.find(p => p.id === item.product_id);
+                              if (product) {
+                                const profit = product.unit_price - item.unit_price;
+                                return (
+                                  <span className={profit > 0 ? "text-green-600 ml-2" : "text-destructive ml-2"}>
+                                    • Profit: {settings.currency_symbol}{profit.toFixed(0)}/unit
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </p>
                         </div>
                         
