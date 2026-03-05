@@ -559,82 +559,57 @@ const Inventory = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-5 py-0">
-        <Card className="border-2 border-primary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="p-3 md:pt-6 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Products</p>
-                <p className="text-xl md:text-2xl font-bold text-gradient">{products.length}</p>
-              </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                <Package className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Summary Stats - Single Row */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-card px-3 py-2 min-w-fit">
+          <div className="h-7 w-7 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
+            <Package className="h-3.5 w-3.5 text-primary-foreground" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-none">Products</p>
+            <p className="text-sm font-bold text-gradient leading-tight">{products.length}</p>
+          </div>
+        </div>
 
-        <Card className="border-2 border-success/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="p-3 md:pt-6 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Stock Value</p>
-                <p className="text-lg md:text-2xl font-bold text-success">₹{totalInventoryValue.toLocaleString('en-IN', {
-                  maximumFractionDigits: 0
-                })}</p>
-              </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center flex-shrink-0">
-                <IndianRupee className="h-5 w-5 md:h-6 md:w-6 text-success-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 rounded-lg border border-success/20 bg-card px-3 py-2 min-w-fit">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center flex-shrink-0">
+            <IndianRupee className="h-3.5 w-3.5 text-success-foreground" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-none">Stock Value</p>
+            <p className="text-sm font-bold text-success leading-tight">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+          </div>
+        </div>
 
-        <Card className="border-2 border-secondary/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="p-3 md:pt-6 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Units</p>
-                <p className="text-xl md:text-2xl font-bold text-secondary">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
-              </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0">
-                <Boxes className="h-5 w-5 md:h-6 md:w-6 text-secondary-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 rounded-lg border border-secondary/20 bg-card px-3 py-2 min-w-fit">
+          <div className="h-7 w-7 rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0">
+            <Boxes className="h-3.5 w-3.5 text-secondary-foreground" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-none">Units</p>
+            <p className="text-sm font-bold text-secondary leading-tight">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
+          </div>
+        </div>
 
-        <Card className="border-2 border-info/20 shadow-colorful hover:shadow-glow-sm transition-shadow">
-          <CardContent className="p-3 md:pt-6 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Profit</p>
-                <p className="text-lg md:text-2xl font-bold text-info">₹{totalProfitMargin.toLocaleString('en-IN', {
-                  maximumFractionDigits: 0
-                })}</p>
-              </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-info-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 rounded-lg border border-info/20 bg-card px-3 py-2 min-w-fit">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="h-3.5 w-3.5 text-info-foreground" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-none">Profit</p>
+            <p className="text-sm font-bold text-info leading-tight">₹{totalProfitMargin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+          </div>
+        </div>
 
-        <Card className={`col-span-2 lg:col-span-1 border-2 shadow-colorful hover:shadow-glow-sm transition-shadow ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20'}`}>
-          <CardContent className="p-3 md:pt-6 md:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">Low Stock</p>
-                <p className={`text-xl md:text-2xl font-bold ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>
-                  {lowStockProducts.length}
-                </p>
-              </div>
-              <div className={`h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center flex-shrink-0 ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
-                <TrendingDown className="h-5 w-5 md:h-6 md:w-6 text-destructive-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 min-w-fit ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20 bg-card'}`}>
+          <div className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
+            <TrendingDown className="h-3.5 w-3.5 text-destructive-foreground" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground leading-none">Low Stock</p>
+            <p className={`text-sm font-bold leading-tight ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>{lowStockProducts.length}</p>
+          </div>
+        </div>
       </div>
 
       {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10 px-[24px] py-0 my-[5px]">
