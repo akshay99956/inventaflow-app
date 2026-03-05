@@ -213,35 +213,32 @@ const BalanceSheet = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Total Income</CardTitle>
-            <TrendingUp className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-success">₹{totalIncome.toFixed(2)}</div>
+      <div className="grid grid-cols-3 gap-2 md:gap-4 shadow-md rounded-sm opacity-80 bg-muted">
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-success to-success/60" />
+          <CardContent className="p-2 md:p-6 text-center">
+            <p className="text-[10px] md:text-sm text-muted-foreground truncate">Income</p>
+            <p className="text-sm md:text-2xl font-bold text-success">
+              ₹{totalIncome >= 1000 ? `${(totalIncome / 1000).toFixed(1)}k` : totalIncome.toFixed(2)}
+            </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Total Expenses</CardTitle>
-            <TrendingDown className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className="text-lg md:text-2xl font-bold text-destructive">₹{totalExpenses.toFixed(2)}</div>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-destructive to-destructive/60" />
+          <CardContent className="p-2 md:p-6 text-center">
+            <p className="text-[10px] md:text-sm text-muted-foreground truncate">Expenses</p>
+            <p className="text-sm md:text-2xl font-bold text-destructive">
+              ₹{totalExpenses >= 1000 ? `${(totalExpenses / 1000).toFixed(1)}k` : totalExpenses.toFixed(2)}
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="col-span-2 md:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 md:px-6 pt-3 md:pt-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Net Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-            <div className={`text-lg md:text-2xl font-bold ${netBalance >= 0 ? "text-success" : "text-destructive"}`}>
-              ₹{netBalance.toFixed(2)}
-            </div>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className={`h-1 bg-gradient-to-r ${netBalance >= 0 ? "from-success to-success/60" : "from-destructive to-destructive/60"}`} />
+          <CardContent className="p-2 md:p-6 text-center">
+            <p className="text-[10px] md:text-sm text-muted-foreground truncate">Net Balance</p>
+            <p className={`text-sm md:text-2xl font-bold ${netBalance >= 0 ? "text-success" : "text-destructive"}`}>
+              ₹{Math.abs(netBalance) >= 1000 ? `${(netBalance / 1000).toFixed(1)}k` : netBalance.toFixed(2)}
+            </p>
           </CardContent>
         </Card>
       </div>
