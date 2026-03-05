@@ -612,14 +612,6 @@ const Inventory = () => {
         </Card>
       </div>
 
-      {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10 px-[24px] py-0 my-[5px]">
-          <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
-          <AlertTitle className="text-destructive font-bold text-sm md:text-base">Low Stock Alert</AlertTitle>
-          <AlertDescription className="text-destructive/80 text-xs md:text-sm">
-            {lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low: 
-            <span className="font-semibold"> {lowStockProducts.slice(0, 3).map((p) => p.name).join(", ")}{lowStockProducts.length > 3 ? ` +${lowStockProducts.length - 3} more` : ''}</span>
-          </AlertDescription>
-        </Alert>}
 
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
