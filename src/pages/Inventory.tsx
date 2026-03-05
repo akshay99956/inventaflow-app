@@ -559,57 +559,57 @@ const Inventory = () => {
       </div>
 
       {/* Summary Cards */}
-      {/* Summary Stats - Single Row */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-card px-3 py-2 min-w-fit">
-          <div className="h-7 w-7 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-            <Package className="h-3.5 w-3.5 text-primary-foreground" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground leading-none">Products</p>
-            <p className="text-sm font-bold text-gradient leading-tight">{products.length}</p>
-          </div>
-        </div>
+      {/* Summary Cards - Inline like Sales page */}
+      <div className="grid grid-cols-5 gap-2 md:gap-4 shadow-md rounded-sm opacity-80 bg-muted">
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 gradient-primary" />
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Products</p>
+              <p className="text-sm md:text-2xl font-bold">{products.length}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex items-center gap-2 rounded-lg border border-success/20 bg-card px-3 py-2 min-w-fit">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-success to-success/60 flex items-center justify-center flex-shrink-0">
-            <IndianRupee className="h-3.5 w-3.5 text-success-foreground" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground leading-none">Stock Value</p>
-            <p className="text-sm font-bold text-success leading-tight">₹{totalInventoryValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-          </div>
-        </div>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 gradient-secondary" />
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Stock Value</p>
+              <p className="text-sm md:text-2xl font-bold text-success">₹{totalInventoryValue >= 1000 ? `${(totalInventoryValue / 1000).toFixed(0)}k` : totalInventoryValue}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex items-center gap-2 rounded-lg border border-secondary/20 bg-card px-3 py-2 min-w-fit">
-          <div className="h-7 w-7 rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0">
-            <Boxes className="h-3.5 w-3.5 text-secondary-foreground" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground leading-none">Units</p>
-            <p className="text-sm font-bold text-secondary leading-tight">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
-          </div>
-        </div>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 gradient-cool" />
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Units</p>
+              <p className="text-sm md:text-2xl font-bold text-secondary">{products.reduce((sum, p) => sum + p.quantity, 0)}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex items-center gap-2 rounded-lg border border-info/20 bg-card px-3 py-2 min-w-fit">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="h-3.5 w-3.5 text-info-foreground" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground leading-none">Profit</p>
-            <p className="text-sm font-bold text-info leading-tight">₹{totalProfitMargin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-          </div>
-        </div>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="h-1 gradient-warm" />
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Profit</p>
+              <p className="text-sm md:text-2xl font-bold text-info">₹{totalProfitMargin >= 1000 ? `${(totalProfitMargin / 1000).toFixed(0)}k` : totalProfitMargin}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 min-w-fit ${lowStockProducts.length > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/20 bg-card'}`}>
-          <div className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${lowStockProducts.length > 0 ? 'bg-gradient-to-br from-destructive to-destructive/60' : 'bg-gradient-warm'}`}>
-            <TrendingDown className="h-3.5 w-3.5 text-destructive-foreground" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground leading-none">Low Stock</p>
-            <p className={`text-sm font-bold leading-tight ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>{lowStockProducts.length}</p>
-          </div>
-        </div>
+        <Card className={`border-0 shadow-sm overflow-hidden ${lowStockProducts.length > 0 ? 'bg-destructive/5' : ''}`}>
+          <div className={`h-1 ${lowStockProducts.length > 0 ? 'bg-destructive' : 'gradient-rainbow'}`} />
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Low Stock</p>
+              <p className={`text-sm md:text-2xl font-bold ${lowStockProducts.length > 0 ? 'text-destructive' : 'text-warning'}`}>{lowStockProducts.length}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {lowStockProducts.length > 0 && <Alert className="border-2 border-destructive/40 bg-gradient-to-r from-destructive/10 to-warning/10 px-[24px] py-0 my-[5px]">
