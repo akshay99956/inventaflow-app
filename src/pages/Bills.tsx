@@ -367,49 +367,34 @@ Thank you for your business! 🙏`;
         showClientFilter={true}
       />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-        <Card className="border-0 shadow-colorful overflow-hidden">
+      {/* Summary Cards - Matching Sales/Inventory style */}
+      <div className="grid grid-cols-3 gap-2 md:gap-4 shadow-md rounded-sm opacity-80 bg-muted">
+        <Card className="border-0 shadow-sm overflow-hidden">
           <div className="h-1 gradient-primary" />
-          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="p-1.5 md:p-2 rounded-lg bg-primary/10">
-                <Receipt className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-muted-foreground">Total Bills</p>
-                <p className="text-lg md:text-2xl font-bold">{totalBills}</p>
-              </div>
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Total Bills</p>
+              <p className="text-sm md:text-2xl font-bold">{totalBills}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-colorful overflow-hidden">
+        <Card className="border-0 shadow-sm overflow-hidden">
           <div className="h-1 gradient-secondary" />
-          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="p-1.5 md:p-2 rounded-lg bg-success/10">
-                <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-success" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-muted-foreground">Active Bills</p>
-                <p className="text-lg md:text-2xl font-bold text-success">{activeBills.length}</p>
-              </div>
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Active</p>
+              <p className="text-sm md:text-2xl font-bold text-success">{activeBills.length}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-colorful overflow-hidden col-span-2 md:col-span-1">
+        <Card className="border-0 shadow-sm overflow-hidden">
           <div className="h-1 gradient-warm" />
-          <CardContent className="pt-3 md:pt-4 px-3 md:px-6">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="p-1.5 md:p-2 rounded-lg bg-warning/10">
-                <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-warning" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-lg md:text-2xl font-bold text-warning">₹{totalAmount.toFixed(2)}</p>
-              </div>
+          <CardContent className="p-2 md:p-6">
+            <div className="text-center">
+              <p className="text-[10px] md:text-sm text-muted-foreground truncate">Amount</p>
+              <p className="text-sm md:text-2xl font-bold text-warning">₹{totalAmount >= 1000 ? `${(totalAmount / 1000).toFixed(0)}k` : totalAmount.toFixed(0)}</p>
             </div>
           </CardContent>
         </Card>
