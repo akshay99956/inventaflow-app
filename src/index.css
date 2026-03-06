@@ -178,16 +178,41 @@ All colors MUST be HSL.
   }
 }
 
-/* Print Styles */
+/* Print Styles - PPT-style clean layout */
 @media print {
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1cm;
   }
 
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    background: white !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only print areas */
+  #invoice-print-area, #invoice-print-area *,
+  #bill-print-area, #bill-print-area * {
+    visibility: visible;
+  }
+
+  /* Position print area as full page */
+  #invoice-print-area, #bill-print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 2rem 2.5rem;
+    background: white !important;
+    z-index: 99999;
   }
 
   /* Hide interactive elements */
@@ -195,97 +220,105 @@ All colors MUST be HSL.
   button,
   [data-sidebar],
   nav,
-  aside {
+  aside,
+  [role="dialog"]::backdrop {
     display: none !important;
   }
 
-  /* Reset page background for print */
-  body,
-  .bg-background {
-    background: white !important;
+  /* Clean text for print */
+  h1, h2, h3, h4, h5, h6, p, span, div, td, th {
+    color: #1a1a1a !important;
   }
 
-  /* Ensure text is black for better print readability */
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    color: #000 !important;
-  }
-
-  /* Card styles for print */
-  .grid {
-    page-break-inside: avoid;
-  }
-
-  /* Prevent page breaks inside cards */
+  /* PPT-style card: no shadows, clean borders */
   [class*="card"] {
     page-break-inside: avoid;
-    border: 1px solid #ddd !important;
+    border: none !important;
     box-shadow: none !important;
-    margin-bottom: 1rem;
+    background: white !important;
   }
 
-  /* Chart containers */
-  [class*="recharts"] {
-    page-break-inside: avoid;
-  }
-
-  /* Ensure proper spacing */
-  .space-y-8 > * {
-    margin-bottom: 1.5rem !important;
-  }
-
-  /* Table and list styling */
+  /* Clean table styling */
   table {
     page-break-inside: avoid;
-  }
-
-  /* Badge styles */
-  [class*="badge"] {
-    border: 1px solid #ddd !important;
-    background: white !important;
-    color: #000 !important;
-  }
-
-  /* Remove unnecessary padding */
-  .p-8 {
-    padding: 0.5rem !important;
-  }
-
-  /* Ensure charts are visible */
-  svg {
-    max-width: 100%;
-  }
-
-  /* Invoice, Bill, and Inventory print styles */
-  [id="invoice-print-area"], [id="bill-print-area"], [id="inventory-print-area"] {
-    padding: 2rem;
-  }
-
-  /* Show print areas */
-  #invoice-print-area, #bill-print-area, #inventory-print-area {
-    display: block !important;
-  }
-
-  /* Hide everything else */
-  body * {
-    visibility: hidden;
-  }
-
-  /* Show only the print area and its children */
-  #invoice-print-area, #invoice-print-area *,
-  #bill-print-area, #bill-print-area *,
-  #inventory-print-area, #inventory-print-area * {
-    visibility: visible;
-  }
-
-  /* Position print area */
-  #invoice-print-area, #bill-print-area, #inventory-print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
+    border-collapse: collapse;
     width: 100%;
   }
 
-  /* Print specific utilities */
+  th {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    border-bottom: 2px solid #e5e7eb !important;
+    font-size: 11px !important;
+  }
+
+  td {
+    padding: 6px 12px !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    font-size: 11px !important;
+  }
+
+  /* Gradient text fallback for print */
+  .text-gradient {
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: #7c3aed !important;
+    background-clip: unset !important;
+    color: #7c3aed !important;
+  }
+
+  /* Clean totals section */
+  .rounded-lg {
+    border-radius: 0 !important;
+  }
+
+  /* Company branding print */
+  .border-b {
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  /* Dialog: remove overlay, make content fill page */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  [data-state="open"] {
+    background: transparent !important;
+  }
+
+  /* Badge: clean for print */
+  [class*="badge"] {
+    border: 1px solid #d1d5db !important;
+    background: #f9fafb !important;
+    color: #374151 !important;
+    font-size: 10px !important;
+  }
+
+  /* Remove gradients on backgrounds for print */
+  .gradient-primary, .gradient-secondary, .gradient-warm, .gradient-cool {
+    background: #f3f4f6 !important;
+  }
+
+  /* Ensure proper spacing */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Print utility classes */
   .print\:hidden {
     display: none !important;
   }
@@ -296,26 +329,6 @@ All colors MUST be HSL.
 
   .print\:mb-6 {
     margin-bottom: 1.5rem !important;
-  }
-
-  .print\:gap-4 {
-    gap: 1rem !important;
-  }
-
-  /* Hide dialog overlay and borders when printing */
-  [role="dialog"] {
-    position: static !important;
-    transform: none !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: white !important;
-  }
-
-  [data-state="open"] {
-    background: white !important;
   }
 }
 

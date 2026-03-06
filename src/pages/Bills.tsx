@@ -542,7 +542,7 @@ Thank you for your business! 🙏`;
 
       {/* Bill Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto mx-4">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader className="print:mb-8">
             <DialogTitle className="text-xl md:text-2xl text-gradient">Bill Details</DialogTitle>
             <DialogDescription className="sr-only">
@@ -552,22 +552,22 @@ Thank you for your business! 🙏`;
           
           {selectedBill && (
             <div id="bill-print-area" className="space-y-4 md:space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 print:mb-6">
-                <div>
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4 print:mb-6">
+                <div className="w-full md:w-auto">
                   <CompanyBranding />
                   <h2 className="text-2xl md:text-3xl font-bold text-gradient">BILL</h2>
-                  <p className="text-lg md:text-xl font-semibold text-muted-foreground mt-2">
+                  <p className="text-lg md:text-xl font-semibold text-muted-foreground mt-1 md:mt-2">
                     {selectedBill.bill_number}
                   </p>
                 </div>
-                <div className="flex gap-2 print:hidden">
-                  <Button onClick={handlePrint} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
-                    <Printer className="h-4 w-4 mr-1 md:mr-2 text-primary" />
-                    <span className="hidden sm:inline">Print</span>
+                <div className="flex gap-2 print:hidden w-full md:w-auto">
+                  <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 md:flex-none border-primary/20 hover:bg-primary/10">
+                    <Printer className="h-4 w-4 mr-2 text-primary" />
+                    Print
                   </Button>
-                  <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="border-success/20 hover:bg-success/10">
-                    <Share2 className="h-4 w-4 mr-1 md:mr-2 text-success" />
-                    <span className="hidden sm:inline">WhatsApp</span>
+                  <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="flex-1 md:flex-none border-success/20 hover:bg-success/10">
+                    <Share2 className="h-4 w-4 mr-2 text-success" />
+                    WhatsApp
                   </Button>
                 </div>
               </div>

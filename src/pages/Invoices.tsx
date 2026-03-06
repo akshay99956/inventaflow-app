@@ -144,22 +144,41 @@ const Invoices = () => {
   };
   const handleWhatsAppShare = () => {
     if (!selectedInvoice) return;
-    let message = `Invoice ${selectedInvoice.invoice_number}\n\nCustomer: ${selectedInvoice.customer_name}`;
-    if (invoiceItems.length > 0) {
-      message += `\n\nItems:`;
-      invoiceItems.forEach((item) => {
-        let itemLine = `\n• ${item.description}`;
-        const details: string[] = [];
-        if (selectedPrintColumns.includes('quantity')) details.push(`Qty: ${item.quantity}`);
-        if (selectedPrintColumns.includes('unit_price')) details.push(`Price: ₹${item.unit_price.toFixed(2)}`);
-        if (selectedPrintColumns.includes('amount')) details.push(`Amount: ₹${item.amount.toFixed(2)}`);
-        if (details.length > 0) itemLine += ` (${details.join(', ')})`;
-        message += itemLine;
-      });
+    
+    const itemsList = invoiceItems.map((item, index) => 
+      `${index + 1}. ${item.description} (${item.quantity} x ₹${item.unit_price.toFixed(2)}) = ₹${item.amount.toFixed(2)}`
+    ).join('\n');
+    
+    const message = `*INVOICE: ${selectedInvoice.invoice_number}*
+
+📋 *Customer:* ${selectedInvoice.customer_name}
+${selectedInvoice.customer_email ? `📧 Email: ${selectedInvoice.customer_email}` : ''}
+📅 *Date:* ${new Date(selectedInvoice.issue_date).toLocaleDateString('en-IN')}
+${selectedInvoice.due_date ? `⏰ *Due:* ${new Date(selectedInvoice.due_date).toLocaleDateString('en-IN')}` : ''}
+
+*Items:*
+${itemsList}
+
+━━━━━━━━━━━━━━━
+💰 *Subtotal:* ₹${selectedInvoice.subtotal.toFixed(2)}
+📊 *Tax:* ₹${selectedInvoice.tax.toFixed(2)}
+*Total:* ₹${selectedInvoice.total.toFixed(2)}
+━━━━━━━━━━━━━━━
+${selectedInvoice.notes ? `\n📝 Notes: ${selectedInvoice.notes}` : ''}
+*Status:* ${selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
+
+Thank you for your business! 🙏`;
+
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const encodedMessage = encodeURIComponent(message);
+    
+    if (isMobileDevice) {
+      window.location.href = `whatsapp://send?text=${encodedMessage}`;
+      toast.success("Opening WhatsApp app");
+    } else {
+      window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+      toast.success("Opening WhatsApp Web");
     }
-    message += `\n\nTotal: ₹${selectedInvoice.total.toFixed(2)}\nStatus: ${selectedInvoice.status}\n\nThank you for your business!`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
   };
   const restoreStock = async (invoiceId: string) => {
     const {
