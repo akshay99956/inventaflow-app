@@ -248,6 +248,14 @@ const Bills = () => {
       window.print();
     }, 100);
   };
+  const handleSavePDF = () => {
+    if (!selectedBill) {
+      toast.error("No bill selected");
+      return;
+    }
+    toast.info("Select 'Save as PDF' as the printer destination");
+    setTimeout(() => window.print(), 300);
+  };
 
   const handleWhatsAppShare = () => {
     if (!selectedBill) {
@@ -560,14 +568,18 @@ Thank you for your business! 🙏`;
                     {selectedBill.bill_number}
                   </p>
                 </div>
-                <div className="flex gap-2 print:hidden w-full md:w-auto">
+                <div className="flex gap-2 print:hidden w-full md:w-auto flex-wrap">
+                  <Button onClick={handleSavePDF} variant="outline" size="sm" className="flex-1 md:flex-none border-destructive/20 hover:bg-destructive/10">
+                    <Download className="h-4 w-4 mr-1 text-destructive" />
+                    PDF
+                  </Button>
                   <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 md:flex-none border-primary/20 hover:bg-primary/10">
-                    <Printer className="h-4 w-4 mr-2 text-primary" />
+                    <Printer className="h-4 w-4 mr-1 text-primary" />
                     Print
                   </Button>
                   <Button onClick={handleWhatsAppShare} variant="outline" size="sm" className="flex-1 md:flex-none border-success/20 hover:bg-success/10">
-                    <Share2 className="h-4 w-4 mr-2 text-success" />
-                    WhatsApp
+                    <Share2 className="h-4 w-4 mr-1 text-success" />
+                    Share
                   </Button>
                 </div>
               </div>
