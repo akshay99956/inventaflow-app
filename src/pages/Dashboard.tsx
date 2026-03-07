@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical } from "lucide-react";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { toast } from "sonner";
 const Dashboard = () => {
@@ -158,18 +159,23 @@ const Dashboard = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm md:text-base text-muted-foreground">Welcome back! Here's your business overview.</p>
         </div>
-        <div className="flex gap-2 print:hidden">
-          <Button onClick={handleExportCSV} variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Download className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Export CSV</span>
-            <span className="sm:hidden">Export</span>
-          </Button>
-          <Button onClick={handlePrint} variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Printer className="h-4 w-4 mr-2 bg-destructive-foreground text-destructive-foreground" />
-            <span className="hidden sm:inline">Print Report</span>
-            <span className="sm:hidden">Print</span>
-          </Button>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="print:hidden">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-44 p-1">
+            <Button onClick={handleExportCSV} variant="ghost" size="sm" className="w-full justify-start">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button onClick={handlePrint} variant="ghost" size="sm" className="w-full justify-start">
+              <Printer className="h-4 w-4 mr-2" />
+              Print Report
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4 bg-card">
