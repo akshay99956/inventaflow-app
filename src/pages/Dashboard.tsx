@@ -222,7 +222,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-2 md:gap-4 grid-cols-2">
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 bg-muted">
             <CardTitle className="text-sm md:text-lg">Revenue Trends</CardTitle>
