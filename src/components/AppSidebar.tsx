@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { Home, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart, ShoppingCart, UserCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -50,6 +51,38 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCompany = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("company_profile")
+        .select("company_name, logo_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setCompanyName(data.company_name);
+        if (data.logo_url) {
+          const urlParts = data.logo_url.split("/company-logos/");
+          if (urlParts.length > 1) {
+            const filePath = urlParts[1].split("?")[0];
+            const { data: signedUrlData } = await supabase.storage
+              .from("company-logos")
+              .createSignedUrl(filePath, 3600);
+            if (signedUrlData?.signedUrl) {
+              setLogoUrl(signedUrlData.signedUrl);
+            }
+          }
+        }
+      }
+    };
+    fetchCompany();
+  }, []);
+
   const handleLogout = async () => {
     const {
       error
