@@ -154,14 +154,14 @@ const Dashboard = () => {
   };
   return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
       
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm md:text-base text-muted-foreground">Welcome back! Here's your business overview.</p>
         </div>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="print:hidden">
+            <Button variant="ghost" size="icon" className="print:hidden flex-shrink-0">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
