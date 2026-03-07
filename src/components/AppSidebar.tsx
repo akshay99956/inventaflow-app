@@ -121,5 +121,24 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Company Logo"
+              className="h-8 w-8 rounded-md object-cover border border-sidebar-border flex-shrink-0"
+            />
+          )}
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                {companyName || "Your Company"}
+              </p>
+            </div>
+          )}
+        </div>
+      </SidebarFooter>
     </Sidebar>;
 }
