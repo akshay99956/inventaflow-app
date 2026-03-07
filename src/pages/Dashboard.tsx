@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, FileText, TrendingUp, IndianRupee, Download, Printer } from "lucide-react";
-import { CompanyBranding } from "@/components/CompanyBranding";
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
@@ -152,7 +152,7 @@ const Dashboard = () => {
     window.print();
   };
   return <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-24 md:pb-8">
-      <CompanyBranding />
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
