@@ -218,7 +218,15 @@ const Dashboard = () => {
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-44 p-1">
+          <PopoverContent align="end" className="w-48 p-1">
+            <Button onClick={handleRefresh} variant="ghost" size="sm" className="w-full justify-start" disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
+            <Button onClick={handleShareWhatsApp} variant="ghost" size="sm" className="w-full justify-start">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Summary
+            </Button>
             <Button onClick={handleExportCSV} variant="ghost" size="sm" className="w-full justify-start">
               <Download className="h-4 w-4 mr-2" />
               Export CSV
