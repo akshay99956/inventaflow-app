@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -757,22 +758,32 @@ const Auth = () => {
             </div>
           </div>
 
-          {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              {getTitle()}
-            </h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {getSubtitle()}
-            </p>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={authMode}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              {/* Header */}
+              <div className="mb-6">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                  {getTitle()}
+                </h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {getSubtitle()}
+                </p>
+              </div>
 
-          {/* Auth Card */}
-          <Card className="border border-border/60 shadow-2xl shadow-primary/5 bg-card">
-            <CardContent className="p-5 sm:p-7">
-              {renderContent()}
-            </CardContent>
-          </Card>
+              {/* Auth Card */}
+              <Card className="border border-border/60 shadow-2xl shadow-primary/5 bg-card">
+                <CardContent className="p-5 sm:p-7">
+                  {renderContent()}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground mt-6">
