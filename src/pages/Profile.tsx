@@ -1287,9 +1287,9 @@ const Profile = () => {
                 maxLength={6}
                 value={currentPin}
                 onChange={setCurrentPin}
-                className="gap-3"
+                className="gap-2 sm:gap-3"
               >
-                <InputOTPGroup className="gap-3">
+                <InputOTPGroup className="gap-2 sm:gap-3">
                   <InputOTPSlot index={0} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={1} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
                   <InputOTPSlot index={2} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
