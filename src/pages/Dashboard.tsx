@@ -91,11 +91,41 @@ const Dashboard = () => {
     return true;
   };
 
+  // Previous period helper
+  const getPreviousPeriodRange = () => {
+    if (!dateRange.from || !dateRange.to) return { from: undefined, to: undefined };
+    const duration = dateRange.to.getTime() - dateRange.from.getTime();
+    const prevTo = new Date(dateRange.from.getTime() - 1); // day before current from
+    prevTo.setHours(23, 59, 59, 999);
+    const prevFrom = new Date(prevTo.getTime() - duration);
+    prevFrom.setHours(0, 0, 0, 0);
+    return { from: prevFrom, to: prevTo };
+  };
+
+  const isInPrevRange = (dateStr: string) => {
+    const prev = getPreviousPeriodRange();
+    if (!prev.from || !prev.to) return false;
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    return d >= prev.from && d <= prev.to;
+  };
+
+  const calcChange = (current: number, previous: number): number | null => {
+    if (!dateRange.from || !dateRange.to) return null; // no comparison for "All Time"
+    if (previous === 0 && current === 0) return 0;
+    if (previous === 0) return current > 0 ? 100 : -100;
+    return ((current - previous) / previous) * 100;
+  };
+
   // Computed filtered data
   const filtered = useMemo(() => {
     const invoices = allInvoices.filter((inv) => isInRange(inv.issue_date));
     const bills = allBills.filter((b) => isInRange(b.bill_date));
     const pos = allPOs.filter((po) => isInRange(po.po_date));
+
+    // Previous period
+    const prevInvoices = allInvoices.filter((inv) => isInPrevRange(inv.issue_date));
+    const prevBills = allBills.filter((b) => isInPrevRange(b.bill_date));
 
     const totalProducts = allProducts.length;
     const totalInvoices = invoices.length;
@@ -105,6 +135,19 @@ const Dashboard = () => {
     const totalBillsAmount = bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
     const pendingBillsCount = bills.filter((b) => b.status === "pending").length;
     const profit = totalRevenue - totalBillsAmount;
+
+    // Previous period totals
+    const prevRevenue = prevInvoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+    const prevExpenses = prevBills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
+    const prevProfit = prevRevenue - prevExpenses;
+    const prevInvoiceCount = prevInvoices.length;
+
+    const changes = {
+      revenue: calcChange(totalRevenue, prevRevenue),
+      expenses: calcChange(totalBillsAmount, prevExpenses),
+      profit: calcChange(profit, prevProfit),
+      invoices: calcChange(totalInvoices, prevInvoiceCount),
+    };
 
     // Revenue trends
     const revenueByMonth = invoices.reduce((acc: any, inv) => {
@@ -158,7 +201,7 @@ const Dashboard = () => {
       totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
       totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
       recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
-      totalClientsCount: allClients.length,
+      totalClientsCount: allClients.length, changes,
     };
   }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
 
@@ -371,12 +414,12 @@ const Dashboard = () => {
       {/* ── Row 1: Key Stats (6 cards) ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory" },
-          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth" },
-          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "Filtered" },
-          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills" },
-          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss" },
-          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients" },
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null },
         ].map((item) => (
           <Card key={item.title} className="relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
@@ -386,7 +429,20 @@ const Dashboard = () => {
                 <item.icon className={`h-4 w-4 ${item.color}`} />
               </div>
               <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5 hidden sm:block">{item.sub}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                {item.change !== null ? (
+                  <span className={cn(
+                    "text-[10px] font-semibold flex items-center gap-0.5",
+                    item.title === "Expenses"
+                      ? (item.change <= 0 ? "text-success" : "text-destructive")
+                      : (item.change >= 0 ? "text-success" : "text-destructive")
+                  )}>
+                    {item.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                    {Math.abs(item.change).toFixed(1)}%
+                  </span>
+                ) : null}
+                <p className="text-[10px] text-muted-foreground hidden sm:block">{item.sub}</p>
+              </div>
             </CardContent>
           </Card>
         ))}
