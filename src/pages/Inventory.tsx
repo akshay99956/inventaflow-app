@@ -831,10 +831,10 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="hover:bg-primary/10 hover:text-primary">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(product); }} className="hover:bg-primary/10 hover:text-primary">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="hover:bg-destructive/10 hover:text-destructive">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="hover:bg-destructive/10 hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
