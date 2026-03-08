@@ -684,6 +684,33 @@ const Auth = () => {
               {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
             </Button>
           </div>
+          {/* Password strength indicator */}
+          {password && (() => {
+            const strength = getPasswordStrength(password);
+            return (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 pt-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
+                      style={{ backgroundColor: i <= strength.score ? strength.color : 'hsl(var(--muted))' }} />
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium" style={{ color: strength.color }}>{strength.label}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                  {strength.checks.map(c => (
+                    <div key={c.label} className="flex items-center gap-1.5">
+                      {c.pass 
+                        ? <Check className="h-3 w-3 text-[hsl(var(--success))]" /> 
+                        : <X className="h-3 w-3 text-muted-foreground/40" />}
+                      <span className={`text-[11px] ${c.pass ? 'text-foreground' : 'text-muted-foreground/60'}`}>{c.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
 
         <div className="space-y-3">
