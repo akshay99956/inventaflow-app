@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt, CalendarIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, subDays, isAfter } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { settings } = useSettings();
