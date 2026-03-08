@@ -5,10 +5,10 @@ import { useSettings } from "@/contexts/SettingsContext";
 
 const allNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: Home, settingKey: "show_dashboard" as const },
+  { path: "/quick-bill", label: "Quick Bill", icon: Zap, settingKey: "show_sales" as const },
   { path: "/invoices", label: "Sales", icon: ShoppingCart, settingKey: "show_sales" as const },
   { path: "/bills", label: "Purchases", icon: Receipt, settingKey: "show_sales" as const },
   { path: "/inventory", label: "Inventory", icon: Package, settingKey: "show_inventory" as const },
-  { path: "/clients", label: "Clients", icon: Users, settingKey: "show_clients" as const },
 ];
 
 export const MobileBottomNav = () => {
