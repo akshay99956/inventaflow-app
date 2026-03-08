@@ -439,7 +439,7 @@ const QuickPurchase = () => {
                     <Button
                       size="sm"
                       className="gradient-secondary text-secondary-foreground"
-                      onClick={() => handleReceive(po.id)}
+                      onClick={() => { setConfirmReceiveId(po.id); setConfirmPO(po); }}
                       disabled={receivingId === po.id}
                     >
                       <PackageCheck className="h-4 w-4 mr-1" />
