@@ -72,6 +72,13 @@ const Settings = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
+  
+  // Security state
+  const [sessionInfo, setSessionInfo] = useState<{ email: string; lastSignIn: string; provider: string } | null>(null);
+  const [signingOutAll, setSigningOutAll] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [pinEnabled, setPinEnabled] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState<{ created_at: string; success: boolean; email: string }[]>([]);
   const [profile, setProfile] = useState<CompanyProfile>({
     company_name: "",
     address: "",
