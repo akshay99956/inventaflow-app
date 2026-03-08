@@ -124,8 +124,15 @@ const Profile = () => {
   const [emailStep, setEmailStep] = useState<"enter" | "sent">("enter");
   const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
 
+  // Account stats
+  const [accountStats, setAccountStats] = useState({
+    totalProducts: 0, totalInvoices: 0, totalBills: 0, totalClients: 0,
+    totalRevenue: 0, totalExpenses: 0, memberSince: "",
+  });
+
   useEffect(() => {
     fetchProfile();
+    fetchAccountStats();
   }, []);
 
   const fetchProfile = async () => {
