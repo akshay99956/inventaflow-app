@@ -199,6 +199,33 @@ const QuickBill = () => {
     return cart.find((c) => c.product.id === productId)?.qty || 0;
   };
 
+  const buildWhatsAppMessage = (
+    billNo: string,
+    name: string,
+    items: CartItem[],
+    sub: number,
+    tax: number,
+    tot: number
+  ) => {
+    let msg = `🧾 *Bill: ${billNo}*\n`;
+    msg += `👤 ${name}\n`;
+    msg += `📅 ${new Date().toLocaleDateString("en-IN")}\n\n`;
+    msg += `*Items:*\n`;
+    items.forEach((c, i) => {
+      msg += `${i + 1}. ${c.product.name}\n   ${c.qty} × ${cs}${c.product.unit_price.toLocaleString("en-IN")} = ${cs}${(c.qty * c.product.unit_price).toLocaleString("en-IN")}\n`;
+    });
+    msg += `\n─────────────\n`;
+    msg += `Subtotal: ${cs}${sub.toLocaleString("en-IN")}\n`;
+    if (settings.tax_enabled && tax > 0) {
+      msg += `${settings.tax_name}: ${cs}${tax.toLocaleString("en-IN", { maximumFractionDigits: 2 })}\n`;
+    }
+    msg += `*Total: ${cs}${tot.toLocaleString("en-IN", { maximumFractionDigits: 2 })}*\n`;
+    msg += `\nThank you for your purchase! 🙏`;
+    return msg;
+  };
+    return cart.find((c) => c.product.id === productId)?.qty || 0;
+  };
+
   return (
     <div className="p-4 md:p-8 pb-24 md:pb-8">
       {/* Header */}
