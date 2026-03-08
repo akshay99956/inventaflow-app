@@ -205,10 +205,10 @@ const Dashboard = () => {
   const handleShareWhatsApp = () => {
     let message = `📊 *Business Summary*\n`;
     message += `📅 ${format(new Date(), "dd MMM yyyy")}\n\n`;
-    message += `📦 Products: ${stats.totalProducts}\n`;
-    message += `💰 Stock Value: ${cs}${stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
-    message += `📄 Pending Invoices: ${stats.pendingInvoices}\n`;
-    message += `✅ Total Revenue: ${cs}${stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📦 Products: ${filtered.totalProducts}\n`;
+    message += `💰 Stock Value: ${cs}${filtered.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📄 Pending Invoices: ${filtered.pendingInvoices}\n`;
+    message += `✅ Total Revenue: ${cs}${filtered.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
     if (outstandingInvoices.length > 0) {
       message += `\n⚠️ *Outstanding Invoices:*\n`;
       outstandingInvoices.forEach((inv) => {
@@ -235,8 +235,8 @@ const Dashboard = () => {
 
   const handleExportCSV = () => {
     const date = new Date().toISOString().split("T")[0];
-    if (revenueData.length > 0) exportToCSV(revenueData, `revenue-trends-${date}`);
-    if (topProducts.length > 0) exportToCSV(topProducts, `top-products-${date}`);
+    if (filtered.revenueData.length > 0) exportToCSV(filtered.revenueData, `revenue-trends-${date}`);
+    if (filtered.topProducts.length > 0) exportToCSV(filtered.topProducts, `top-products-${date}`);
     if (outstandingInvoices.length > 0) {
       exportToCSV(outstandingInvoices.map((inv) => ({
         customer_name: inv.customer_name,
@@ -249,7 +249,6 @@ const Dashboard = () => {
   };
 
   const fmtCurrency = (val: number) => `${cs}${val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
-  const profit = stats.totalRevenue - totalBillsAmount;
 
   const revenueChartConfig = { revenue: { label: "Revenue", color: "hsl(var(--chart-1))" } } satisfies ChartConfig;
   const productsChartConfig = { revenue: { label: "Revenue", color: "hsl(var(--chart-2))" } } satisfies ChartConfig;
