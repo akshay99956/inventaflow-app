@@ -100,6 +100,88 @@ const Settings = () => {
       return;
     }
     fetchProfile();
+    fetchSecurityInfo();
+  };
+
+  const fetchSecurityInfo = async () => {
+    try {
+      const [{ data: { user } }, { data: profileData }, { data: attempts }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from("profiles").select("pin_enabled").limit(1).maybeSingle(),
+        supabase.from("pin_auth_attempts").select("created_at, success, email").order("created_at", { ascending: false }).limit(10),
+      ]);
+
+      if (user) {
+        const provider = user.app_metadata?.provider || "email";
+        setSessionInfo({
+          email: user.email || "",
+          lastSignIn: user.last_sign_in_at ? format(new Date(user.last_sign_in_at), "dd MMM yyyy, hh:mm a") : "Unknown",
+          provider: provider.charAt(0).toUpperCase() + provider.slice(1),
+        });
+      }
+
+      setPinEnabled(profileData?.pin_enabled || false);
+      setLoginAttempts(attempts || []);
+    } catch (e) {
+      logErrorInDev("SecurityInfo", e);
+    }
+  };
+
+  const handleSignOutAll = async () => {
+    setSigningOutAll(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "global" });
+      if (error) throw error;
+      toast({ title: "Success", description: "Signed out from all devices" });
+      navigate("/auth");
+    } catch (error: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(error, "Failed to sign out"), variant: "destructive" });
+    } finally {
+      setSigningOutAll(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setExportingData(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const [
+        { data: invoices }, { data: bills }, { data: products },
+        { data: clients }, { data: transactions }
+      ] = await Promise.all([
+        supabase.from("invoices").select("*"),
+        supabase.from("bills").select("*"),
+        supabase.from("products").select("*"),
+        supabase.from("clients").select("*"),
+        supabase.from("transactions").select("*"),
+      ]);
+
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        user_email: user.email,
+        invoices: invoices || [],
+        bills: bills || [],
+        products: products || [],
+        clients: clients || [],
+        transactions: transactions || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `business-data-export-${format(new Date(), "yyyy-MM-dd")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast({ title: "Success", description: "Data exported successfully" });
+    } catch (error: any) {
+      toast({ title: "Error", description: getSafeErrorMessage(error, "Failed to export data"), variant: "destructive" });
+    } finally {
+      setExportingData(false);
+    }
   };
 
   const fetchProfile = async () => {
