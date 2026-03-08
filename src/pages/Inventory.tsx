@@ -59,6 +59,7 @@ const printColumnLabels: Record<PrintColumn, string> = {
   total_value: 'Total Value'
 };
 const Inventory = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
