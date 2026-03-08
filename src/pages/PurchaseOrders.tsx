@@ -642,7 +642,7 @@ const PurchaseOrders = () => {
               disabled={isSubmitting}
               className="w-full gradient-primary text-primary-foreground"
             >
-              {isSubmitting ? "Creating..." : "Create Purchase Order"}
+              {isSubmitting ? "Creating..." : supplierPhone.trim() ? "Create & Share via WhatsApp" : "Create Purchase Order"}
             </Button>
           </div>
         </DialogContent>
