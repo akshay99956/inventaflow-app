@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useSettings } from "@/contexts/SettingsContext";
+import { CompanyBranding } from "@/components/CompanyBranding";
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalProducts: 0,
