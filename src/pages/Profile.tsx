@@ -1355,28 +1355,32 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Danger Zone */}
-      <Card className="border-destructive/50">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          </div>
-          <CardDescription>
-            Permanently delete your account and all associated data. This action cannot be undone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-            className="gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete Account
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Danger Zone */}
+        <Card className="shadow-md border-destructive/30">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </div>
+              <div>
+                <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+                <CardDescription className="text-xs">Permanently delete your account and all data</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Account
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Delete Account Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
