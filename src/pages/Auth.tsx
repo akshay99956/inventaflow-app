@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2 } from "lucide-react";
 import { getSafeAuthErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Switch } from "@/components/ui/switch";
@@ -36,6 +36,20 @@ const pinSigninSchema = z.object({
 });
 
 type AuthMode = 'signin' | 'signup' | 'forgot-password' | 'forgot-pin' | 'reset-password' | 'setup-pin';
+
+// Floating orb component for left panel
+const FloatingOrb = ({ delay, size, x, y }: { delay: number; size: number; x: string; y: string }) => (
+  <motion.div
+    className="absolute rounded-full bg-white/10 blur-2xl"
+    style={{ width: size, height: size, left: x, top: y }}
+    animate={{
+      y: [0, -30, 0, 20, 0],
+      x: [0, 15, -10, 5, 0],
+      scale: [1, 1.1, 0.95, 1.05, 1],
+    }}
+    transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
+  />
+);
 
 const Auth = () => {
   const [fullName, setFullName] = useState("");
@@ -281,14 +295,19 @@ const Auth = () => {
   // ─── Forgot Password ───
   const renderForgotPassword = () => (
     <div className="space-y-6">
-      <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="h-4 w-4" />
+      <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to Sign In
       </button>
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Lock className="h-7 w-7 text-primary" />
-        </div>
+      <div className="text-center space-y-3">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-18 h-18 mx-auto rounded-2xl flex items-center justify-center"
+          style={{ background: 'var(--gradient-warm)' }}
+        >
+          <Lock className="h-8 w-8 text-white" />
+        </motion.div>
         <h3 className="text-xl font-bold text-foreground">Forgot Password</h3>
         <p className="text-sm text-muted-foreground">Enter your email to receive a reset link</p>
       </div>
@@ -299,22 +318,24 @@ const Auth = () => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="reset-email" type="email" placeholder="you@example.com" value={email}
-                onChange={(e) => setEmail(e.target.value)} required className="pl-10" />
+                onChange={(e) => setEmail(e.target.value)} required className="pl-10 h-11" />
             </div>
           </div>
-          <Button type="submit" className="w-full h-11 font-semibold" disabled={loading}>
+          <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl" disabled={loading}
+            style={{ background: 'var(--gradient-primary)' }}>
             {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending...</> : "Send Reset Link"}
           </Button>
         </form>
       ) : (
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-muted rounded-xl border border-border">
-            <p className="text-foreground text-sm font-medium">
-              ✓ Reset link sent! Check your email inbox.
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
+          <div className="p-5 bg-muted rounded-2xl border border-border flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-[hsl(var(--success))] shrink-0" />
+            <p className="text-foreground text-sm font-medium text-left">
+              Reset link sent! Check your email inbox.
             </p>
           </div>
-          <Button variant="outline" onClick={goBack} className="w-full">Back to Sign In</Button>
-        </div>
+          <Button variant="outline" onClick={goBack} className="w-full h-11 rounded-xl">Back to Sign In</Button>
+        </motion.div>
       )}
     </div>
   );
@@ -322,14 +343,19 @@ const Auth = () => {
   // ─── Forgot PIN ───
   const renderForgotPin = () => (
     <div className="space-y-6">
-      <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="h-4 w-4" />
+      <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to Sign In
       </button>
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-          <KeyRound className="h-7 w-7 text-primary" />
-        </div>
+      <div className="text-center space-y-3">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-18 h-18 mx-auto rounded-2xl flex items-center justify-center"
+          style={{ background: 'var(--gradient-cool)' }}
+        >
+          <KeyRound className="h-8 w-8 text-white" />
+        </motion.div>
         <h3 className="text-xl font-bold text-foreground">Forgot PIN</h3>
         <p className="text-sm text-muted-foreground">Sign in with password to reset your PIN</p>
       </div>
@@ -346,7 +372,7 @@ const Auth = () => {
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input id="pin-reset-email" type="email" placeholder="you@example.com" value={email}
-              onChange={(e) => setEmail(e.target.value)} required className="pl-10" />
+              onChange={(e) => setEmail(e.target.value)} required className="pl-10 h-11" />
           </div>
         </div>
         <div className="space-y-2">
@@ -354,14 +380,15 @@ const Auth = () => {
           <div className="relative">
             <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input id="pin-reset-password" type={showPassword ? "text" : "password"} value={password}
-              onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10" />
+              onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10 h-11" />
             <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
               onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
             </Button>
           </div>
         </div>
-        <Button type="submit" className="w-full h-11 font-semibold" disabled={loading}>
+        <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl" disabled={loading}
+          style={{ background: 'var(--gradient-cool)' }}>
           {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Verifying...</> : "Verify & Reset PIN"}
         </Button>
       </form>
@@ -371,10 +398,15 @@ const Auth = () => {
   // ─── Setup PIN ───
   const renderSetupPin = () => (
     <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Shield className="h-7 w-7 text-primary" />
-        </div>
+      <div className="text-center space-y-3">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-18 h-18 mx-auto rounded-2xl flex items-center justify-center"
+          style={{ background: 'var(--gradient-secondary)' }}
+        >
+          <Shield className="h-8 w-8 text-white" />
+        </motion.div>
         <h3 className="text-xl font-bold text-foreground">Set Up Your PIN</h3>
         <p className="text-sm text-muted-foreground">Create a 6-digit PIN for quick login</p>
       </div>
@@ -386,7 +418,7 @@ const Auth = () => {
               <InputOTPGroup>
                 {[0, 1, 2, 3, 4, 5].map((index) => (
                   <InputOTPSlot key={index} index={index}
-                    className={`w-11 h-12 text-lg border-border ${!showPin ? 'text-security-disc' : ''}`} />
+                    className={`w-11 h-13 text-lg border-border rounded-lg ${!showPin ? 'text-security-disc' : ''}`} />
                 ))}
               </InputOTPGroup>
             </InputOTP>
@@ -397,7 +429,8 @@ const Auth = () => {
             </Button>
           </div>
         </div>
-        <Button type="submit" className="w-full h-11 font-semibold" disabled={loading || newPin.length !== 6}>
+        <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl" disabled={loading || newPin.length !== 6}
+          style={{ background: 'var(--gradient-secondary)' }}>
           {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Setting up...</> : "Set PIN"}
         </Button>
       </form>
@@ -407,10 +440,15 @@ const Auth = () => {
   // ─── Reset Password ───
   const renderResetPassword = () => (
     <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Lock className="h-7 w-7 text-primary" />
-        </div>
+      <div className="text-center space-y-3">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-18 h-18 mx-auto rounded-2xl flex items-center justify-center"
+          style={{ background: 'var(--gradient-warm)' }}
+        >
+          <Lock className="h-8 w-8 text-white" />
+        </motion.div>
         <h3 className="text-xl font-bold text-foreground">Reset Password</h3>
         <p className="text-sm text-muted-foreground">Choose a strong new password</p>
       </div>
@@ -421,14 +459,15 @@ const Auth = () => {
             <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input id="new-password" type={showPassword ? "text" : "password"} value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)} required minLength={6}
-              placeholder="Min 6 characters" className="pl-10 pr-10" />
+              placeholder="Min 6 characters" className="pl-10 pr-10 h-11" />
             <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
               onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
             </Button>
           </div>
         </div>
-        <Button type="submit" className="w-full h-11 font-semibold" disabled={loading}>
+        <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl" disabled={loading}
+          style={{ background: 'var(--gradient-warm)' }}>
           {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Updating...</> : "Update Password"}
         </Button>
       </form>
@@ -440,34 +479,41 @@ const Auth = () => {
     <div className="space-y-5">
       <form onSubmit={handleSignIn} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="signin-email">Email Address</Label>
+          <Label htmlFor="signin-email" className="text-sm font-medium">Email Address</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input id="signin-email" type="email" placeholder="you@example.com" value={email}
-              onChange={(e) => setEmail(e.target.value)} required className="pl-10" />
+              onChange={(e) => setEmail(e.target.value)} required className="pl-10 h-11 rounded-xl" />
           </div>
         </div>
 
         {/* Login method toggle */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border/50">
-          <div className="flex items-center gap-2">
-            {usePinLogin ? <KeyRound className="h-4 w-4 text-primary" /> : <Lock className="h-4 w-4 text-primary" />}
+        <motion.div 
+          className="flex items-center justify-between p-3.5 rounded-xl bg-muted/50 border border-border/50 backdrop-blur-sm"
+          whileHover={{ borderColor: 'hsl(var(--primary) / 0.3)' }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" 
+              style={{ background: usePinLogin ? 'var(--gradient-cool)' : 'var(--gradient-primary)' }}>
+              {usePinLogin ? <KeyRound className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
+            </div>
             <span className="text-sm font-medium text-foreground">
               {usePinLogin ? "PIN Login" : "Password Login"}
             </span>
           </div>
           <Switch checked={usePinLogin} onCheckedChange={setUsePinLogin} />
-        </div>
+        </motion.div>
 
         {usePinLogin ? (
-          <div className="space-y-3">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
             <Label>Enter 6-digit PIN</Label>
             <div className="flex justify-center relative">
               <InputOTP maxLength={6} value={pin} onChange={setPin}>
                 <InputOTPGroup>
                   {[0, 1, 2, 3, 4, 5].map((index) => (
                     <InputOTPSlot key={index} index={index}
-                      className={`w-11 h-12 text-lg border-border ${!showPin ? 'text-security-disc' : ''}`} />
+                      className={`w-11 h-13 text-lg border-border rounded-lg ${!showPin ? 'text-security-disc' : ''}`} />
                   ))}
                 </InputOTPGroup>
               </InputOTP>
@@ -481,14 +527,14 @@ const Auth = () => {
               onClick={() => setAuthMode('forgot-pin')}>
               Forgot PIN?
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-2">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
             <Label htmlFor="signin-password">Password</Label>
             <div className="relative">
               <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="signin-password" type={showPassword ? "text" : "password"} value={password}
-                onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10" />
+                onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10 h-11 rounded-xl" />
               <Button type="button" variant="ghost" size="sm"
                 className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}>
@@ -499,12 +545,20 @@ const Auth = () => {
               onClick={() => setAuthMode('forgot-password')}>
               Forgot Password?
             </button>
-          </div>
+          </motion.div>
         )}
 
-        <Button type="submit" className="w-full h-11 font-semibold text-base" disabled={loading}>
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Signing in...</> : "Sign In"}
-        </Button>
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+          <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl shadow-lg shadow-primary/20" disabled={loading}
+            style={{ background: 'var(--gradient-primary)' }}>
+            {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Signing in...</> : (
+              <>
+                Sign In
+                <Sparkles className="h-4 w-4 ml-1" />
+              </>
+            )}
+          </Button>
+        </motion.div>
       </form>
 
       {/* Divider */}
@@ -517,27 +571,31 @@ const Auth = () => {
 
       {/* Social buttons */}
       <div className="grid grid-cols-2 gap-3">
-        <Button type="button" variant="outline" className="h-11 gap-2 font-medium"
-          disabled={loading || !!oauthLoading} onClick={() => handleOAuth("google")}>
-          {oauthLoading === "google" ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-            <svg className="h-4 w-4" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-          )}
-          Google
-        </Button>
-        <Button type="button" variant="outline" className="h-11 gap-2 font-medium"
-          disabled={loading || !!oauthLoading} onClick={() => handleOAuth("apple")}>
-          {oauthLoading === "apple" ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-            </svg>
-          )}
-          Apple
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button type="button" variant="outline" className="w-full h-11 gap-2 font-medium rounded-xl border-border/70 hover:border-primary/30 hover:bg-primary/5"
+            disabled={loading || !!oauthLoading} onClick={() => handleOAuth("google")}>
+            {oauthLoading === "google" ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+            )}
+            Google
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button type="button" variant="outline" className="w-full h-11 gap-2 font-medium rounded-xl border-border/70 hover:border-primary/30 hover:bg-primary/5"
+            disabled={loading || !!oauthLoading} onClick={() => handleOAuth("apple")}>
+            {oauthLoading === "apple" ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+            )}
+            Apple
+          </Button>
+        </motion.div>
       </div>
 
       {/* Switch to signup */}
@@ -561,7 +619,7 @@ const Auth = () => {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="signup-name" type="text" placeholder="John Doe" value={fullName}
-                onChange={(e) => setFullName(e.target.value)} required className="pl-10" />
+                onChange={(e) => setFullName(e.target.value)} required className="pl-10 h-11 rounded-xl" />
             </div>
           </div>
           <div className="space-y-2">
@@ -569,7 +627,7 @@ const Auth = () => {
             <div className="relative">
               <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="signup-company" type="text" placeholder="Acme Corp" value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)} required className="pl-10" />
+                onChange={(e) => setCompanyName(e.target.value)} required className="pl-10 h-11 rounded-xl" />
             </div>
           </div>
         </div>
@@ -580,7 +638,7 @@ const Auth = () => {
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="signup-mobile" type="tel" placeholder="+91 9876543210" value={mobile}
-                onChange={(e) => setMobile(e.target.value)} required className="pl-10" />
+                onChange={(e) => setMobile(e.target.value)} required className="pl-10 h-11 rounded-xl" />
             </div>
           </div>
           <div className="space-y-2">
@@ -588,7 +646,7 @@ const Auth = () => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="signup-email" type="email" placeholder="you@example.com" value={email}
-                onChange={(e) => setEmail(e.target.value)} required className="pl-10" />
+                onChange={(e) => setEmail(e.target.value)} required className="pl-10 h-11 rounded-xl" />
             </div>
           </div>
         </div>
@@ -598,7 +656,7 @@ const Auth = () => {
           <div className="relative">
             <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="Min 6 characters"
-              value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10" />
+              value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10 pr-10 h-11 rounded-xl" />
             <Button type="button" variant="ghost" size="sm"
               className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
               onClick={() => setShowPassword(!showPassword)}>
@@ -614,7 +672,7 @@ const Auth = () => {
               <InputOTPGroup>
                 {[0, 1, 2, 3, 4, 5].map((index) => (
                   <InputOTPSlot key={index} index={index}
-                    className={`w-11 h-12 text-lg border-border ${!showPin ? 'text-security-disc' : ''}`} />
+                    className={`w-11 h-13 text-lg border-border rounded-lg ${!showPin ? 'text-security-disc' : ''}`} />
                 ))}
               </InputOTPGroup>
             </InputOTP>
@@ -627,9 +685,17 @@ const Auth = () => {
           <p className="text-xs text-muted-foreground text-center">This PIN will be used for quick sign-in</p>
         </div>
 
-        <Button type="submit" className="w-full h-11 font-semibold text-base" disabled={loading}>
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating account...</> : "Create Account"}
-        </Button>
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+          <Button type="submit" className="w-full h-12 font-semibold text-base rounded-xl shadow-lg shadow-primary/20" disabled={loading}
+            style={{ background: 'var(--gradient-primary)' }}>
+            {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating account...</> : (
+              <>
+                Create Account
+                <Zap className="h-4 w-4 ml-1" />
+              </>
+            )}
+          </Button>
+        </motion.div>
       </form>
 
       {/* Switch to signin */}
@@ -684,10 +750,21 @@ const Auth = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/95 via-primary/85 to-accent/70" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '28px 28px' }} />
+        
+        {/* Floating orbs */}
+        <FloatingOrb delay={0} size={200} x="10%" y="20%" />
+        <FloatingOrb delay={2} size={150} x="60%" y="10%" />
+        <FloatingOrb delay={4} size={120} x="70%" y="65%" />
+        <FloatingOrb delay={1} size={180} x="20%" y="70%" />
 
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3"
+          >
             <div className="w-12 h-12 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
@@ -695,14 +772,25 @@ const Auth = () => {
               <h1 className="text-xl font-bold tracking-tight">DC Finance</h1>
               <p className="text-white/60 text-[11px] font-semibold tracking-[0.2em] uppercase">Business Suite</p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Hero */}
-          <div className="space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="space-y-8"
+          >
             <div className="space-y-4">
               <h2 className="text-4xl xl:text-5xl font-extrabold leading-[1.1] tracking-tight">
                 Manage Your<br />Business
-                <span className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Smarter</span>
+                <motion.span 
+                  className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent"
+                  animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                  transition={{ duration: 5, repeat: Infinity }}
+                >
+                  Smarter
+                </motion.span>
               </h2>
               <p className="text-white/65 text-base max-w-sm leading-relaxed">
                 Invoicing, inventory, analytics & client management — everything in one powerful platform.
@@ -715,17 +803,28 @@ const Auth = () => {
                 { icon: <TrendingUp className="w-3.5 h-3.5" />, label: "Analytics" },
                 { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Balance Sheet" },
                 { icon: <Users className="w-3.5 h-3.5" />, label: "Clients" }
-              ].map((f) => (
-                <div key={f.label} className="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/15 text-xs font-medium">
+              ].map((f, i) => (
+                <motion.div 
+                  key={f.label} 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/15 text-xs font-medium hover:bg-white/20 transition-colors cursor-default"
+                >
                   {f.icon}
                   {f.label}
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Stats */}
-          <div className="flex items-center gap-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex items-center gap-8"
+          >
             {[
               { value: "1K+", label: "Businesses" },
               { value: "50K+", label: "Invoices" },
@@ -739,7 +838,7 @@ const Auth = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -747,7 +846,11 @@ const Auth = () => {
       <div className="w-full lg:w-[55%] xl:w-1/2 flex items-center justify-center p-5 sm:p-8 lg:p-12">
         <div className="w-full max-w-[460px]">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:hidden flex items-center gap-2.5 mb-8"
+          >
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
               style={{ background: 'var(--gradient-primary)' }}>
               <BarChart3 className="w-5 h-5 text-white" />
@@ -756,28 +859,39 @@ const Auth = () => {
               <h1 className="text-lg font-bold text-foreground">DC Finance</h1>
               <p className="text-xs text-muted-foreground">Business Suite</p>
             </div>
-          </div>
+          </motion.div>
 
           <AnimatePresence mode="wait">
             <motion.div
               key={authMode}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
               {/* Header */}
-              <div className="mb-6">
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              <div className="mb-7">
+                <motion.h2 
+                  className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
                   {getTitle()}
-                </h2>
-                <p className="text-muted-foreground mt-1 text-sm">
+                </motion.h2>
+                <motion.p 
+                  className="text-muted-foreground mt-1.5 text-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
                   {getSubtitle()}
-                </p>
+                </motion.p>
               </div>
 
               {/* Auth Card */}
-              <Card className="border border-border/60 shadow-2xl shadow-primary/5 bg-card">
+              <Card className="border border-border/50 shadow-2xl shadow-primary/[0.08] bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden">
+                <div className="h-1 w-full" style={{ background: 'var(--gradient-primary)' }} />
                 <CardContent className="p-5 sm:p-7">
                   {renderContent()}
                 </CardContent>
@@ -786,9 +900,17 @@ const Auth = () => {
           </AnimatePresence>
 
           {/* Footer */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Secured with end-to-end encryption • © {new Date().getFullYear()} DC Finance
-          </p>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex items-center justify-center gap-2 mt-7"
+          >
+            <Shield className="h-3.5 w-3.5 text-muted-foreground/60" />
+            <p className="text-xs text-muted-foreground/60">
+              Secured with end-to-end encryption • © {new Date().getFullYear()} DC Finance
+            </p>
+          </motion.div>
         </div>
       </div>
     </div>
