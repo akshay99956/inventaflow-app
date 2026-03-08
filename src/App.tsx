@@ -88,6 +88,11 @@ const App = () => (
                     <Inventory />
                   </AppLayout>
                 </ProtectedRoute>} />
+            <Route path="/inventory/:id" element={<ProtectedRoute>
+                  <AppLayout>
+                    <ProductDetail />
+                  </AppLayout>
+                </ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute>
                   <AppLayout>
                     <Invoices />
