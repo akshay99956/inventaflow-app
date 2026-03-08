@@ -106,6 +106,16 @@ const App = () => (
                     <BillCreate />
                   </AppLayout>
                 </ProtectedRoute>} />
+            <Route path="/quick-bill" element={<ProtectedRoute>
+                  <AppLayout>
+                    <QuickBill />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/purchase-orders" element={<ProtectedRoute>
+                  <AppLayout>
+                    <PurchaseOrders />
+                  </AppLayout>
+                </ProtectedRoute>} />
             <Route path="/balance-sheet" element={<ProtectedRoute>
                   <AppLayout>
                     <BalanceSheet />
