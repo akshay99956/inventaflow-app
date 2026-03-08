@@ -491,16 +491,28 @@ const PurchaseOrders = () => {
               <p className="text-xs text-muted-foreground italic">{selectedPO.notes}</p>
             )}
 
-            {selectedPO?.status === "pending" && (
+            <div className="flex gap-2">
               <Button
-                onClick={handleConvertToBill}
-                disabled={isConverting}
-                className="w-full gradient-primary text-primary-foreground"
+                onClick={handleSharePOWhatsApp}
+                variant="outline"
+                className="flex-1"
+                size="sm"
               >
-                <ArrowRight className="h-4 w-4 mr-2" />
-                {isConverting ? "Converting..." : "Convert to Bill"}
+                <Share2 className="h-4 w-4 mr-1" />
+                Share WhatsApp
               </Button>
-            )}
+              {selectedPO?.status === "pending" && (
+                <Button
+                  onClick={handleConvertToBill}
+                  disabled={isConverting}
+                  className="flex-1 gradient-primary text-primary-foreground"
+                  size="sm"
+                >
+                  <ArrowRight className="h-4 w-4 mr-1" />
+                  {isConverting ? "Converting..." : "Convert to Bill"}
+                </Button>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
