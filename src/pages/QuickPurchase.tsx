@@ -453,6 +453,40 @@ const QuickPurchase = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Receive Confirmation Dialog */}
+      <AlertDialog open={!!confirmReceiveId} onOpenChange={(open) => { if (!open) { setConfirmReceiveId(null); setConfirmPO(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Receive Goods</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmPO && (
+                <>
+                  Are you sure you want to receive <strong>{confirmPO.po_number}</strong> from <strong>{confirmPO.supplier_name}</strong> for <strong>{cs}{Number(confirmPO.total).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong>?
+                  <br /><br />
+                  This will update your inventory stock levels and create a purchase bill. This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="gradient-secondary text-secondary-foreground"
+              onClick={() => {
+                if (confirmReceiveId) {
+                  handleReceive(confirmReceiveId);
+                  setConfirmReceiveId(null);
+                  setConfirmPO(null);
+                }
+              }}
+            >
+              <PackageCheck className="h-4 w-4 mr-1" />
+              Yes, Receive Goods
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Order Cart Dialog */}
       <Dialog open={showCart} onOpenChange={setShowCart}>
         <DialogContent className="w-[95vw] max-w-md max-h-[90vh] flex flex-col p-0">
