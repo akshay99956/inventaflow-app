@@ -10,8 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings, Smartphone, Edit3, Trash2, AlertTriangle } from "lucide-react";
+import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings, Smartphone, Edit3, Trash2, AlertTriangle, Package, FileText, Receipt, Users, CalendarDays, TrendingUp, BarChart3, CreditCard } from "lucide-react";
+import { z } from "zod";
+import { format } from "date-fns";
 import { z } from "zod";
 import {
   InputOTP,
