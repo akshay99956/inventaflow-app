@@ -859,24 +859,27 @@ const Dashboard = () => {
             <CardTitle className="text-sm md:text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "New Invoice", icon: FileText, path: "/invoices/new", color: "bg-primary/10 text-primary hover:bg-primary/20" },
-                { label: "New Bill", icon: Receipt, path: "/bills/new", color: "bg-warning/10 text-warning hover:bg-warning/20" },
-                { label: "Quick Bill", icon: TrendingUp, path: "/quick-bill", color: "bg-success/10 text-success hover:bg-success/20" },
-                { label: "Quick Purchase", icon: ShoppingCart, path: "/quick-purchase", color: "bg-secondary/10 text-secondary hover:bg-secondary/20" },
-                { label: "Inventory", icon: Package, path: "/inventory", color: "bg-accent/10 text-accent hover:bg-accent/20" },
-                { label: "Clients", icon: Users, path: "/clients", color: "bg-info/10 text-info hover:bg-info/20" },
+                { label: "New Invoice", icon: FileText, path: "/invoices/new", gradient: "var(--gradient-primary)", iconBg: "bg-primary/10", color: "text-primary" },
+                { label: "New Bill", icon: Receipt, path: "/bills/new", gradient: "var(--gradient-warm)", iconBg: "bg-warning/10", color: "text-warning" },
+                { label: "Quick Bill", icon: TrendingUp, path: "/quick-bill", gradient: "var(--gradient-secondary)", iconBg: "bg-success/10", color: "text-success" },
+                { label: "Quick Purchase", icon: ShoppingCart, path: "/quick-purchase", gradient: "var(--gradient-cool)", iconBg: "bg-secondary/10", color: "text-secondary" },
+                { label: "Inventory", icon: Package, path: "/inventory", gradient: "var(--gradient-primary)", iconBg: "bg-accent/10", color: "text-accent" },
+                { label: "Clients", icon: Users, path: "/clients", gradient: "var(--gradient-secondary)", iconBg: "bg-info/10", color: "text-info" },
               ].map((action) => (
-                <Button
-                  key={action.label}
-                  variant="ghost"
-                  className={`h-auto py-4 flex flex-col items-center gap-2 rounded-xl transition-colors ${action.color}`}
-                  onClick={() => navigate(action.path)}
-                >
-                  <action.icon className="h-5 w-5" />
-                  <span className="text-xs font-medium">{action.label}</span>
-                </Button>
+                <motion.div key={action.label} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full py-3 flex flex-col items-center gap-2 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
+                    onClick={() => navigate(action.path)}
+                  >
+                    <div className={`h-9 w-9 rounded-lg ${action.iconBg} flex items-center justify-center`}>
+                      <action.icon className={`h-4 w-4 ${action.color}`} />
+                    </div>
+                    <span className="text-[10px] font-medium text-foreground">{action.label}</span>
+                  </Button>
+                </motion.div>
               ))}
             </div>
           </CardContent>
