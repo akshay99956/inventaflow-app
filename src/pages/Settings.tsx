@@ -1068,6 +1068,8 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-4">
           <Card>
