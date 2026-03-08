@@ -307,8 +307,8 @@ const Auth = () => {
         </form>
       ) : (
         <div className="text-center space-y-4">
-          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-800">
-            <p className="text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+          <div className="p-4 bg-muted rounded-xl border border-border">
+            <p className="text-foreground text-sm font-medium">
               ✓ Reset link sent! Check your email inbox.
             </p>
           </div>
