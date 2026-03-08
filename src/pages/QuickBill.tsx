@@ -223,8 +223,6 @@ const QuickBill = () => {
     msg += `\nThank you for your purchase! 🙏`;
     return msg;
   };
-    return cart.find((c) => c.product.id === productId)?.qty || 0;
-  };
 
   return (
     <div className="p-4 md:p-8 pb-24 md:pb-8">
