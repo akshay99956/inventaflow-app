@@ -66,6 +66,7 @@ const PurchaseOrders = () => {
 
   // Create form
   const [supplierName, setSupplierName] = useState("");
+  const [supplierPhone, setSupplierPhone] = useState("");
   const [supplierEmail, setSupplierEmail] = useState("");
   const [poDate, setPODate] = useState(new Date().toISOString().split("T")[0]);
   const [expectedDate, setExpectedDate] = useState("");
