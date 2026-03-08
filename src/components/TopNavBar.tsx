@@ -180,49 +180,66 @@ export const TopNavBar = () => {
             <Search className="h-5 w-5" />
           </Button>
 
-          <Popover>
+          <Popover open={notifOpen} onOpenChange={setNotifOpen}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative">
                 <Bell className="h-5 w-5" />
                 {notifications.length > 0 && (
-                  <span className="absolute top-1 right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-destructive-foreground flex items-center justify-center">
+                  <span className="absolute top-1 right-1 h-4 w-4 bg-destructive rounded-full text-[10px] text-destructive-foreground flex items-center justify-center animate-pulse">
                     {notifications.length > 9 ? "9+" : notifications.length}
                   </span>
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80 p-0">
-              <div className="p-3 border-b">
-                <h4 className="font-semibold">Notifications</h4>
+              <div className="p-3 border-b flex items-center justify-between">
+                <h4 className="font-semibold text-sm">Notifications</h4>
+                {notifications.length > 0 && (
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground gap-1 px-2" onClick={clearAllNotifications}>
+                    <CheckCheck className="h-3 w-3" />
+                    Clear all
+                  </Button>
+                )}
               </div>
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    No notifications
+                  <div className="p-6 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+                    <Bell className="h-8 w-8 text-muted-foreground/30" />
+                    <p>All caught up!</p>
+                    <p className="text-xs">No notifications right now</p>
                   </div>
                 ) : (
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className="p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => {
-                        if (notif.type === "low_stock") navigate("/inventory");
-                        else if (notif.type === "overdue_invoice") navigate("/invoices");
-                        else navigate("/bills");
-                      }}
+                      className="p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer group transition-colors"
+                      onClick={() => handleNotificationClick(notif)}
                     >
-                      <div className="flex items-start gap-2">
-                        {notif.type === "low_stock" ? (
-                          <Package className="h-4 w-4 text-warning mt-0.5" />
-                        ) : notif.type === "overdue_invoice" ? (
-                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
-                        ) : (
-                          <Clock className="h-4 w-4 text-info mt-0.5" />
-                        )}
+                      <div className="flex items-start gap-2.5">
+                        <div className={cn(
+                          "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                          notif.type === "low_stock" ? "bg-warning/10" : notif.type === "overdue_invoice" ? "bg-destructive/10" : "bg-info/10"
+                        )}>
+                          {notif.type === "low_stock" ? (
+                            <Package className="h-4 w-4 text-warning" />
+                          ) : notif.type === "overdue_invoice" ? (
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                          ) : (
+                            <Clock className="h-4 w-4 text-info" />
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{notif.title}</p>
                           <p className="text-xs text-muted-foreground truncate">{notif.message}</p>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); dismissNotification(notif.id); }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   ))
