@@ -9,6 +9,7 @@ import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, Package
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
 type Product = {
