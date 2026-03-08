@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Minus, ShoppingCart, Trash2, Receipt, X } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Trash2, Receipt, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +33,7 @@ const QuickBill = () => {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCart, setShowCart] = useState(false);
 
@@ -164,9 +165,21 @@ const QuickBill = () => {
           .eq("id", c.product.id);
       }
 
+      // Build WhatsApp message
+      const shareMsg = buildWhatsAppMessage(billNumber, customerName.trim(), cart, subtotal, taxAmount, total);
+
       toast.success(`Bill ${billNumber} created!`);
+
+      // Auto-share via WhatsApp if phone provided
+      if (customerPhone.trim()) {
+        const phone = customerPhone.trim().replace(/\D/g, "");
+        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
+        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(shareMsg)}`, "_blank");
+      }
+
       setCart([]);
       setCustomerName("");
+      setCustomerPhone("");
       setShowCart(false);
 
       // Refresh products
@@ -184,6 +197,31 @@ const QuickBill = () => {
 
   const getCartQty = (productId: string) => {
     return cart.find((c) => c.product.id === productId)?.qty || 0;
+  };
+
+  const buildWhatsAppMessage = (
+    billNo: string,
+    name: string,
+    items: CartItem[],
+    sub: number,
+    tax: number,
+    tot: number
+  ) => {
+    let msg = `🧾 *Bill: ${billNo}*\n`;
+    msg += `👤 ${name}\n`;
+    msg += `📅 ${new Date().toLocaleDateString("en-IN")}\n\n`;
+    msg += `*Items:*\n`;
+    items.forEach((c, i) => {
+      msg += `${i + 1}. ${c.product.name}\n   ${c.qty} × ${cs}${c.product.unit_price.toLocaleString("en-IN")} = ${cs}${(c.qty * c.product.unit_price).toLocaleString("en-IN")}\n`;
+    });
+    msg += `\n─────────────\n`;
+    msg += `Subtotal: ${cs}${sub.toLocaleString("en-IN")}\n`;
+    if (settings.tax_enabled && tax > 0) {
+      msg += `${settings.tax_name}: ${cs}${tax.toLocaleString("en-IN", { maximumFractionDigits: 2 })}\n`;
+    }
+    msg += `*Total: ${cs}${tot.toLocaleString("en-IN", { maximumFractionDigits: 2 })}*\n`;
+    msg += `\nThank you for your purchase! 🙏`;
+    return msg;
   };
 
   return (
@@ -326,6 +364,21 @@ const QuickBill = () => {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
               />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Phone (for WhatsApp)"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="flex-1"
+                />
+                {customerPhone.trim() && (
+                  <div className="flex items-center text-[10px] text-success font-medium gap-1">
+                    <Send className="h-3 w-3" />
+                    Auto-share
+                  </div>
+                )}
+              </div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -348,7 +401,7 @@ const QuickBill = () => {
                 className="w-full gradient-primary text-primary-foreground"
               >
                 <Receipt className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Creating..." : "Generate Bill"}
+                {isSubmitting ? "Creating..." : customerPhone.trim() ? "Generate & Share via WhatsApp" : "Generate Bill"}
               </Button>
             </div>
           )}
