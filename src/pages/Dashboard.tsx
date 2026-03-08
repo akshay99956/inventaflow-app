@@ -48,7 +48,7 @@ const Dashboard = () => {
     ] = await Promise.all([
       supabase.from("products").select("*"),
       supabase.from("invoices").select("*"),
-      supabase.from("invoice_items").select("product_id, amount, products(name)"),
+      supabase.from("invoice_items").select("product_id, amount, quantity, invoice_id, products(name)"),
       supabase.from("invoices").select("*").neq("status", "paid").order("due_date", { ascending: true }).limit(5),
       supabase.from("bills").select("*"),
       supabase.from("clients").select("id"),
