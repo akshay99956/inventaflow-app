@@ -899,6 +899,175 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
+        {/* Security Tab */}
+        <TabsContent value="security" className="space-y-4">
+          {/* Session Info */}
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Eye className="h-5 w-5 text-primary" />
+                Current Session
+              </CardTitle>
+              <CardDescription>Your active login session details</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6 space-y-3">
+              {sessionInfo ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Email</p>
+                      <p className="text-sm font-medium mt-0.5 truncate">{sessionInfo.email}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Last Sign In</p>
+                      <p className="text-sm font-medium mt-0.5">{sessionInfo.lastSignIn}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Auth Provider</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Badge variant="secondary" className="text-xs">{sessionInfo.provider}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleSignOutAll}
+                      disabled={signingOutAll}
+                      className="gap-2"
+                    >
+                      {signingOutAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                      Sign Out All Devices
+                    </Button>
+                    <p className="text-xs text-muted-foreground self-center">
+                      This will sign you out from every device, including this one.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading session info...
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Security Actions */}
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Shield className="h-5 w-5 text-primary" />
+                Security Settings
+              </CardTitle>
+              <CardDescription>Manage your account security preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <motion.button
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all text-left group"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <KeyRound className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Change Password</p>
+                    <p className="text-xs text-muted-foreground">Update your login password</p>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 hover:border-warning/30 hover:bg-muted/40 transition-all text-left group"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                    <Fingerprint className="h-4 w-4 text-warning" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">PIN Login</p>
+                    <p className="text-xs text-muted-foreground">
+                      {pinEnabled ? "Enabled — manage in Profile" : "Disabled — enable in Profile"}
+                    </p>
+                  </div>
+                  <Badge variant={pinEnabled ? "default" : "secondary"} className="text-[10px] shrink-0">
+                    {pinEnabled ? "ON" : "OFF"}
+                  </Badge>
+                </motion.button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Export */}
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Download className="h-5 w-5 text-primary" />
+                Data Export
+              </CardTitle>
+              <CardDescription>Download a copy of all your business data</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Export your invoices, bills, products, clients, and transactions as a JSON file. This can be used for backup or migration purposes.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                disabled={exportingData}
+                className="gap-2"
+              >
+                {exportingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Export All Data
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Login Activity */}
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <History className="h-5 w-5 text-primary" />
+                Recent Login Activity
+              </CardTitle>
+              <CardDescription>PIN-based login attempts on your account</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+              {loginAttempts.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {loginAttempts.map((attempt, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center justify-between p-2.5 rounded-lg border text-sm ${
+                        attempt.success
+                          ? "border-success/20 bg-success/5"
+                          : "border-destructive/20 bg-destructive/5"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {attempt.success ? (
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                        )}
+                        <span className="truncate">{attempt.email}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                        {format(new Date(attempt.created_at), "dd MMM, hh:mm a")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-4 text-center">No recent login activity</p>
+              )}
+            </CardContent>
+          </Card>
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-4">
           <Card>
