@@ -341,6 +341,71 @@ const ProfitAnalytics = () => {
         </Card>
       </div>
 
+      {/* Monthly Profit/Loss Trend Line */}
+      <Card className="border-2 border-accent/20 shadow-colorful">
+        <CardHeader className="bg-gradient-to-r from-success/5 to-destructive/5 px-3 md:px-6 py-2 md:py-4">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+            {metrics.totalProfit >= 0 ? (
+              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />
+            ) : (
+              <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
+            )}
+            Monthly Profit / Loss Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-2 md:pt-6 px-1 md:px-6 pb-2 md:pb-6">
+          <ChartContainer config={chartConfig} className="h-[180px] md:h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={metrics.monthlyData} margin={isMobile ? { top: 10, right: 5, left: -20, bottom: 5 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4} />
+                    <stop offset="50%" stopColor="hsl(var(--chart-2))" stopOpacity={0.05} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: isMobile ? 9 : 12 }}
+                  tickFormatter={(v) => isMobile ? v.slice(0, 3) : v}
+                  interval={isMobile ? 0 : "preserveStartEnd"}
+                />
+                <YAxis
+                  tick={{ fontSize: isMobile ? 9 : 12 }}
+                  tickFormatter={(v) => isMobile ? `₹${(v / 1000).toFixed(0)}k` : `₹${v.toLocaleString('en-IN')}`}
+                  width={isMobile ? 40 : 70}
+                />
+                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" strokeOpacity={0.5} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  type="monotone"
+                  dataKey="profit"
+                  stroke="hsl(var(--chart-2))"
+                  strokeWidth={2.5}
+                  fill="url(#profitGradient)"
+                  dot={{ fill: "hsl(var(--chart-2))", r: isMobile ? 3 : 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          {/* Monthly breakdown summary */}
+          {metrics.monthlyData.length > 0 && (
+            <div className="mt-3 md:mt-4 grid grid-cols-3 md:grid-cols-6 gap-2">
+              {metrics.monthlyData.map((m) => (
+                <div key={m.month} className="text-center p-2 rounded-lg bg-muted/40">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">{isMobile ? m.month.slice(0, 3) : m.month}</p>
+                  <p className={`text-xs md:text-sm font-bold ${m.profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    {m.profit >= 0 ? '+' : ''}₹{Math.abs(m.profit).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Top Profitable Products */}
       <Card className="border-2 border-accent/20 shadow-colorful">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-success/5 px-3 md:px-6 py-3 md:py-4">
