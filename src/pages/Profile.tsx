@@ -931,6 +931,106 @@ const Profile = () => {
         </Card>
       </div>
 
+      {/* Main Content continued - inside container */}
+      <div className="container max-w-5xl px-4 sm:px-6 space-y-5">
+        {/* Account Overview */}
+        <Card className="shadow-md border-border/50">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Account Overview</CardTitle>
+                  {accountStats.memberSince && (
+                    <CardDescription className="text-xs flex items-center gap-1 mt-0.5">
+                      <CalendarDays className="h-3 w-3" />
+                      Member since {accountStats.memberSince}
+                    </CardDescription>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[
+                { label: "Products", value: accountStats.totalProducts, icon: Package, color: "text-primary", path: "/inventory" },
+                { label: "Invoices", value: accountStats.totalInvoices, icon: FileText, color: "text-success", path: "/invoices" },
+                { label: "Bills", value: accountStats.totalBills, icon: Receipt, color: "text-warning", path: "/bills" },
+                { label: "Clients", value: accountStats.totalClients, icon: Users, color: "text-secondary", path: "/clients" },
+                { label: "Revenue", value: `₹${accountStats.totalRevenue >= 1000 ? `${(accountStats.totalRevenue / 1000).toFixed(0)}k` : accountStats.totalRevenue}`, icon: TrendingUp, color: "text-success", path: "/profit-analytics" },
+                { label: "Expenses", value: `₹${accountStats.totalExpenses >= 1000 ? `${(accountStats.totalExpenses / 1000).toFixed(0)}k` : accountStats.totalExpenses}`, icon: CreditCard, color: "text-destructive", path: "/balance-sheet" },
+              ].map((stat) => (
+                <motion.button
+                  key={stat.label}
+                  onClick={() => navigate(stat.path)}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all text-center"
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <span className={`text-lg font-bold ${stat.color}`}>{stat.value}</span>
+                  <span className="text-[10px] text-muted-foreground">{stat.label}</span>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Profit summary bar */}
+            {accountStats.totalRevenue > 0 && (
+              <div className="mt-4 p-3 rounded-lg bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Net Profit</span>
+                  <span className={`font-bold ${accountStats.totalRevenue - accountStats.totalExpenses >= 0 ? "text-success" : "text-destructive"}`}>
+                    ₹{(accountStats.totalRevenue - accountStats.totalExpenses).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+                <Progress
+                  value={Math.min((accountStats.totalExpenses / accountStats.totalRevenue) * 100, 100)}
+                  className="h-2"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>Expenses: {((accountStats.totalExpenses / accountStats.totalRevenue) * 100).toFixed(0)}% of revenue</span>
+                  <span>Margin: {(((accountStats.totalRevenue - accountStats.totalExpenses) / accountStats.totalRevenue) * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Links */}
+        <Card className="shadow-md border-border/50">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
+                <Settings className="h-4 w-4 text-secondary" />
+              </div>
+              <CardTitle className="text-base">Quick Links</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: "Settings", icon: Settings, path: "/settings", color: "text-muted-foreground" },
+                { label: "Dashboard", icon: BarChart3, path: "/dashboard", color: "text-primary" },
+                { label: "Profit Analytics", icon: TrendingUp, path: "/profit-analytics", color: "text-success" },
+                { label: "Balance Sheet", icon: CreditCard, path: "/balance-sheet", color: "text-warning" },
+              ].map((link) => (
+                <Button
+                  key={link.label}
+                  variant="ghost"
+                  className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl hover:bg-muted/40"
+                  onClick={() => navigate(link.path)}
+                >
+                  <link.icon className={`h-5 w-5 ${link.color}`} />
+                  <span className="text-xs font-medium">{link.label}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
       {/* Email Change Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={(open) => {
         if (!open) resetEmailDialog();
