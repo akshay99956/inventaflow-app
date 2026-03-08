@@ -1116,8 +1116,8 @@ const Profile = () => {
               </>
             ) : (
               <div className="text-center space-y-4">
-                <div className="h-16 w-16 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                <div className="h-16 w-16 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-success" />
                 </div>
                 <div className="space-y-2">
                   <p className="font-medium">Verification email sent!</p>
