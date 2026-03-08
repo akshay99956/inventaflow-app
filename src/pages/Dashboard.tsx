@@ -48,7 +48,7 @@ const Dashboard = () => {
     ] = await Promise.all([
       supabase.from("products").select("*"),
       supabase.from("invoices").select("*"),
-      supabase.from("invoice_items").select("product_id, amount, products(name)"),
+      supabase.from("invoice_items").select("product_id, amount, quantity, invoice_id, products(name)"),
       supabase.from("invoices").select("*").neq("status", "paid").order("due_date", { ascending: true }).limit(5),
       supabase.from("bills").select("*"),
       supabase.from("clients").select("id"),
@@ -163,7 +163,6 @@ const Dashboard = () => {
     // Top products (from all invoice items, but only matching invoices)
     const invoiceIds = new Set(invoices.map((inv) => inv.id));
     const filteredItems = allInvoiceItems.filter((item) => {
-      // invoice_items don't have issue_date, so we match by invoice_id
       return !dateRange.from || invoiceIds.has(item.invoice_id);
     });
     const productRevenue = filteredItems.reduce((acc: any, item) => {
@@ -175,6 +174,40 @@ const Dashboard = () => {
       .map(([name, revenue]) => ({ name, revenue: revenue as number }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
+
+    // Top selling items by quantity
+    const productQtySold = filteredItems.reduce((acc: any, item) => {
+      const name = (item.products as any)?.name || "Unknown";
+      if (!acc[name]) acc[name] = { qty: 0, revenue: 0 };
+      acc[name].qty += Number((item as any).quantity) || 1;
+      acc[name].revenue += Number(item.amount) || 0;
+      return acc;
+    }, {});
+    const topSellingItems = Object.entries(productQtySold)
+      .map(([name, data]: [string, any]) => ({ name, qty: data.qty, revenue: data.revenue }))
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 8);
+
+    // Stock value by category
+    const categoryStockMap: Record<string, { value: number; count: number }> = {};
+    allProducts.forEach((p) => {
+      const cat = p.category || "Uncategorized";
+      if (!categoryStockMap[cat]) categoryStockMap[cat] = { value: 0, count: 0 };
+      categoryStockMap[cat].value += p.quantity * p.unit_price;
+      categoryStockMap[cat].count += p.quantity;
+    });
+    const stockByCategory = Object.entries(categoryStockMap)
+      .map(([name, data]) => ({ name, value: data.value, count: data.count }))
+      .sort((a, b) => b.value - a.value);
+
+    // Category count for products
+    const uniqueCategories = new Set(allProducts.map((p) => p.category || "Uncategorized")).size;
+
+    // Avg order value
+    const avgOrderValue = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
+
+    // Profit margin
+    const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
 
     // Recent bills (filtered)
     const recentBills = [...bills]
@@ -201,7 +234,8 @@ const Dashboard = () => {
       totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
       totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
       recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
-      totalClientsCount: allClients.length, changes,
+      totalClientsCount: allClients.length, changes, topSellingItems,
+      stockByCategory, uniqueCategories, avgOrderValue, profitMargin,
     };
   }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
 
@@ -486,6 +520,122 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Row 2.5: Key Business Metrics ── */}
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+        {[
+          { title: "Avg Order Value", value: fmtCurrency(filtered.avgOrderValue), icon: FileText, color: "text-primary" },
+          { title: "Profit Margin", value: `${filtered.profitMargin.toFixed(1)}%`, icon: TrendingUp, color: filtered.profitMargin >= 0 ? "text-success" : "text-destructive" },
+          { title: "Categories", value: filtered.uniqueCategories.toString(), icon: Package, color: "text-secondary" },
+          { title: "Total Invoices", value: filtered.totalInvoices.toString(), icon: FileText, color: "text-warning" },
+        ].map((item) => (
+          <Card key={item.title} className="relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
+            <CardContent className="p-3 md:p-4 pt-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground">{item.title}</span>
+                <item.icon className={`h-4 w-4 ${item.color}`} />
+              </div>
+              <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* ── Row 2.7: Stock by Category + Top Selling Items ── */}
+      <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
+        {/* Stock Value by Category - Donut Chart */}
+        <Card>
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base">Stock Value by Category</CardTitle>
+            <Badge variant="secondary" className="text-[10px]">{filtered.stockByCategory.length} categories</Badge>
+          </CardHeader>
+          <CardContent className="p-1 md:p-6 pt-0">
+            {filtered.stockByCategory.length === 0 ? (
+              <p className="text-muted-foreground text-center py-6 text-sm">No products yet</p>
+            ) : (
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <ChartContainer config={{ value: { label: "Stock Value", color: "hsl(var(--chart-1))" } }} className="h-[160px] md:h-[200px] w-full md:w-1/2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={filtered.stockByCategory}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="40%"
+                        outerRadius="75%"
+                        paddingAngle={2}
+                        strokeWidth={1}
+                      >
+                        {filtered.stockByCategory.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                <div className="flex-1 space-y-1.5 w-full md:w-1/2">
+                  {filtered.stockByCategory.slice(0, 6).map((cat, i) => (
+                    <div key={cat.name} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="text-xs truncate">{cat.name}</span>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-xs font-semibold">{fmtCurrency(cat.value)}</span>
+                        <span className="text-[10px] text-muted-foreground ml-1">({cat.count} pcs)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Selling Items */}
+        <Card>
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-success" />
+              Top Selling Items
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">By quantity</Badge>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6 pt-0">
+            {filtered.topSellingItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-6 text-sm">No sales data yet</p>
+            ) : (
+              <div className="space-y-2">
+                {filtered.topSellingItems.map((item, idx) => {
+                  const maxQty = filtered.topSellingItems[0]?.qty || 1;
+                  const pct = (item.qty / maxQty) * 100;
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-muted-foreground w-4">#{idx + 1}</span>
+                          <span className="text-sm font-medium truncate">{item.name}</span>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <span className="text-xs font-bold">{item.qty} sold</span>
+                          <span className="text-[10px] text-muted-foreground ml-1.5">{fmtCurrency(item.revenue)}</span>
+                        </div>
+                      </div>
+                      <div className="ml-6">
+                        <Progress value={pct} className="h-1" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
