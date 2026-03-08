@@ -10,9 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings, Smartphone, Edit3, Trash2, AlertTriangle } from "lucide-react";
+import { User, Building2, Phone, Mail, KeyRound, Shield, Loader2, Save, Camera, Lock, Eye, EyeOff, CheckCircle2, Settings, Smartphone, Edit3, Trash2, AlertTriangle, Package, FileText, Receipt, Users, CalendarDays, TrendingUp, BarChart3, CreditCard } from "lucide-react";
 import { z } from "zod";
+import { format } from "date-fns";
 import {
   InputOTP,
   InputOTPGroup,
@@ -122,8 +124,15 @@ const Profile = () => {
   const [emailStep, setEmailStep] = useState<"enter" | "sent">("enter");
   const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
 
+  // Account stats
+  const [accountStats, setAccountStats] = useState({
+    totalProducts: 0, totalInvoices: 0, totalBills: 0, totalClients: 0,
+    totalRevenue: 0, totalExpenses: 0, memberSince: "",
+  });
+
   useEffect(() => {
     fetchProfile();
+    fetchAccountStats();
   }, []);
 
   const fetchProfile = async () => {
@@ -171,6 +180,31 @@ const Profile = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAccountStats = async () => {
+    try {
+      const [
+        { data: products }, { data: invoices }, { data: bills }, { data: clients }, { data: { user } }
+      ] = await Promise.all([
+        supabase.from("products").select("id", { count: "exact", head: false }),
+        supabase.from("invoices").select("id, total"),
+        supabase.from("bills").select("id, total"),
+        supabase.from("clients").select("id", { count: "exact", head: false }),
+        supabase.auth.getUser(),
+      ]);
+      setAccountStats({
+        totalProducts: products?.length || 0,
+        totalInvoices: invoices?.length || 0,
+        totalBills: bills?.length || 0,
+        totalClients: clients?.length || 0,
+        totalRevenue: invoices?.reduce((s, i) => s + (Number(i.total) || 0), 0) || 0,
+        totalExpenses: bills?.reduce((s, b) => s + (Number(b.total) || 0), 0) || 0,
+        memberSince: user?.created_at ? format(new Date(user.created_at), "dd MMM yyyy") : "",
+      });
+    } catch (e) {
+      console.error("Error fetching stats:", e);
     }
   };
 
@@ -897,6 +931,106 @@ const Profile = () => {
         </Card>
       </div>
 
+      {/* Main Content continued - inside container */}
+      <div className="container max-w-5xl px-4 sm:px-6 space-y-5">
+        {/* Account Overview */}
+        <Card className="shadow-md border-border/50">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Account Overview</CardTitle>
+                  {accountStats.memberSince && (
+                    <CardDescription className="text-xs flex items-center gap-1 mt-0.5">
+                      <CalendarDays className="h-3 w-3" />
+                      Member since {accountStats.memberSince}
+                    </CardDescription>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[
+                { label: "Products", value: accountStats.totalProducts, icon: Package, color: "text-primary", path: "/inventory" },
+                { label: "Invoices", value: accountStats.totalInvoices, icon: FileText, color: "text-success", path: "/invoices" },
+                { label: "Bills", value: accountStats.totalBills, icon: Receipt, color: "text-warning", path: "/bills" },
+                { label: "Clients", value: accountStats.totalClients, icon: Users, color: "text-secondary", path: "/clients" },
+                { label: "Revenue", value: `₹${accountStats.totalRevenue >= 1000 ? `${(accountStats.totalRevenue / 1000).toFixed(0)}k` : accountStats.totalRevenue}`, icon: TrendingUp, color: "text-success", path: "/profit-analytics" },
+                { label: "Expenses", value: `₹${accountStats.totalExpenses >= 1000 ? `${(accountStats.totalExpenses / 1000).toFixed(0)}k` : accountStats.totalExpenses}`, icon: CreditCard, color: "text-destructive", path: "/balance-sheet" },
+              ].map((stat) => (
+                <motion.button
+                  key={stat.label}
+                  onClick={() => navigate(stat.path)}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all text-center"
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <span className={`text-lg font-bold ${stat.color}`}>{stat.value}</span>
+                  <span className="text-[10px] text-muted-foreground">{stat.label}</span>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Profit summary bar */}
+            {accountStats.totalRevenue > 0 && (
+              <div className="mt-4 p-3 rounded-lg bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Net Profit</span>
+                  <span className={`font-bold ${accountStats.totalRevenue - accountStats.totalExpenses >= 0 ? "text-success" : "text-destructive"}`}>
+                    ₹{(accountStats.totalRevenue - accountStats.totalExpenses).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+                <Progress
+                  value={Math.min((accountStats.totalExpenses / accountStats.totalRevenue) * 100, 100)}
+                  className="h-2"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>Expenses: {((accountStats.totalExpenses / accountStats.totalRevenue) * 100).toFixed(0)}% of revenue</span>
+                  <span>Margin: {(((accountStats.totalRevenue - accountStats.totalExpenses) / accountStats.totalRevenue) * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Links */}
+        <Card className="shadow-md border-border/50">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
+                <Settings className="h-4 w-4 text-secondary" />
+              </div>
+              <CardTitle className="text-base">Quick Links</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: "Settings", icon: Settings, path: "/settings", color: "text-muted-foreground" },
+                { label: "Dashboard", icon: BarChart3, path: "/dashboard", color: "text-primary" },
+                { label: "Profit Analytics", icon: TrendingUp, path: "/profit-analytics", color: "text-success" },
+                { label: "Balance Sheet", icon: CreditCard, path: "/balance-sheet", color: "text-warning" },
+              ].map((link) => (
+                <Button
+                  key={link.label}
+                  variant="ghost"
+                  className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl hover:bg-muted/40"
+                  onClick={() => navigate(link.path)}
+                >
+                  <link.icon className={`h-5 w-5 ${link.color}`} />
+                  <span className="text-xs font-medium">{link.label}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
       {/* Email Change Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={(open) => {
         if (!open) resetEmailDialog();
@@ -982,8 +1116,8 @@ const Profile = () => {
               </>
             ) : (
               <div className="text-center space-y-4">
-                <div className="h-16 w-16 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                <div className="h-16 w-16 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-success" />
                 </div>
                 <div className="space-y-2">
                   <p className="font-medium">Verification email sent!</p>
@@ -1221,28 +1355,32 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Danger Zone */}
-      <Card className="border-destructive/50">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          </div>
-          <CardDescription>
-            Permanently delete your account and all associated data. This action cannot be undone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-            className="gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete Account
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Danger Zone */}
+        <Card className="shadow-md border-destructive/30">
+          <CardHeader className="pb-3 pt-5 px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </div>
+              <div>
+                <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+                <CardDescription className="text-xs">Permanently delete your account and all data</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Account
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Delete Account Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
