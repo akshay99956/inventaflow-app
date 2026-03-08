@@ -9,7 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2, Check, X } from "lucide-react";
+
+// Password strength calculator
+const getPasswordStrength = (pw: string): { score: number; label: string; color: string; checks: { label: string; pass: boolean }[] } => {
+  const checks = [
+    { label: "At least 6 characters", pass: pw.length >= 6 },
+    { label: "Uppercase letter", pass: /[A-Z]/.test(pw) },
+    { label: "Lowercase letter", pass: /[a-z]/.test(pw) },
+    { label: "Number", pass: /\d/.test(pw) },
+    { label: "Special character", pass: /[^A-Za-z0-9]/.test(pw) },
+  ];
+  const score = checks.filter(c => c.pass).length;
+  const map: Record<number, { label: string; color: string }> = {
+    0: { label: "", color: "hsl(var(--muted))" },
+    1: { label: "Very weak", color: "hsl(var(--destructive))" },
+    2: { label: "Weak", color: "hsl(var(--destructive))" },
+    3: { label: "Fair", color: "hsl(var(--warning))" },
+    4: { label: "Good", color: "hsl(var(--success))" },
+    5: { label: "Strong", color: "hsl(var(--success))" },
+  };
+  return { score, checks, ...map[score] };
+};
 import { getSafeAuthErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Switch } from "@/components/ui/switch";
@@ -663,6 +684,33 @@ const Auth = () => {
               {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
             </Button>
           </div>
+          {/* Password strength indicator */}
+          {password && (() => {
+            const strength = getPasswordStrength(password);
+            return (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 pt-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
+                      style={{ backgroundColor: i <= strength.score ? strength.color : 'hsl(var(--muted))' }} />
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium" style={{ color: strength.color }}>{strength.label}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                  {strength.checks.map(c => (
+                    <div key={c.label} className="flex items-center gap-1.5">
+                      {c.pass 
+                        ? <Check className="h-3 w-3 text-[hsl(var(--success))]" /> 
+                        : <X className="h-3 w-3 text-muted-foreground/40" />}
+                      <span className={`text-[11px] ${c.pass ? 'text-foreground' : 'text-muted-foreground/60'}`}>{c.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
 
         <div className="space-y-3">
