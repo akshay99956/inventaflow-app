@@ -1,44 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt, CalendarIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, subDays, isAfter } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const cs = settings.currency_symbol || "₹";
-
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalInvoices: 0,
-    pendingInvoices: 0,
-    totalRevenue: 0,
-    totalStockValue: 0
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
   });
-  const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
-  const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
+  const [activePreset, setActivePreset] = useState<string>("all");
+  // Raw data from DB
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allInvoices, setAllInvoices] = useState<any[]>([]);
+  const [allInvoiceItems, setAllInvoiceItems] = useState<any[]>([]);
+  const [allBills, setAllBills] = useState<any[]>([]);
+  const [allClients, setAllClients] = useState<any[]>([]);
+  const [allPOs, setAllPOs] = useState<any[]>([]);
   const [outstandingInvoices, setOutstandingInvoices] = useState<any[]>([]);
-
-  // New state for additional widgets
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
-  const [recentBills, setRecentBills] = useState<any[]>([]);
-  const [totalBillsAmount, setTotalBillsAmount] = useState(0);
-  const [pendingBillsCount, setPendingBillsCount] = useState(0);
-  const [totalClientsCount, setTotalClientsCount] = useState(0);
-  const [recentPOs, setRecentPOs] = useState<any[]>([]);
-  const [expenseVsRevenue, setExpenseVsRevenue] = useState<{ month: string; revenue: number; expense: number }[]>([]);
 
   const fetchAllData = async () => {
     const [
@@ -59,47 +55,15 @@ const Dashboard = () => {
       supabase.from("purchase_orders").select("*").order("created_at", { ascending: false }).limit(5)
     ]);
 
-    // Basic stats
-    const totalProducts = products?.length || 0;
-    const totalInvoices = invoices?.length || 0;
-    const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
-    const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
-    const totalStockValue = products?.reduce((sum, p) => sum + p.quantity * p.unit_price, 0) || 0;
-    setStats({ totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue });
-
-    // Revenue trends
-    if (invoices && invoices.length > 0) {
-      const revenueByMonth = invoices.reduce((acc: any, inv) => {
-        const month = format(new Date(inv.issue_date), "MMM yyyy");
-        acc[month] = (acc[month] || 0) + (Number(inv.total) || 0);
-        return acc;
-      }, {});
-      setRevenueData(
-        Object.entries(revenueByMonth)
-          .map(([month, revenue]) => ({ month, revenue: revenue as number }))
-          .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
-          .slice(-6)
-      );
-    }
-
-    // Top products
-    if (invoiceItems) {
-      const productRevenue = invoiceItems.reduce((acc: any, item) => {
-        const name = (item.products as any)?.name || "Unknown";
-        acc[name] = (acc[name] || 0) + (Number(item.amount) || 0);
-        return acc;
-      }, {});
-      setTopProducts(
-        Object.entries(productRevenue)
-          .map(([name, revenue]) => ({ name, revenue: revenue as number }))
-          .sort((a, b) => b.revenue - a.revenue)
-          .slice(0, 5)
-      );
-    }
-
+    setAllProducts(products || []);
+    setAllInvoices(invoices || []);
+    setAllInvoiceItems(invoiceItems || []);
+    setAllBills(bills || []);
+    setAllClients(clients || []);
+    setAllPOs(purchaseOrders || []);
     setOutstandingInvoices(outstanding || []);
 
-    // Low stock products
+    // Low stock (not date-dependent)
     if (products) {
       const lowStock = products
         .filter((p) => p.quantity <= p.low_stock_threshold && p.quantity > 0)
@@ -108,38 +72,122 @@ const Dashboard = () => {
       const outOfStock = products.filter((p) => p.quantity === 0).slice(0, 3);
       setLowStockProducts([...outOfStock, ...lowStock].slice(0, 6));
     }
+  };
 
-    // Bills summary
-    if (bills) {
-      setTotalBillsAmount(bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0));
-      setPendingBillsCount(bills.filter((b) => b.status === "pending").length);
-      setRecentBills(bills.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5));
+  // Date filter helper
+  const isInRange = (dateStr: string) => {
+    if (!dateRange.from && !dateRange.to) return true;
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    if (dateRange.from && dateRange.to) {
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      const to = new Date(dateRange.to); to.setHours(23, 59, 59, 999);
+      return d >= from && d <= to;
     }
+    if (dateRange.from) {
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      return d >= from;
+    }
+    return true;
+  };
 
-    // Clients count
-    setTotalClientsCount(clients?.length || 0);
+  // Computed filtered data
+  const filtered = useMemo(() => {
+    const invoices = allInvoices.filter((inv) => isInRange(inv.issue_date));
+    const bills = allBills.filter((b) => isInRange(b.bill_date));
+    const pos = allPOs.filter((po) => isInRange(po.po_date));
 
-    // Recent POs
-    setRecentPOs(purchaseOrders || []);
+    const totalProducts = allProducts.length;
+    const totalInvoices = invoices.length;
+    const pendingInvoices = invoices.filter((inv) => inv.status !== "paid").length;
+    const totalRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+    const totalStockValue = allProducts.reduce((sum, p) => sum + p.quantity * p.unit_price, 0);
+    const totalBillsAmount = bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
+    const pendingBillsCount = bills.filter((b) => b.status === "pending").length;
+    const profit = totalRevenue - totalBillsAmount;
 
-    // Expense vs Revenue (monthly comparison)
-    if (invoices && bills) {
-      const months: Record<string, { revenue: number; expense: number }> = {};
-      invoices.forEach((inv) => {
-        const m = format(new Date(inv.issue_date), "MMM");
-        if (!months[m]) months[m] = { revenue: 0, expense: 0 };
-        months[m].revenue += Number(inv.total) || 0;
-      });
-      bills.forEach((b) => {
-        const m = format(new Date(b.bill_date), "MMM");
-        if (!months[m]) months[m] = { revenue: 0, expense: 0 };
-        months[m].expense += Number(b.total) || 0;
-      });
-      setExpenseVsRevenue(
-        Object.entries(months)
-          .map(([month, data]) => ({ month, ...data }))
-          .slice(-6)
-      );
+    // Revenue trends
+    const revenueByMonth = invoices.reduce((acc: any, inv) => {
+      const month = format(new Date(inv.issue_date), "MMM yyyy");
+      acc[month] = (acc[month] || 0) + (Number(inv.total) || 0);
+      return acc;
+    }, {});
+    const revenueData = Object.entries(revenueByMonth)
+      .map(([month, revenue]) => ({ month, revenue: revenue as number }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+      .slice(-6);
+
+    // Top products (from all invoice items, but only matching invoices)
+    const invoiceIds = new Set(invoices.map((inv) => inv.id));
+    const filteredItems = allInvoiceItems.filter((item) => {
+      // invoice_items don't have issue_date, so we match by invoice_id
+      return !dateRange.from || invoiceIds.has(item.invoice_id);
+    });
+    const productRevenue = filteredItems.reduce((acc: any, item) => {
+      const name = (item.products as any)?.name || "Unknown";
+      acc[name] = (acc[name] || 0) + (Number(item.amount) || 0);
+      return acc;
+    }, {});
+    const topProducts = Object.entries(productRevenue)
+      .map(([name, revenue]) => ({ name, revenue: revenue as number }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    // Recent bills (filtered)
+    const recentBills = [...bills]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+
+    // Expense vs Revenue
+    const months: Record<string, { revenue: number; expense: number }> = {};
+    invoices.forEach((inv) => {
+      const m = format(new Date(inv.issue_date), "MMM");
+      if (!months[m]) months[m] = { revenue: 0, expense: 0 };
+      months[m].revenue += Number(inv.total) || 0;
+    });
+    bills.forEach((b) => {
+      const m = format(new Date(b.bill_date), "MMM");
+      if (!months[m]) months[m] = { revenue: 0, expense: 0 };
+      months[m].expense += Number(b.total) || 0;
+    });
+    const expenseVsRevenue = Object.entries(months)
+      .map(([month, data]) => ({ month, ...data }))
+      .slice(-6);
+
+    return {
+      totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
+      totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
+      recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
+      totalClientsCount: allClients.length,
+    };
+  }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
+
+  // Preset helpers
+  const applyPreset = (preset: string) => {
+    setActivePreset(preset);
+    const today = new Date();
+    switch (preset) {
+      case "7d":
+        setDateRange({ from: subDays(today, 7), to: today });
+        break;
+      case "30d":
+        setDateRange({ from: subDays(today, 30), to: today });
+        break;
+      case "this-month":
+        setDateRange({ from: startOfMonth(today), to: today });
+        break;
+      case "last-month": {
+        const lastMonth = subMonths(today, 1);
+        setDateRange({ from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) });
+        break;
+      }
+      case "this-year":
+        setDateRange({ from: startOfYear(today), to: today });
+        break;
+      case "all":
+      default:
+        setDateRange({ from: undefined, to: undefined });
+        break;
     }
   };
 
@@ -157,10 +205,10 @@ const Dashboard = () => {
   const handleShareWhatsApp = () => {
     let message = `📊 *Business Summary*\n`;
     message += `📅 ${format(new Date(), "dd MMM yyyy")}\n\n`;
-    message += `📦 Products: ${stats.totalProducts}\n`;
-    message += `💰 Stock Value: ${cs}${stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
-    message += `📄 Pending Invoices: ${stats.pendingInvoices}\n`;
-    message += `✅ Total Revenue: ${cs}${stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📦 Products: ${filtered.totalProducts}\n`;
+    message += `💰 Stock Value: ${cs}${filtered.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📄 Pending Invoices: ${filtered.pendingInvoices}\n`;
+    message += `✅ Total Revenue: ${cs}${filtered.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
     if (outstandingInvoices.length > 0) {
       message += `\n⚠️ *Outstanding Invoices:*\n`;
       outstandingInvoices.forEach((inv) => {
@@ -187,8 +235,8 @@ const Dashboard = () => {
 
   const handleExportCSV = () => {
     const date = new Date().toISOString().split("T")[0];
-    if (revenueData.length > 0) exportToCSV(revenueData, `revenue-trends-${date}`);
-    if (topProducts.length > 0) exportToCSV(topProducts, `top-products-${date}`);
+    if (filtered.revenueData.length > 0) exportToCSV(filtered.revenueData, `revenue-trends-${date}`);
+    if (filtered.topProducts.length > 0) exportToCSV(filtered.topProducts, `top-products-${date}`);
     if (outstandingInvoices.length > 0) {
       exportToCSV(outstandingInvoices.map((inv) => ({
         customer_name: inv.customer_name,
@@ -201,7 +249,6 @@ const Dashboard = () => {
   };
 
   const fmtCurrency = (val: number) => `${cs}${val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
-  const profit = stats.totalRevenue - totalBillsAmount;
 
   const revenueChartConfig = { revenue: { label: "Revenue", color: "hsl(var(--chart-1))" } } satisfies ChartConfig;
   const productsChartConfig = { revenue: { label: "Revenue", color: "hsl(var(--chart-2))" } } satisfies ChartConfig;
@@ -243,15 +290,93 @@ const Dashboard = () => {
         </Popover>
       </div>
 
+      {/* Date Range Filter */}
+      <Card className="print:hidden">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* Preset buttons */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: "all", label: "All Time" },
+                { key: "7d", label: "7 Days" },
+                { key: "30d", label: "30 Days" },
+                { key: "this-month", label: "This Month" },
+                { key: "last-month", label: "Last Month" },
+                { key: "this-year", label: "This Year" },
+              ].map((p) => (
+                <Button
+                  key={p.key}
+                  variant={activePreset === p.key ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => applyPreset(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* Custom date pickers */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1.5 min-w-[120px] justify-start", !dateRange.from && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateRange.from ? format(dateRange.from, "dd MMM yyyy") : "From"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.from}
+                    onSelect={(date) => { setDateRange((prev) => ({ ...prev, from: date })); setActivePreset("custom"); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">to</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1.5 min-w-[120px] justify-start", !dateRange.to && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateRange.to ? format(dateRange.to, "dd MMM yyyy") : "To"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.to}
+                    onSelect={(date) => { setDateRange((prev) => ({ ...prev, to: date })); setActivePreset("custom"); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              {(dateRange.from || dateRange.to) && (
+                <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => applyPreset("all")}>
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+          {activePreset !== "all" && (
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Showing data {dateRange.from ? `from ${format(dateRange.from, "dd MMM yyyy")}` : ""} {dateRange.to ? `to ${format(dateRange.to, "dd MMM yyyy")}` : ""}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* ── Row 1: Key Stats (6 cards) ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: stats.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory" },
-          { title: "Stock Value", value: fmtCurrency(stats.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth" },
-          { title: "Revenue", value: fmtCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-success", sub: "All time" },
-          { title: "Expenses", value: fmtCurrency(totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills" },
-          { title: "Profit", value: fmtCurrency(profit), icon: profit >= 0 ? ArrowUpRight : ArrowDownRight, color: profit >= 0 ? "text-success" : "text-destructive", sub: profit >= 0 ? "Net positive" : "Net loss" },
-          { title: "Clients", value: totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients" },
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "Filtered" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients" },
         ].map((item) => (
           <Card key={item.title} className="relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
@@ -269,7 +394,6 @@ const Dashboard = () => {
 
       {/* ── Row 2: Charts ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Revenue Trends */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Revenue Trends</CardTitle>
@@ -277,7 +401,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={revenueChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <LineChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
@@ -289,7 +413,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Revenue vs Expenses */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Revenue vs Expenses</CardTitle>
@@ -297,7 +420,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={comparisonChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <BarChart data={filtered.expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
@@ -313,7 +436,6 @@ const Dashboard = () => {
 
       {/* ── Row 3: Top Products + Low Stock ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Top Products */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Top Products</CardTitle>
@@ -321,7 +443,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={productsChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <BarChart data={filtered.topProducts} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 8 }} />
@@ -333,7 +455,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Low Stock Alerts */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base flex items-center gap-2">
@@ -374,11 +495,10 @@ const Dashboard = () => {
 
       {/* ── Row 4: Outstanding Invoices + Recent Bills ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Outstanding Invoices */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base">Outstanding Invoices</CardTitle>
-            <Badge variant="secondary" className="text-[10px]">{stats.pendingInvoices} pending</Badge>
+            <Badge variant="secondary" className="text-[10px]">{filtered.pendingInvoices} pending</Badge>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
             {outstandingInvoices.length === 0 ? (
@@ -406,18 +526,17 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Bills / Expenses */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base">Recent Bills</CardTitle>
-            <Badge variant="secondary" className="text-[10px]">{pendingBillsCount} pending</Badge>
+            <Badge variant="secondary" className="text-[10px]">{filtered.pendingBillsCount} pending</Badge>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            {recentBills.length === 0 ? (
+            {filtered.recentBills.length === 0 ? (
               <p className="text-muted-foreground text-center py-6 text-sm">No bills yet</p>
             ) : (
               <div className="space-y-2">
-                {recentBills.map((bill) => (
+                {filtered.recentBills.map((bill) => (
                   <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{bill.customer_name}</p>
@@ -441,7 +560,6 @@ const Dashboard = () => {
 
       {/* ── Row 5: Recent Purchase Orders + Quick Actions ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Recent Purchase Orders */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base flex items-center gap-2">
@@ -453,11 +571,11 @@ const Dashboard = () => {
             </Button>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            {recentPOs.length === 0 ? (
+            {filtered.recentPOs.length === 0 ? (
               <p className="text-muted-foreground text-center py-6 text-sm">No purchase orders yet</p>
             ) : (
               <div className="space-y-2">
-                {recentPOs.map((po) => (
+                {filtered.recentPOs.map((po) => (
                   <div key={po.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{po.supplier_name}</p>
@@ -481,7 +599,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Quick Actions</CardTitle>
@@ -520,12 +637,12 @@ const Dashboard = () => {
             <p className="text-[10px]">{format(new Date(), "dd MMM yyyy, hh:mm a")}</p>
           </div>
           <div className="border-b border-dashed border-foreground pb-2 mb-2 space-y-1">
-            <div className="flex justify-between"><span>Total Products</span><span className="font-bold">{stats.totalProducts}</span></div>
-            <div className="flex justify-between"><span>Stock Value</span><span className="font-bold">{fmtCurrency(stats.totalStockValue)}</span></div>
-            <div className="flex justify-between"><span>Pending Invoices</span><span className="font-bold">{stats.pendingInvoices}</span></div>
-            <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">{fmtCurrency(stats.totalRevenue)}</span></div>
-            <div className="flex justify-between"><span>Total Expenses</span><span className="font-bold">{fmtCurrency(totalBillsAmount)}</span></div>
-            <div className="flex justify-between"><span>Net Profit</span><span className="font-bold">{fmtCurrency(profit)}</span></div>
+            <div className="flex justify-between"><span>Total Products</span><span className="font-bold">{filtered.totalProducts}</span></div>
+            <div className="flex justify-between"><span>Stock Value</span><span className="font-bold">{fmtCurrency(filtered.totalStockValue)}</span></div>
+            <div className="flex justify-between"><span>Pending Invoices</span><span className="font-bold">{filtered.pendingInvoices}</span></div>
+            <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">{fmtCurrency(filtered.totalRevenue)}</span></div>
+            <div className="flex justify-between"><span>Total Expenses</span><span className="font-bold">{fmtCurrency(filtered.totalBillsAmount)}</span></div>
+            <div className="flex justify-between"><span>Net Profit</span><span className="font-bold">{fmtCurrency(filtered.profit)}</span></div>
           </div>
           {outstandingInvoices.length > 0 && (
             <div className="border-b border-dashed border-foreground pb-2 mb-2">
@@ -539,10 +656,10 @@ const Dashboard = () => {
               ))}
             </div>
           )}
-          {revenueData.length > 0 && (
+          {filtered.revenueData.length > 0 && (
             <div className="border-b border-dashed border-foreground pb-2 mb-2">
               <p className="font-bold mb-1">MONTHLY REVENUE</p>
-              {revenueData.map((item) => (
+              {filtered.revenueData.map((item) => (
                 <div key={item.month} className="flex justify-between text-[10px]">
                   <span>{item.month}</span>
                   <span className="font-bold">{fmtCurrency(item.revenue)}</span>
