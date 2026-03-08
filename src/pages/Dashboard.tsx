@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 const Dashboard = () => {
+  const { settings } = useSettings();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalInvoices: 0,
