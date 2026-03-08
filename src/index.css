@@ -200,12 +200,13 @@ All colors MUST be HSL.
 
   /* Show only print areas */
   #invoice-print-area, #invoice-print-area *,
-  #bill-print-area, #bill-print-area * {
+  #bill-print-area, #bill-print-area *,
+  #dashboard-print-area, #dashboard-print-area * {
     visibility: visible;
   }
 
   /* Position print area as full page */
-  #invoice-print-area, #bill-print-area {
+  #invoice-print-area, #bill-print-area, #dashboard-print-area {
     position: fixed;
     left: 0;
     top: 0;
