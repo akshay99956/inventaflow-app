@@ -1290,12 +1290,12 @@ const Profile = () => {
                 className="gap-3"
               >
                 <InputOTPGroup className="gap-3">
-                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={0} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -1305,15 +1305,15 @@ const Profile = () => {
                 maxLength={6}
                 value={newPin}
                 onChange={setNewPin}
-                className="gap-3"
+                className="gap-2 sm:gap-3"
               >
-                <InputOTPGroup className="gap-3">
-                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
+                <InputOTPGroup className="gap-2 sm:gap-3">
+                  <InputOTPSlot index={0} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
@@ -1323,15 +1323,15 @@ const Profile = () => {
                 maxLength={6}
                 value={confirmPin}
                 onChange={setConfirmPin}
-                className="gap-3"
+                className="gap-2 sm:gap-3"
               >
-                <InputOTPGroup className="gap-3">
-                  <InputOTPSlot index={0} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={1} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={2} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={3} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={4} className="h-14 w-14 text-lg text-security-disc" />
-                  <InputOTPSlot index={5} className="h-14 w-14 text-lg text-security-disc" />
+                <InputOTPGroup className="gap-2 sm:gap-3">
+                  <InputOTPSlot index={0} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={1} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={2} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={3} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={4} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
+                  <InputOTPSlot index={5} className="h-11 w-11 sm:h-14 sm:w-14 text-lg text-security-disc" />
                 </InputOTPGroup>
               </InputOTP>
             )}
