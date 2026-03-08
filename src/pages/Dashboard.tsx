@@ -21,7 +21,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const cs = settings.currency_symbol || "₹";
-
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [activePreset, setActivePreset] = useState<string>("all");
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalInvoices: 0,
