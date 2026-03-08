@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, ShoppingCart, Package, Users, Receipt } from "lucide-react";
+import { Home, ShoppingCart, Package, Users, Receipt, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
 
