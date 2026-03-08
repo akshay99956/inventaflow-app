@@ -290,15 +290,93 @@ const Dashboard = () => {
         </Popover>
       </div>
 
+      {/* Date Range Filter */}
+      <Card className="print:hidden">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* Preset buttons */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: "all", label: "All Time" },
+                { key: "7d", label: "7 Days" },
+                { key: "30d", label: "30 Days" },
+                { key: "this-month", label: "This Month" },
+                { key: "last-month", label: "Last Month" },
+                { key: "this-year", label: "This Year" },
+              ].map((p) => (
+                <Button
+                  key={p.key}
+                  variant={activePreset === p.key ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => applyPreset(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* Custom date pickers */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1.5 min-w-[120px] justify-start", !dateRange.from && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateRange.from ? format(dateRange.from, "dd MMM yyyy") : "From"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.from}
+                    onSelect={(date) => { setDateRange((prev) => ({ ...prev, from: date })); setActivePreset("custom"); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">to</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1.5 min-w-[120px] justify-start", !dateRange.to && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateRange.to ? format(dateRange.to, "dd MMM yyyy") : "To"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.to}
+                    onSelect={(date) => { setDateRange((prev) => ({ ...prev, to: date })); setActivePreset("custom"); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              {(dateRange.from || dateRange.to) && (
+                <Button variant="ghost" size="sm" className="h-8 text-xs px-2" onClick={() => applyPreset("all")}>
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+          {activePreset !== "all" && (
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Showing data {dateRange.from ? `from ${format(dateRange.from, "dd MMM yyyy")}` : ""} {dateRange.to ? `to ${format(dateRange.to, "dd MMM yyyy")}` : ""}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* ── Row 1: Key Stats (6 cards) ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: stats.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory" },
-          { title: "Stock Value", value: fmtCurrency(stats.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth" },
-          { title: "Revenue", value: fmtCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-success", sub: "All time" },
-          { title: "Expenses", value: fmtCurrency(totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills" },
-          { title: "Profit", value: fmtCurrency(profit), icon: profit >= 0 ? ArrowUpRight : ArrowDownRight, color: profit >= 0 ? "text-success" : "text-destructive", sub: profit >= 0 ? "Net positive" : "Net loss" },
-          { title: "Clients", value: totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients" },
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "Filtered" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients" },
         ].map((item) => (
           <Card key={item.title} className="relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
@@ -316,7 +394,6 @@ const Dashboard = () => {
 
       {/* ── Row 2: Charts ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Revenue Trends */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Revenue Trends</CardTitle>
@@ -324,7 +401,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={revenueChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <LineChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
@@ -336,7 +413,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Revenue vs Expenses */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Revenue vs Expenses</CardTitle>
@@ -344,7 +420,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={comparisonChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <BarChart data={filtered.expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
@@ -360,7 +436,6 @@ const Dashboard = () => {
 
       {/* ── Row 3: Top Products + Low Stock ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Top Products */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Top Products</CardTitle>
@@ -368,7 +443,7 @@ const Dashboard = () => {
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={productsChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <BarChart data={filtered.topProducts} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 8 }} />
@@ -380,7 +455,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Low Stock Alerts */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base flex items-center gap-2">
@@ -421,11 +495,10 @@ const Dashboard = () => {
 
       {/* ── Row 4: Outstanding Invoices + Recent Bills ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Outstanding Invoices */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base">Outstanding Invoices</CardTitle>
-            <Badge variant="secondary" className="text-[10px]">{stats.pendingInvoices} pending</Badge>
+            <Badge variant="secondary" className="text-[10px]">{filtered.pendingInvoices} pending</Badge>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
             {outstandingInvoices.length === 0 ? (
@@ -453,18 +526,17 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Bills / Expenses */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base">Recent Bills</CardTitle>
-            <Badge variant="secondary" className="text-[10px]">{pendingBillsCount} pending</Badge>
+            <Badge variant="secondary" className="text-[10px]">{filtered.pendingBillsCount} pending</Badge>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            {recentBills.length === 0 ? (
+            {filtered.recentBills.length === 0 ? (
               <p className="text-muted-foreground text-center py-6 text-sm">No bills yet</p>
             ) : (
               <div className="space-y-2">
-                {recentBills.map((bill) => (
+                {filtered.recentBills.map((bill) => (
                   <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{bill.customer_name}</p>
@@ -488,7 +560,6 @@ const Dashboard = () => {
 
       {/* ── Row 5: Recent Purchase Orders + Quick Actions ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Recent Purchase Orders */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm md:text-base flex items-center gap-2">
@@ -500,11 +571,11 @@ const Dashboard = () => {
             </Button>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            {recentPOs.length === 0 ? (
+            {filtered.recentPOs.length === 0 ? (
               <p className="text-muted-foreground text-center py-6 text-sm">No purchase orders yet</p>
             ) : (
               <div className="space-y-2">
-                {recentPOs.map((po) => (
+                {filtered.recentPOs.map((po) => (
                   <div key={po.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{po.supplier_name}</p>
@@ -528,7 +599,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
             <CardTitle className="text-sm md:text-base">Quick Actions</CardTitle>
@@ -567,12 +637,12 @@ const Dashboard = () => {
             <p className="text-[10px]">{format(new Date(), "dd MMM yyyy, hh:mm a")}</p>
           </div>
           <div className="border-b border-dashed border-foreground pb-2 mb-2 space-y-1">
-            <div className="flex justify-between"><span>Total Products</span><span className="font-bold">{stats.totalProducts}</span></div>
-            <div className="flex justify-between"><span>Stock Value</span><span className="font-bold">{fmtCurrency(stats.totalStockValue)}</span></div>
-            <div className="flex justify-between"><span>Pending Invoices</span><span className="font-bold">{stats.pendingInvoices}</span></div>
-            <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">{fmtCurrency(stats.totalRevenue)}</span></div>
-            <div className="flex justify-between"><span>Total Expenses</span><span className="font-bold">{fmtCurrency(totalBillsAmount)}</span></div>
-            <div className="flex justify-between"><span>Net Profit</span><span className="font-bold">{fmtCurrency(profit)}</span></div>
+            <div className="flex justify-between"><span>Total Products</span><span className="font-bold">{filtered.totalProducts}</span></div>
+            <div className="flex justify-between"><span>Stock Value</span><span className="font-bold">{fmtCurrency(filtered.totalStockValue)}</span></div>
+            <div className="flex justify-between"><span>Pending Invoices</span><span className="font-bold">{filtered.pendingInvoices}</span></div>
+            <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">{fmtCurrency(filtered.totalRevenue)}</span></div>
+            <div className="flex justify-between"><span>Total Expenses</span><span className="font-bold">{fmtCurrency(filtered.totalBillsAmount)}</span></div>
+            <div className="flex justify-between"><span>Net Profit</span><span className="font-bold">{fmtCurrency(filtered.profit)}</span></div>
           </div>
           {outstandingInvoices.length > 0 && (
             <div className="border-b border-dashed border-foreground pb-2 mb-2">
@@ -586,10 +656,10 @@ const Dashboard = () => {
               ))}
             </div>
           )}
-          {revenueData.length > 0 && (
+          {filtered.revenueData.length > 0 && (
             <div className="border-b border-dashed border-foreground pb-2 mb-2">
               <p className="font-bold mb-1">MONTHLY REVENUE</p>
-              {revenueData.map((item) => (
+              {filtered.revenueData.map((item) => (
                 <div key={item.month} className="flex justify-between text-[10px]">
                   <span>{item.month}</span>
                   <span className="font-bold">{fmtCurrency(item.revenue)}</span>
