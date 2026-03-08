@@ -543,6 +543,7 @@ const PurchaseOrders = () => {
                 value={supplierEmail}
                 onChange={(e) => setSupplierEmail(e.target.value)}
               />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs text-muted-foreground">PO Date</label>
