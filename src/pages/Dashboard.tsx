@@ -743,7 +743,7 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {filtered.recentBills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
+                  <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate('/bills')}>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{bill.customer_name}</p>
                       <p className="text-xs text-muted-foreground">
