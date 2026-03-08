@@ -567,21 +567,30 @@ const Dashboard = () => {
       {/* ── Row 2.5: Key Business Metrics ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         {[
-          { title: "Avg Order Value", value: fmtCurrency(filtered.avgOrderValue), icon: FileText, color: "text-primary" },
-          { title: "Profit Margin", value: `${filtered.profitMargin.toFixed(1)}%`, icon: TrendingUp, color: filtered.profitMargin >= 0 ? "text-success" : "text-destructive" },
-          { title: "Categories", value: filtered.uniqueCategories.toString(), icon: Package, color: "text-secondary" },
-          { title: "Total Invoices", value: filtered.totalInvoices.toString(), icon: FileText, color: "text-warning" },
-        ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
-            <CardContent className="p-3 md:p-4 pt-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">{item.title}</span>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
-            </CardContent>
-          </Card>
+          { title: "Avg Order Value", value: fmtCurrency(filtered.avgOrderValue), icon: FileText, color: "text-primary", gradient: "var(--gradient-cool)", iconBg: "bg-primary/10" },
+          { title: "Profit Margin", value: `${filtered.profitMargin.toFixed(1)}%`, icon: TrendingUp, color: filtered.profitMargin >= 0 ? "text-success" : "text-destructive", gradient: filtered.profitMargin >= 0 ? "var(--gradient-secondary)" : "var(--gradient-warm)", iconBg: filtered.profitMargin >= 0 ? "bg-success/10" : "bg-destructive/10" },
+          { title: "Categories", value: filtered.uniqueCategories.toString(), icon: Package, color: "text-secondary", gradient: "var(--gradient-primary)", iconBg: "bg-secondary/10" },
+          { title: "Total Invoices", value: filtered.totalInvoices.toString(), icon: FileText, color: "text-warning", gradient: "var(--gradient-warm)", iconBg: "bg-warning/10" },
+        ].map((item, idx) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 + idx * 0.05 }}
+          >
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-lg" style={{ background: item.gradient }} />
+              <CardContent className="p-3 md:p-4 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{item.title}</span>
+                  <div className={`h-7 w-7 rounded-lg ${item.iconBg} flex items-center justify-center`}>
+                    <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                  </div>
+                </div>
+                <p className={`text-xl md:text-2xl font-extrabold ${item.color} tracking-tight`}>{item.value}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
