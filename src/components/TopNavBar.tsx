@@ -46,6 +46,24 @@ export const TopNavBar = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const dismissNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    setNotifOpen(false);
+  };
+
+  const handleNotificationClick = (notif: Notification) => {
+    if (notif.type === "low_stock") navigate("/inventory");
+    else if (notif.type === "overdue_invoice") navigate("/invoices");
+    else navigate("/bills");
+    dismissNotification(notif.id);
+    setNotifOpen(false);
+  };
 
   useEffect(() => {
     fetchNotifications();
