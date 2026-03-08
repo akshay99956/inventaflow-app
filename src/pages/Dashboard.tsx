@@ -2,8 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt, CalendarIcon } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, AlertTriangle, Clock, ShoppingCart, ArrowUpRight, ArrowDownRight, Users, Receipt, CalendarIcon, Wallet, BarChart3, PieChart as PieChartIcon } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, Tooltip } from "recharts";
+import { motion } from "framer-motion";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -445,78 +446,117 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* ── Row 1: Key Stats (6 cards) ── */}
+      {/* ── Row 1: Key Stats (6 cards) — Enhanced ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
-          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
-          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
-          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
-          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
-          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
-        ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate(item.path)}>
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
-            <CardContent className="p-3 md:p-4 pt-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">{item.title}</span>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                {item.change !== null ? (
-                  <span className={cn(
-                    "text-[10px] font-semibold flex items-center gap-0.5",
-                    item.title === "Expenses"
-                      ? (item.change <= 0 ? "text-success" : "text-destructive")
-                      : (item.change >= 0 ? "text-success" : "text-destructive")
-                  )}>
-                    {item.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                    {Math.abs(item.change).toFixed(1)}%
-                  </span>
-                ) : null}
-                <p className="text-[10px] text-muted-foreground hidden sm:block">{item.sub}</p>
-              </div>
-            </CardContent>
-          </Card>
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, gradient: "var(--gradient-cool)", iconBg: "bg-primary/15", color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: Wallet, gradient: "var(--gradient-warm)", iconBg: "bg-destructive/15", color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, gradient: "var(--gradient-secondary)", iconBg: "bg-success/15", color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, gradient: "var(--gradient-warm)", iconBg: "bg-warning/15", color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, gradient: filtered.profit >= 0 ? "var(--gradient-secondary)" : "linear-gradient(135deg, hsl(0,84%,60%), hsl(38,92%,50%))", iconBg: filtered.profit >= 0 ? "bg-success/15" : "bg-destructive/15", color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, gradient: "var(--gradient-primary)", iconBg: "bg-secondary/15", color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
+        ].map((item, idx) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+          >
+            <Card
+              className="relative overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group"
+              onClick={() => navigate(item.path)}
+            >
+              <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-lg" style={{ background: item.gradient }} />
+              <CardContent className="p-3 md:p-4 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{item.title}</span>
+                  <div className={`h-8 w-8 rounded-lg ${item.iconBg} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <item.icon className={`h-4 w-4 ${item.color}`} />
+                  </div>
+                </div>
+                <p className={`text-xl md:text-2xl font-extrabold ${item.color} tracking-tight`}>{item.value}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {item.change !== null ? (
+                    <span className={cn(
+                      "text-[10px] font-bold flex items-center gap-0.5 px-1.5 py-0.5 rounded-full",
+                      item.title === "Expenses"
+                        ? (item.change <= 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10")
+                        : (item.change >= 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10")
+                    )}>
+                      {item.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                      {Math.abs(item.change).toFixed(1)}%
+                    </span>
+                  ) : null}
+                  <p className="text-[10px] text-muted-foreground">{item.sub}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
       {/* ── Row 2: Charts ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="p-3 md:p-6 pb-2">
-            <CardTitle className="text-sm md:text-base">Revenue Trends</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+              </div>
+              Revenue Trends
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">{filtered.revenueData.length} months</Badge>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={revenueChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <AreaChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", r: 3 }} />
-                </LineChart>
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2.5} fill="url(#revenueGradient)" dot={{ fill: "hsl(var(--chart-1))", r: 3, strokeWidth: 2, stroke: "hsl(var(--card))" }} activeDot={{ r: 5, strokeWidth: 2 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="p-3 md:p-6 pb-2">
-            <CardTitle className="text-sm md:text-base">Revenue vs Expenses</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-warning/10 flex items-center justify-center">
+                <BarChart3 className="h-3.5 w-3.5 text-warning" />
+              </div>
+              Revenue vs Expenses
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={comparisonChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={filtered.expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <defs>
+                    <linearGradient id="revenueBarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.6} />
+                    </linearGradient>
+                    <linearGradient id="expenseBarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.6} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="revenue" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expense" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="url(#revenueBarGrad)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="expense" fill="url(#expenseBarGrad)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -527,21 +567,30 @@ const Dashboard = () => {
       {/* ── Row 2.5: Key Business Metrics ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         {[
-          { title: "Avg Order Value", value: fmtCurrency(filtered.avgOrderValue), icon: FileText, color: "text-primary" },
-          { title: "Profit Margin", value: `${filtered.profitMargin.toFixed(1)}%`, icon: TrendingUp, color: filtered.profitMargin >= 0 ? "text-success" : "text-destructive" },
-          { title: "Categories", value: filtered.uniqueCategories.toString(), icon: Package, color: "text-secondary" },
-          { title: "Total Invoices", value: filtered.totalInvoices.toString(), icon: FileText, color: "text-warning" },
-        ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
-            <CardContent className="p-3 md:p-4 pt-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">{item.title}</span>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
-            </CardContent>
-          </Card>
+          { title: "Avg Order Value", value: fmtCurrency(filtered.avgOrderValue), icon: FileText, color: "text-primary", gradient: "var(--gradient-cool)", iconBg: "bg-primary/10" },
+          { title: "Profit Margin", value: `${filtered.profitMargin.toFixed(1)}%`, icon: TrendingUp, color: filtered.profitMargin >= 0 ? "text-success" : "text-destructive", gradient: filtered.profitMargin >= 0 ? "var(--gradient-secondary)" : "var(--gradient-warm)", iconBg: filtered.profitMargin >= 0 ? "bg-success/10" : "bg-destructive/10" },
+          { title: "Categories", value: filtered.uniqueCategories.toString(), icon: Package, color: "text-secondary", gradient: "var(--gradient-primary)", iconBg: "bg-secondary/10" },
+          { title: "Total Invoices", value: filtered.totalInvoices.toString(), icon: FileText, color: "text-warning", gradient: "var(--gradient-warm)", iconBg: "bg-warning/10" },
+        ].map((item, idx) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 + idx * 0.05 }}
+          >
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-lg" style={{ background: item.gradient }} />
+              <CardContent className="p-3 md:p-4 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{item.title}</span>
+                  <div className={`h-7 w-7 rounded-lg ${item.iconBg} flex items-center justify-center`}>
+                    <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                  </div>
+                </div>
+                <p className={`text-xl md:text-2xl font-extrabold ${item.color} tracking-tight`}>{item.value}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
@@ -810,24 +859,27 @@ const Dashboard = () => {
             <CardTitle className="text-sm md:text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="p-3 md:p-6 pt-0">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "New Invoice", icon: FileText, path: "/invoices/new", color: "bg-primary/10 text-primary hover:bg-primary/20" },
-                { label: "New Bill", icon: Receipt, path: "/bills/new", color: "bg-warning/10 text-warning hover:bg-warning/20" },
-                { label: "Quick Bill", icon: TrendingUp, path: "/quick-bill", color: "bg-success/10 text-success hover:bg-success/20" },
-                { label: "Quick Purchase", icon: ShoppingCart, path: "/quick-purchase", color: "bg-secondary/10 text-secondary hover:bg-secondary/20" },
-                { label: "Inventory", icon: Package, path: "/inventory", color: "bg-accent/10 text-accent hover:bg-accent/20" },
-                { label: "Clients", icon: Users, path: "/clients", color: "bg-info/10 text-info hover:bg-info/20" },
+                { label: "New Invoice", icon: FileText, path: "/invoices/new", gradient: "var(--gradient-primary)", iconBg: "bg-primary/10", color: "text-primary" },
+                { label: "New Bill", icon: Receipt, path: "/bills/new", gradient: "var(--gradient-warm)", iconBg: "bg-warning/10", color: "text-warning" },
+                { label: "Quick Bill", icon: TrendingUp, path: "/quick-bill", gradient: "var(--gradient-secondary)", iconBg: "bg-success/10", color: "text-success" },
+                { label: "Quick Purchase", icon: ShoppingCart, path: "/quick-purchase", gradient: "var(--gradient-cool)", iconBg: "bg-secondary/10", color: "text-secondary" },
+                { label: "Inventory", icon: Package, path: "/inventory", gradient: "var(--gradient-primary)", iconBg: "bg-accent/10", color: "text-accent" },
+                { label: "Clients", icon: Users, path: "/clients", gradient: "var(--gradient-secondary)", iconBg: "bg-info/10", color: "text-info" },
               ].map((action) => (
-                <Button
-                  key={action.label}
-                  variant="ghost"
-                  className={`h-auto py-4 flex flex-col items-center gap-2 rounded-xl transition-colors ${action.color}`}
-                  onClick={() => navigate(action.path)}
-                >
-                  <action.icon className="h-5 w-5" />
-                  <span className="text-xs font-medium">{action.label}</span>
-                </Button>
+                <motion.div key={action.label} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full py-3 flex flex-col items-center gap-2 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-muted/40 transition-all"
+                    onClick={() => navigate(action.path)}
+                  >
+                    <div className={`h-9 w-9 rounded-lg ${action.iconBg} flex items-center justify-center`}>
+                      <action.icon className={`h-4 w-4 ${action.color}`} />
+                    </div>
+                    <span className="text-[10px] font-medium text-foreground">{action.label}</span>
+                  </Button>
+                </motion.div>
               ))}
             </div>
           </CardContent>
