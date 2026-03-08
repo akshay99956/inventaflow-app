@@ -24,11 +24,6 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
-import { z } from "zod";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useSettings } from "@/contexts/SettingsContext";
-import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 
 const profileSchema = z.object({
   company_name: z.string().max(200, "Company name must be less than 200 characters").optional().or(z.literal("")),
