@@ -26,25 +26,15 @@ const Dashboard = () => {
     to: undefined,
   });
   const [activePreset, setActivePreset] = useState<string>("all");
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalInvoices: 0,
-    pendingInvoices: 0,
-    totalRevenue: 0,
-    totalStockValue: 0
-  });
-  const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
-  const [topProducts, setTopProducts] = useState<{ name: string; revenue: number }[]>([]);
+  // Raw data from DB
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allInvoices, setAllInvoices] = useState<any[]>([]);
+  const [allInvoiceItems, setAllInvoiceItems] = useState<any[]>([]);
+  const [allBills, setAllBills] = useState<any[]>([]);
+  const [allClients, setAllClients] = useState<any[]>([]);
+  const [allPOs, setAllPOs] = useState<any[]>([]);
   const [outstandingInvoices, setOutstandingInvoices] = useState<any[]>([]);
-
-  // New state for additional widgets
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
-  const [recentBills, setRecentBills] = useState<any[]>([]);
-  const [totalBillsAmount, setTotalBillsAmount] = useState(0);
-  const [pendingBillsCount, setPendingBillsCount] = useState(0);
-  const [totalClientsCount, setTotalClientsCount] = useState(0);
-  const [recentPOs, setRecentPOs] = useState<any[]>([]);
-  const [expenseVsRevenue, setExpenseVsRevenue] = useState<{ month: string; revenue: number; expense: number }[]>([]);
 
   const fetchAllData = async () => {
     const [
@@ -65,47 +55,15 @@ const Dashboard = () => {
       supabase.from("purchase_orders").select("*").order("created_at", { ascending: false }).limit(5)
     ]);
 
-    // Basic stats
-    const totalProducts = products?.length || 0;
-    const totalInvoices = invoices?.length || 0;
-    const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
-    const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
-    const totalStockValue = products?.reduce((sum, p) => sum + p.quantity * p.unit_price, 0) || 0;
-    setStats({ totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue });
-
-    // Revenue trends
-    if (invoices && invoices.length > 0) {
-      const revenueByMonth = invoices.reduce((acc: any, inv) => {
-        const month = format(new Date(inv.issue_date), "MMM yyyy");
-        acc[month] = (acc[month] || 0) + (Number(inv.total) || 0);
-        return acc;
-      }, {});
-      setRevenueData(
-        Object.entries(revenueByMonth)
-          .map(([month, revenue]) => ({ month, revenue: revenue as number }))
-          .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
-          .slice(-6)
-      );
-    }
-
-    // Top products
-    if (invoiceItems) {
-      const productRevenue = invoiceItems.reduce((acc: any, item) => {
-        const name = (item.products as any)?.name || "Unknown";
-        acc[name] = (acc[name] || 0) + (Number(item.amount) || 0);
-        return acc;
-      }, {});
-      setTopProducts(
-        Object.entries(productRevenue)
-          .map(([name, revenue]) => ({ name, revenue: revenue as number }))
-          .sort((a, b) => b.revenue - a.revenue)
-          .slice(0, 5)
-      );
-    }
-
+    setAllProducts(products || []);
+    setAllInvoices(invoices || []);
+    setAllInvoiceItems(invoiceItems || []);
+    setAllBills(bills || []);
+    setAllClients(clients || []);
+    setAllPOs(purchaseOrders || []);
     setOutstandingInvoices(outstanding || []);
 
-    // Low stock products
+    // Low stock (not date-dependent)
     if (products) {
       const lowStock = products
         .filter((p) => p.quantity <= p.low_stock_threshold && p.quantity > 0)
@@ -114,38 +72,122 @@ const Dashboard = () => {
       const outOfStock = products.filter((p) => p.quantity === 0).slice(0, 3);
       setLowStockProducts([...outOfStock, ...lowStock].slice(0, 6));
     }
+  };
 
-    // Bills summary
-    if (bills) {
-      setTotalBillsAmount(bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0));
-      setPendingBillsCount(bills.filter((b) => b.status === "pending").length);
-      setRecentBills(bills.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5));
+  // Date filter helper
+  const isInRange = (dateStr: string) => {
+    if (!dateRange.from && !dateRange.to) return true;
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    if (dateRange.from && dateRange.to) {
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      const to = new Date(dateRange.to); to.setHours(23, 59, 59, 999);
+      return d >= from && d <= to;
     }
+    if (dateRange.from) {
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      return d >= from;
+    }
+    return true;
+  };
 
-    // Clients count
-    setTotalClientsCount(clients?.length || 0);
+  // Computed filtered data
+  const filtered = useMemo(() => {
+    const invoices = allInvoices.filter((inv) => isInRange(inv.issue_date));
+    const bills = allBills.filter((b) => isInRange(b.bill_date));
+    const pos = allPOs.filter((po) => isInRange(po.po_date));
 
-    // Recent POs
-    setRecentPOs(purchaseOrders || []);
+    const totalProducts = allProducts.length;
+    const totalInvoices = invoices.length;
+    const pendingInvoices = invoices.filter((inv) => inv.status !== "paid").length;
+    const totalRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+    const totalStockValue = allProducts.reduce((sum, p) => sum + p.quantity * p.unit_price, 0);
+    const totalBillsAmount = bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
+    const pendingBillsCount = bills.filter((b) => b.status === "pending").length;
+    const profit = totalRevenue - totalBillsAmount;
 
-    // Expense vs Revenue (monthly comparison)
-    if (invoices && bills) {
-      const months: Record<string, { revenue: number; expense: number }> = {};
-      invoices.forEach((inv) => {
-        const m = format(new Date(inv.issue_date), "MMM");
-        if (!months[m]) months[m] = { revenue: 0, expense: 0 };
-        months[m].revenue += Number(inv.total) || 0;
-      });
-      bills.forEach((b) => {
-        const m = format(new Date(b.bill_date), "MMM");
-        if (!months[m]) months[m] = { revenue: 0, expense: 0 };
-        months[m].expense += Number(b.total) || 0;
-      });
-      setExpenseVsRevenue(
-        Object.entries(months)
-          .map(([month, data]) => ({ month, ...data }))
-          .slice(-6)
-      );
+    // Revenue trends
+    const revenueByMonth = invoices.reduce((acc: any, inv) => {
+      const month = format(new Date(inv.issue_date), "MMM yyyy");
+      acc[month] = (acc[month] || 0) + (Number(inv.total) || 0);
+      return acc;
+    }, {});
+    const revenueData = Object.entries(revenueByMonth)
+      .map(([month, revenue]) => ({ month, revenue: revenue as number }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+      .slice(-6);
+
+    // Top products (from all invoice items, but only matching invoices)
+    const invoiceIds = new Set(invoices.map((inv) => inv.id));
+    const filteredItems = allInvoiceItems.filter((item) => {
+      // invoice_items don't have issue_date, so we match by invoice_id
+      return !dateRange.from || invoiceIds.has(item.invoice_id);
+    });
+    const productRevenue = filteredItems.reduce((acc: any, item) => {
+      const name = (item.products as any)?.name || "Unknown";
+      acc[name] = (acc[name] || 0) + (Number(item.amount) || 0);
+      return acc;
+    }, {});
+    const topProducts = Object.entries(productRevenue)
+      .map(([name, revenue]) => ({ name, revenue: revenue as number }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    // Recent bills (filtered)
+    const recentBills = [...bills]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+
+    // Expense vs Revenue
+    const months: Record<string, { revenue: number; expense: number }> = {};
+    invoices.forEach((inv) => {
+      const m = format(new Date(inv.issue_date), "MMM");
+      if (!months[m]) months[m] = { revenue: 0, expense: 0 };
+      months[m].revenue += Number(inv.total) || 0;
+    });
+    bills.forEach((b) => {
+      const m = format(new Date(b.bill_date), "MMM");
+      if (!months[m]) months[m] = { revenue: 0, expense: 0 };
+      months[m].expense += Number(b.total) || 0;
+    });
+    const expenseVsRevenue = Object.entries(months)
+      .map(([month, data]) => ({ month, ...data }))
+      .slice(-6);
+
+    return {
+      totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
+      totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
+      recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
+      totalClientsCount: allClients.length,
+    };
+  }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
+
+  // Preset helpers
+  const applyPreset = (preset: string) => {
+    setActivePreset(preset);
+    const today = new Date();
+    switch (preset) {
+      case "7d":
+        setDateRange({ from: subDays(today, 7), to: today });
+        break;
+      case "30d":
+        setDateRange({ from: subDays(today, 30), to: today });
+        break;
+      case "this-month":
+        setDateRange({ from: startOfMonth(today), to: today });
+        break;
+      case "last-month": {
+        const lastMonth = subMonths(today, 1);
+        setDateRange({ from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) });
+        break;
+      }
+      case "this-year":
+        setDateRange({ from: startOfYear(today), to: today });
+        break;
+      case "all":
+      default:
+        setDateRange({ from: undefined, to: undefined });
+        break;
     }
   };
 
