@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical } from "lucide-react";
+import { Package, FileText, TrendingUp, IndianRupee, Download, Printer, MoreVertical, Share2, RefreshCw, Calendar } from "lucide-react";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useSettings } from "@/contexts/SettingsContext";
+import { CompanyBranding } from "@/components/CompanyBranding";
 const Dashboard = () => {
+  const { settings } = useSettings();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalInvoices: 0,
@@ -100,6 +104,55 @@ const Dashboard = () => {
     };
     fetchDashboardData();
   }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Re-run the effect by forcing a re-render
+    const { data: products } = await supabase.from("products").select("*", { count: "exact" });
+    const { data: invoices } = await supabase.from("invoices").select("*");
+    const totalProducts = products?.length || 0;
+    const totalInvoices = invoices?.length || 0;
+    const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
+    const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
+    const totalStockValue = products?.reduce((sum, product) => sum + product.quantity * product.unit_price, 0) || 0;
+    setStats({ totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue });
+    
+    if (invoices && invoices.length > 0) {
+      const revenueByMonth = invoices.reduce((acc: any, inv) => {
+        const month = format(new Date(inv.issue_date), "MMM yyyy");
+        if (!acc[month]) acc[month] = 0;
+        acc[month] += Number(inv.total) || 0;
+        return acc;
+      }, {});
+      setRevenueData(Object.entries(revenueByMonth).map(([month, revenue]) => ({ month, revenue: revenue as number })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()).slice(-6));
+    }
+
+    const { data: outstanding } = await supabase.from("invoices").select("*").neq("status", "paid").order("due_date", { ascending: true }).limit(5);
+    setOutstandingInvoices(outstanding || []);
+    
+    setIsRefreshing(false);
+    toast.success("Dashboard refreshed");
+  };
+
+  const handleShareWhatsApp = () => {
+    const cs = settings.currency_symbol || "₹";
+    let message = `📊 *Business Summary*\n`;
+    message += `📅 ${format(new Date(), "dd MMM yyyy")}\n\n`;
+    message += `📦 Products: ${stats.totalProducts}\n`;
+    message += `💰 Stock Value: ${cs}${stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📄 Pending Invoices: ${stats.pendingInvoices}\n`;
+    message += `✅ Total Revenue: ${cs}${stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    
+    if (outstandingInvoices.length > 0) {
+      message += `\n⚠️ *Outstanding Invoices:*\n`;
+      outstandingInvoices.forEach((inv) => {
+        message += `• ${inv.customer_name} - ${cs}${Number(inv.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })} (Due: ${format(new Date(inv.due_date), "dd MMM")})\n`;
+      });
+    }
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
   const revenueChartConfig = {
     revenue: {
       label: "Revenue",
@@ -165,7 +218,15 @@ const Dashboard = () => {
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-44 p-1">
+          <PopoverContent align="end" className="w-48 p-1">
+            <Button onClick={handleRefresh} variant="ghost" size="sm" className="w-full justify-start" disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
+            <Button onClick={handleShareWhatsApp} variant="ghost" size="sm" className="w-full justify-start">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Summary
+            </Button>
             <Button onClick={handleExportCSV} variant="ghost" size="sm" className="w-full justify-start">
               <Download className="h-4 w-4 mr-2" />
               Export CSV
@@ -317,6 +378,67 @@ const Dashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bill-style Print Area */}
+      <div id="dashboard-print-area" className="hidden print:block">
+        <div className="max-w-[80mm] mx-auto font-mono text-[11px] leading-tight">
+          <CompanyBranding />
+          
+          <div className="text-center border-b border-dashed border-foreground pb-2 mb-2">
+            <p className="font-bold text-sm">BUSINESS SUMMARY</p>
+            <p className="text-[10px]">{format(new Date(), "dd MMM yyyy, hh:mm a")}</p>
+          </div>
+
+          <div className="border-b border-dashed border-foreground pb-2 mb-2 space-y-1">
+            <div className="flex justify-between">
+              <span>Total Products</span>
+              <span className="font-bold">{stats.totalProducts}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Stock Value</span>
+              <span className="font-bold">{settings.currency_symbol}{stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Pending Invoices</span>
+              <span className="font-bold">{stats.pendingInvoices}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Total Revenue</span>
+              <span className="font-bold">{settings.currency_symbol}{stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+            </div>
+          </div>
+
+          {outstandingInvoices.length > 0 && (
+            <div className="border-b border-dashed border-foreground pb-2 mb-2">
+              <p className="font-bold mb-1">OUTSTANDING INVOICES</p>
+              {outstandingInvoices.map((inv) => (
+                <div key={inv.id} className="flex justify-between text-[10px]">
+                  <span className="truncate max-w-[45%]">{inv.customer_name}</span>
+                  <span>{format(new Date(inv.due_date), "dd/MM")}</span>
+                  <span className="font-bold">{settings.currency_symbol}{Number(inv.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {revenueData.length > 0 && (
+            <div className="border-b border-dashed border-foreground pb-2 mb-2">
+              <p className="font-bold mb-1">MONTHLY REVENUE</p>
+              {revenueData.map((item) => (
+                <div key={item.month} className="flex justify-between text-[10px]">
+                  <span>{item.month}</span>
+                  <span className="font-bold">{settings.currency_symbol}{item.revenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="text-center text-[9px] pt-2">
+            <p>--- Thank You ---</p>
+            <p className="mt-1">Generated by Fully Business</p>
+          </div>
+        </div>
+      </div>
     </div>;
 };
 export default Dashboard;
