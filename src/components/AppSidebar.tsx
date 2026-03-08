@@ -23,9 +23,17 @@ const menuItems = [{
   url: "/clients",
   icon: Users
 }, {
+  title: "Quick Bill",
+  url: "/quick-bill",
+  icon: Zap
+}, {
   title: "Purchases",
   url: "/bills",
   icon: Receipt
+}, {
+  title: "Purchase Orders",
+  url: "/purchase-orders",
+  icon: ClipboardList
 }, {
   title: "Balance Sheet",
   url: "/balance-sheet",
