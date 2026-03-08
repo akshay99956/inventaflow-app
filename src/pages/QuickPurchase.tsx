@@ -192,6 +192,42 @@ const QuickPurchase = () => {
     }
   };
 
+  const handleUndoReceive = async (poId: string, billId: string, stockChanges: { productId: string; qty: number }[]) => {
+    try {
+      // Reverse stock increases
+      for (const change of stockChanges) {
+        const { data: product } = await supabase
+          .from("products")
+          .select("quantity")
+          .eq("id", change.productId)
+          .single();
+
+        if (product) {
+          await supabase
+            .from("products")
+            .update({ quantity: Math.max(0, product.quantity - change.qty) })
+            .eq("id", change.productId);
+        }
+      }
+
+      // Delete bill items then bill
+      await supabase.from("bill_items").delete().eq("bill_id", billId);
+      await supabase.from("bills").delete().eq("id", billId);
+
+      // Restore PO to pending
+      await supabase
+        .from("purchase_orders")
+        .update({ status: "pending" })
+        .eq("id", poId);
+
+      toast.success("Receive undone — stock restored, bill deleted, PO back to pending");
+      fetchPendingPOs();
+      fetchProducts();
+    } catch (err: any) {
+      toast.error("Undo failed: " + (err.message || "Unknown error"));
+    }
+  };
+
   const handleReceive = async (poId: string) => {
     setReceivingId(poId);
     try {
@@ -267,7 +303,8 @@ const QuickPurchase = () => {
         await supabase.from("bill_items").insert(billItems);
       }
 
-      // Increase stock for each product
+      // Increase stock for each product & track changes for undo
+      const stockChanges: { productId: string; qty: number }[] = [];
       for (const item of items) {
         if (item.product_id) {
           const { data: product } = await supabase
@@ -281,6 +318,7 @@ const QuickPurchase = () => {
               .from("products")
               .update({ quantity: product.quantity + item.quantity })
               .eq("id", item.product_id);
+            stockChanges.push({ productId: item.product_id, qty: item.quantity });
           }
         }
       }
@@ -291,7 +329,13 @@ const QuickPurchase = () => {
         .update({ status: "converted" })
         .eq("id", poId);
 
-      toast.success(`Received! Stock updated & Bill ${billNumber} created`);
+      toast.success(`Received! Stock updated & Bill ${billNumber} created`, {
+        duration: 15000,
+        action: {
+          label: "Undo",
+          onClick: () => handleUndoReceive(poId, bill.id, stockChanges),
+        },
+      });
       fetchPendingPOs();
       fetchProducts();
     } catch (err: any) {
