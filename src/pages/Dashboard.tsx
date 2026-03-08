@@ -497,39 +497,66 @@ const Dashboard = () => {
 
       {/* ── Row 2: Charts ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="p-3 md:p-6 pb-2">
-            <CardTitle className="text-sm md:text-base">Revenue Trends</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+              </div>
+              Revenue Trends
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">{filtered.revenueData.length} months</Badge>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={revenueChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <AreaChart data={filtered.revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} interval="preserveStartEnd" />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", r: 3 }} />
-                </LineChart>
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2.5} fill="url(#revenueGradient)" dot={{ fill: "hsl(var(--chart-1))", r: 3, strokeWidth: 2, stroke: "hsl(var(--card))" }} activeDot={{ r: 5, strokeWidth: 2 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="p-3 md:p-6 pb-2">
-            <CardTitle className="text-sm md:text-base">Revenue vs Expenses</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 md:p-6 pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-warning/10 flex items-center justify-center">
+                <BarChart3 className="h-3.5 w-3.5 text-warning" />
+              </div>
+              Revenue vs Expenses
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-1 md:p-6 pt-0">
             <ChartContainer config={comparisonChartConfig} className="h-[150px] md:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={filtered.expenseVsRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <defs>
+                    <linearGradient id="revenueBarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.6} />
+                    </linearGradient>
+                    <linearGradient id="expenseBarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={1} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.6} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                   <XAxis dataKey="month" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} width={40} tickFormatter={(v) => `${cs}${(v / 1000).toFixed(0)}k`} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="revenue" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expense" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="url(#revenueBarGrad)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="expense" fill="url(#expenseBarGrad)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
