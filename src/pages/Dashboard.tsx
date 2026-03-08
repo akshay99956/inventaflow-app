@@ -446,40 +446,52 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* ── Row 1: Key Stats (6 cards) ── */}
+      {/* ── Row 1: Key Stats (6 cards) — Enhanced ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
-          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
-          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
-          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
-          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
-          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
-        ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate(item.path)}>
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
-            <CardContent className="p-3 md:p-4 pt-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">{item.title}</span>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <p className={`text-lg md:text-xl font-bold ${item.color}`}>{item.value}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                {item.change !== null ? (
-                  <span className={cn(
-                    "text-[10px] font-semibold flex items-center gap-0.5",
-                    item.title === "Expenses"
-                      ? (item.change <= 0 ? "text-success" : "text-destructive")
-                      : (item.change >= 0 ? "text-success" : "text-destructive")
-                  )}>
-                    {item.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                    {Math.abs(item.change).toFixed(1)}%
-                  </span>
-                ) : null}
-                <p className="text-[10px] text-muted-foreground hidden sm:block">{item.sub}</p>
-              </div>
-            </CardContent>
-          </Card>
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, gradient: "var(--gradient-cool)", iconBg: "bg-primary/15", color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: Wallet, gradient: "var(--gradient-warm)", iconBg: "bg-destructive/15", color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, gradient: "var(--gradient-secondary)", iconBg: "bg-success/15", color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, gradient: "var(--gradient-warm)", iconBg: "bg-warning/15", color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, gradient: filtered.profit >= 0 ? "var(--gradient-secondary)" : "linear-gradient(135deg, hsl(0,84%,60%), hsl(38,92%,50%))", iconBg: filtered.profit >= 0 ? "bg-success/15" : "bg-destructive/15", color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, gradient: "var(--gradient-primary)", iconBg: "bg-secondary/15", color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
+        ].map((item, idx) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+          >
+            <Card
+              className="relative overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group"
+              onClick={() => navigate(item.path)}
+            >
+              <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-lg" style={{ background: item.gradient }} />
+              <CardContent className="p-3 md:p-4 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{item.title}</span>
+                  <div className={`h-8 w-8 rounded-lg ${item.iconBg} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <item.icon className={`h-4 w-4 ${item.color}`} />
+                  </div>
+                </div>
+                <p className={`text-xl md:text-2xl font-extrabold ${item.color} tracking-tight`}>{item.value}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {item.change !== null ? (
+                    <span className={cn(
+                      "text-[10px] font-bold flex items-center gap-0.5 px-1.5 py-0.5 rounded-full",
+                      item.title === "Expenses"
+                        ? (item.change <= 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10")
+                        : (item.change >= 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10")
+                    )}>
+                      {item.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                      {Math.abs(item.change).toFixed(1)}%
+                    </span>
+                  ) : null}
+                  <p className="text-[10px] text-muted-foreground">{item.sub}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
