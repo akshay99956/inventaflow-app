@@ -448,14 +448,14 @@ const Dashboard = () => {
       {/* ── Row 1: Key Stats (6 cards) ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null },
-          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null },
-          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue },
-          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses },
-          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit },
-          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null },
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
         ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden">
+          <Card key={item.title} className="relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate(item.path)}>
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
             <CardContent className="p-3 md:p-4 pt-4">
               <div className="flex items-center justify-between mb-1">
