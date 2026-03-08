@@ -9,7 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2, Check, X } from "lucide-react";
+
+// Password strength calculator
+const getPasswordStrength = (pw: string): { score: number; label: string; color: string; checks: { label: string; pass: boolean }[] } => {
+  const checks = [
+    { label: "At least 6 characters", pass: pw.length >= 6 },
+    { label: "Uppercase letter", pass: /[A-Z]/.test(pw) },
+    { label: "Lowercase letter", pass: /[a-z]/.test(pw) },
+    { label: "Number", pass: /\d/.test(pw) },
+    { label: "Special character", pass: /[^A-Za-z0-9]/.test(pw) },
+  ];
+  const score = checks.filter(c => c.pass).length;
+  const map: Record<number, { label: string; color: string }> = {
+    0: { label: "", color: "hsl(var(--muted))" },
+    1: { label: "Very weak", color: "hsl(var(--destructive))" },
+    2: { label: "Weak", color: "hsl(var(--destructive))" },
+    3: { label: "Fair", color: "hsl(var(--warning))" },
+    4: { label: "Good", color: "hsl(var(--success))" },
+    5: { label: "Strong", color: "hsl(var(--success))" },
+  };
+  return { score, checks, ...map[score] };
+};
 import { getSafeAuthErrorMessage, logErrorInDev } from "@/lib/errorUtils";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Switch } from "@/components/ui/switch";
