@@ -9,11 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X,
-  Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor
+  Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor,
+  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { z } from "zod";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSettings } from "@/contexts/SettingsContext";
+import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
+import { format } from "date-fns";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
