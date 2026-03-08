@@ -30,6 +30,7 @@ import Search from "./pages/Search";
 import Profile from "./pages/Profile";
 import QuickBill from "./pages/QuickBill";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import QuickPurchase from "./pages/QuickPurchase";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
@@ -114,6 +115,11 @@ const App = () => (
             <Route path="/purchase-orders" element={<ProtectedRoute>
                   <AppLayout>
                     <PurchaseOrders />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/quick-purchase" element={<ProtectedRoute>
+                  <AppLayout>
+                    <QuickPurchase />
                   </AppLayout>
                 </ProtectedRoute>} />
             <Route path="/balance-sheet" element={<ProtectedRoute>

@@ -7,7 +7,7 @@ const allNavItems = [
   { path: "/dashboard", label: "Home", icon: Home, settingKey: "show_dashboard" as const },
   { path: "/quick-bill", label: "Quick Bill", icon: Zap, settingKey: "show_sales" as const },
   { path: "/invoices", label: "Sales", icon: ShoppingCart, settingKey: "show_sales" as const },
-  { path: "/purchase-orders", label: "PO", icon: ClipboardList, settingKey: "show_sales" as const },
+  { path: "/quick-purchase", label: "Purchase", icon: ClipboardList, settingKey: "show_sales" as const },
   { path: "/inventory", label: "Inventory", icon: Package, settingKey: "show_inventory" as const },
 ];
 
