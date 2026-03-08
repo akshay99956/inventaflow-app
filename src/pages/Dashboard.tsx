@@ -91,11 +91,41 @@ const Dashboard = () => {
     return true;
   };
 
+  // Previous period helper
+  const getPreviousPeriodRange = () => {
+    if (!dateRange.from || !dateRange.to) return { from: undefined, to: undefined };
+    const duration = dateRange.to.getTime() - dateRange.from.getTime();
+    const prevTo = new Date(dateRange.from.getTime() - 1); // day before current from
+    prevTo.setHours(23, 59, 59, 999);
+    const prevFrom = new Date(prevTo.getTime() - duration);
+    prevFrom.setHours(0, 0, 0, 0);
+    return { from: prevFrom, to: prevTo };
+  };
+
+  const isInPrevRange = (dateStr: string) => {
+    const prev = getPreviousPeriodRange();
+    if (!prev.from || !prev.to) return false;
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    return d >= prev.from && d <= prev.to;
+  };
+
+  const calcChange = (current: number, previous: number): number | null => {
+    if (!dateRange.from || !dateRange.to) return null; // no comparison for "All Time"
+    if (previous === 0 && current === 0) return 0;
+    if (previous === 0) return current > 0 ? 100 : -100;
+    return ((current - previous) / previous) * 100;
+  };
+
   // Computed filtered data
   const filtered = useMemo(() => {
     const invoices = allInvoices.filter((inv) => isInRange(inv.issue_date));
     const bills = allBills.filter((b) => isInRange(b.bill_date));
     const pos = allPOs.filter((po) => isInRange(po.po_date));
+
+    // Previous period
+    const prevInvoices = allInvoices.filter((inv) => isInPrevRange(inv.issue_date));
+    const prevBills = allBills.filter((b) => isInPrevRange(b.bill_date));
 
     const totalProducts = allProducts.length;
     const totalInvoices = invoices.length;
@@ -105,6 +135,19 @@ const Dashboard = () => {
     const totalBillsAmount = bills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
     const pendingBillsCount = bills.filter((b) => b.status === "pending").length;
     const profit = totalRevenue - totalBillsAmount;
+
+    // Previous period totals
+    const prevRevenue = prevInvoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+    const prevExpenses = prevBills.reduce((sum, b) => sum + (Number(b.total) || 0), 0);
+    const prevProfit = prevRevenue - prevExpenses;
+    const prevInvoiceCount = prevInvoices.length;
+
+    const changes = {
+      revenue: calcChange(totalRevenue, prevRevenue),
+      expenses: calcChange(totalBillsAmount, prevExpenses),
+      profit: calcChange(profit, prevProfit),
+      invoices: calcChange(totalInvoices, prevInvoiceCount),
+    };
 
     // Revenue trends
     const revenueByMonth = invoices.reduce((acc: any, inv) => {
