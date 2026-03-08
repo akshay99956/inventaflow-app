@@ -9,6 +9,7 @@ import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, Package
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
 type Product = {
@@ -48,6 +49,8 @@ const QuickPurchase = () => {
   const [pendingPOs, setPendingPOs] = useState<PendingPO[]>([]);
   const [receivingId, setReceivingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("order");
+  const [confirmReceiveId, setConfirmReceiveId] = useState<string | null>(null);
+  const [confirmPO, setConfirmPO] = useState<PendingPO | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -436,7 +439,7 @@ const QuickPurchase = () => {
                     <Button
                       size="sm"
                       className="gradient-secondary text-secondary-foreground"
-                      onClick={() => handleReceive(po.id)}
+                      onClick={() => { setConfirmReceiveId(po.id); setConfirmPO(po); }}
                       disabled={receivingId === po.id}
                     >
                       <PackageCheck className="h-4 w-4 mr-1" />
@@ -449,6 +452,40 @@ const QuickPurchase = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Receive Confirmation Dialog */}
+      <AlertDialog open={!!confirmReceiveId} onOpenChange={(open) => { if (!open) { setConfirmReceiveId(null); setConfirmPO(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Receive Goods</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmPO && (
+                <>
+                  Are you sure you want to receive <strong>{confirmPO.po_number}</strong> from <strong>{confirmPO.supplier_name}</strong> for <strong>{cs}{Number(confirmPO.total).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong>?
+                  <br /><br />
+                  This will update your inventory stock levels and create a purchase bill. This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="gradient-secondary text-secondary-foreground"
+              onClick={() => {
+                if (confirmReceiveId) {
+                  handleReceive(confirmReceiveId);
+                  setConfirmReceiveId(null);
+                  setConfirmPO(null);
+                }
+              }}
+            >
+              <PackageCheck className="h-4 w-4 mr-1" />
+              Yes, Receive Goods
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Order Cart Dialog */}
       <Dialog open={showCart} onOpenChange={setShowCart}>
