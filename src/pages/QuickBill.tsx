@@ -364,6 +364,21 @@ const QuickBill = () => {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
               />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Phone (for WhatsApp)"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="flex-1"
+                />
+                {customerPhone.trim() && (
+                  <div className="flex items-center text-[10px] text-success font-medium gap-1">
+                    <Send className="h-3 w-3" />
+                    Auto-share
+                  </div>
+                )}
+              </div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -386,7 +401,7 @@ const QuickBill = () => {
                 className="w-full gradient-primary text-primary-foreground"
               >
                 <Receipt className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Creating..." : "Generate Bill"}
+                {isSubmitting ? "Creating..." : customerPhone.trim() ? "Generate & Share via WhatsApp" : "Generate Bill"}
               </Button>
             </div>
           )}
