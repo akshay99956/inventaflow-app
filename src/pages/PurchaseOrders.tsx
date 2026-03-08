@@ -530,12 +530,19 @@ const PurchaseOrders = () => {
               value={supplierName}
               onChange={(e) => setSupplierName(e.target.value)}
             />
-            <Input
-              placeholder="Supplier Email"
-              type="email"
-              value={supplierEmail}
-              onChange={(e) => setSupplierEmail(e.target.value)}
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Supplier Phone (WhatsApp)"
+                type="tel"
+                value={supplierPhone}
+                onChange={(e) => setSupplierPhone(e.target.value)}
+              />
+              <Input
+                placeholder="Supplier Email"
+                type="email"
+                value={supplierEmail}
+                onChange={(e) => setSupplierEmail(e.target.value)}
+              />
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs text-muted-foreground">PO Date</label>
