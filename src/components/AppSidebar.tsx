@@ -31,6 +31,10 @@ const menuItems = [{
   url: "/bills",
   icon: Receipt
 }, {
+  title: "Quick Purchase",
+  url: "/quick-purchase",
+  icon: PackageCheck
+}, {
   title: "Purchase Orders",
   url: "/purchase-orders",
   icon: ClipboardList
