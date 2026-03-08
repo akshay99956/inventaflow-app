@@ -30,6 +30,7 @@ import Search from "./pages/Search";
 import Profile from "./pages/Profile";
 import QuickBill from "./pages/QuickBill";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import QuickPurchase from "./pages/QuickPurchase";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
