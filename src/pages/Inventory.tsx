@@ -801,7 +801,7 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product, index) => <TableRow key={product.id} className={`transition-colors ${isLowStock(product) ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" : index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}>
+                {filteredProducts.map((product, index) => <TableRow key={product.id} className={`transition-colors cursor-pointer ${isLowStock(product) ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" : index % 2 === 0 ? "bg-card hover:bg-muted/30" : "bg-muted/20 hover:bg-muted/40"}`} onClick={() => navigate(`/inventory/${product.id}`)}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
