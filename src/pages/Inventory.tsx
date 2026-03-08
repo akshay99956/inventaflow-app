@@ -739,7 +739,7 @@ const Inventory = () => {
 
         {/* Mobile Card View - Compact */}
         {isMobile ? <CardContent className="p-2 space-y-2">
-            {filteredProducts.map((product) => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}>
+            {filteredProducts.map((product) => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden cursor-pointer transition-shadow hover:shadow-md ${isLowStock(product) ? "bg-destructive/5" : ""}`} onClick={() => navigate(`/inventory/${product.id}`)}>
                 <div className={`h-0.5 ${isLowStock(product) ? "bg-destructive" : "gradient-primary"}`} />
                 <CardContent className="p-3 px-[9px] py-0">
                   {/* Main Row */}
