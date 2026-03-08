@@ -165,9 +165,21 @@ const QuickBill = () => {
           .eq("id", c.product.id);
       }
 
+      // Build WhatsApp message
+      const shareMsg = buildWhatsAppMessage(billNumber, customerName.trim(), cart, subtotal, taxAmount, total);
+
       toast.success(`Bill ${billNumber} created!`);
+
+      // Auto-share via WhatsApp if phone provided
+      if (customerPhone.trim()) {
+        const phone = customerPhone.trim().replace(/\D/g, "");
+        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
+        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(shareMsg)}`, "_blank");
+      }
+
       setCart([]);
       setCustomerName("");
+      setCustomerPhone("");
       setShowCart(false);
 
       // Refresh products
