@@ -117,6 +117,11 @@ const App = () => (
                     <PurchaseOrders />
                   </AppLayout>
                 </ProtectedRoute>} />
+            <Route path="/quick-purchase" element={<ProtectedRoute>
+                  <AppLayout>
+                    <QuickPurchase />
+                  </AppLayout>
+                </ProtectedRoute>} />
             <Route path="/balance-sheet" element={<ProtectedRoute>
                   <AppLayout>
                     <BalanceSheet />
