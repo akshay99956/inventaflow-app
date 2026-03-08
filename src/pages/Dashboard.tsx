@@ -448,14 +448,14 @@ const Dashboard = () => {
       {/* ── Row 1: Key Stats (6 cards) ── */}
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {[
-          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null },
-          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null },
-          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue },
-          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses },
-          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit },
-          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null },
+          { title: "Products", value: filtered.totalProducts.toString(), icon: Package, color: "text-primary", sub: "In inventory", change: null as number | null, path: "/inventory" },
+          { title: "Stock Value", value: fmtCurrency(filtered.totalStockValue), icon: IndianRupee, color: "text-destructive", sub: "Inventory worth", change: null as number | null, path: "/inventory" },
+          { title: "Revenue", value: fmtCurrency(filtered.totalRevenue), icon: TrendingUp, color: "text-success", sub: activePreset === "all" ? "All time" : "vs prev period", change: filtered.changes.revenue, path: "/invoices" },
+          { title: "Expenses", value: fmtCurrency(filtered.totalBillsAmount), icon: Receipt, color: "text-warning", sub: "Total bills", change: filtered.changes.expenses, path: "/bills" },
+          { title: "Profit", value: fmtCurrency(filtered.profit), icon: filtered.profit >= 0 ? ArrowUpRight : ArrowDownRight, color: filtered.profit >= 0 ? "text-success" : "text-destructive", sub: filtered.profit >= 0 ? "Net positive" : "Net loss", change: filtered.changes.profit, path: "/profit-analytics" },
+          { title: "Clients", value: filtered.totalClientsCount.toString(), icon: Users, color: "text-secondary", sub: "Total clients", change: null as number | null, path: "/clients" },
         ].map((item) => (
-          <Card key={item.title} className="relative overflow-hidden">
+          <Card key={item.title} className="relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate(item.path)}>
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `var(--gradient-primary)` }} />
             <CardContent className="p-3 md:p-4 pt-4">
               <div className="flex items-center justify-between mb-1">
@@ -682,7 +682,7 @@ const Dashboard = () => {
                     : 0;
                   const isOut = product.quantity === 0;
                   return (
-                    <div key={product.id} className="space-y-1.5">
+                    <div key={product.id} className="space-y-1.5 cursor-pointer hover:bg-muted/30 rounded-lg p-1.5 -mx-1.5 transition-colors" onClick={() => navigate(`/inventory/${product.id}`)}>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium truncate max-w-[60%]">{product.name}</span>
                         <Badge variant={isOut ? "destructive" : "secondary"} className="text-[10px] px-1.5 py-0">
@@ -712,7 +712,7 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {outstandingInvoices.map((invoice) => (
-                  <div key={invoice.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
+                  <div key={invoice.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate('/invoices')}>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{invoice.customer_name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -743,7 +743,7 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {filtered.recentBills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
+                  <div key={bill.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate('/bills')}>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{bill.customer_name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -782,7 +782,7 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {filtered.recentPOs.map((po) => (
-                  <div key={po.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2">
+                  <div key={po.id} className="flex items-center justify-between p-2.5 md:p-3 border rounded-lg gap-2 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate('/purchase-orders')}>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{po.supplier_name}</p>
                       <p className="text-xs text-muted-foreground">

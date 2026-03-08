@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,7 @@ const printColumnLabels: Record<PrintColumn, string> = {
   total_value: 'Total Value'
 };
 const Inventory = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -737,7 +739,7 @@ const Inventory = () => {
 
         {/* Mobile Card View - Compact */}
         {isMobile ? <CardContent className="p-2 space-y-2">
-            {filteredProducts.map((product) => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden ${isLowStock(product) ? "bg-destructive/5" : ""}`}>
+            {filteredProducts.map((product) => <Card key={product.id} className={`border-0 shadow-sm overflow-hidden cursor-pointer transition-shadow hover:shadow-md ${isLowStock(product) ? "bg-destructive/5" : ""}`} onClick={() => navigate(`/inventory/${product.id}`)}>
                 <div className={`h-0.5 ${isLowStock(product) ? "bg-destructive" : "gradient-primary"}`} />
                 <CardContent className="p-3 px-[9px] py-0">
                   {/* Main Row */}
@@ -772,10 +774,10 @@ const Inventory = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleEdit(product)}>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); handleEdit(product); }}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete(product.id)}>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -799,7 +801,7 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product, index) => <TableRow key={product.id} className={`transition-colors ${isLowStock(product) ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" : index % 2 === 0 ? "bg-card" : "bg-muted/20"}`}>
+                {filteredProducts.map((product, index) => <TableRow key={product.id} className={`transition-colors cursor-pointer ${isLowStock(product) ? "bg-gradient-to-r from-destructive/10 to-warning/10 hover:from-destructive/20 hover:to-warning/20" : index % 2 === 0 ? "bg-card hover:bg-muted/30" : "bg-muted/20 hover:bg-muted/40"}`} onClick={() => navigate(`/inventory/${product.id}`)}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <span className={isLowStock(product) ? "text-destructive font-semibold" : ""}>{product.name}</span>
@@ -829,10 +831,10 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="hover:bg-primary/10 hover:text-primary">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(product); }} className="hover:bg-primary/10 hover:text-primary">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="hover:bg-destructive/10 hover:text-destructive">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="hover:bg-destructive/10 hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

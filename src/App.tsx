@@ -31,6 +31,7 @@ import Profile from "./pages/Profile";
 import QuickBill from "./pages/QuickBill";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import QuickPurchase from "./pages/QuickPurchase";
+import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
@@ -85,6 +86,11 @@ const App = () => (
             <Route path="/inventory" element={<ProtectedRoute>
                   <AppLayout>
                     <Inventory />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/inventory/:id" element={<ProtectedRoute>
+                  <AppLayout>
+                    <ProductDetail />
                   </AppLayout>
                 </ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute>
