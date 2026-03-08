@@ -221,11 +221,45 @@ const PurchaseOrders = () => {
 
   const resetForm = () => {
     setSupplierName("");
+    setSupplierPhone("");
     setSupplierEmail("");
     setPODate(new Date().toISOString().split("T")[0]);
     setExpectedDate("");
     setNotes("");
     setItems([{ product_id: null, description: "", quantity: 1, unit_price: 0 }]);
+  };
+
+  const buildPOWhatsAppMessage = (
+    poNo: string, name: string, poItemsList: NewPOItem[] | POItem[],
+    sub: number, tax: number, tot: number, expDate?: string | null
+  ) => {
+    let msg = `📋 *Purchase Order: ${poNo}*\n`;
+    msg += `🏭 Supplier: ${name}\n`;
+    msg += `📅 Date: ${new Date().toLocaleDateString("en-IN")}\n`;
+    if (expDate) msg += `📦 Expected: ${format(new Date(expDate), "dd MMM yyyy")}\n`;
+    msg += `\n*Items:*\n`;
+    poItemsList.forEach((item, i) => {
+      const qty = item.quantity;
+      const price = item.unit_price;
+      msg += `${i + 1}. ${item.description}\n   ${qty} × ${cs}${Number(price).toLocaleString("en-IN")} = ${cs}${(qty * Number(price)).toLocaleString("en-IN")}\n`;
+    });
+    msg += `\n─────────────\n`;
+    msg += `Subtotal: ${cs}${sub.toLocaleString("en-IN")}\n`;
+    if (tax > 0) msg += `Tax: ${cs}${tax.toLocaleString("en-IN", { maximumFractionDigits: 2 })}\n`;
+    msg += `*Total: ${cs}${tot.toLocaleString("en-IN", { maximumFractionDigits: 2 })}*\n`;
+    msg += `\nPlease confirm this order. 🙏`;
+    return msg;
+  };
+
+  const handleSharePOWhatsApp = () => {
+    if (!selectedPO || poItems.length === 0) return;
+    const msg = buildPOWhatsAppMessage(
+      selectedPO.po_number, selectedPO.supplier_name, poItems,
+      Number(selectedPO.subtotal), Number(selectedPO.tax), Number(selectedPO.total),
+      selectedPO.expected_date
+    );
+    const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
   };
 
   const handleConvertToBill = async () => {
