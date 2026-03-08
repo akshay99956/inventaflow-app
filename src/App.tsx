@@ -28,6 +28,8 @@ import Clients from "./pages/Clients";
 import ProfitAnalytics from "./pages/ProfitAnalytics";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
+import QuickBill from "./pages/QuickBill";
+import PurchaseOrders from "./pages/PurchaseOrders";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
