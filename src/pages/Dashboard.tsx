@@ -104,6 +104,55 @@ const Dashboard = () => {
     };
     fetchDashboardData();
   }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Re-run the effect by forcing a re-render
+    const { data: products } = await supabase.from("products").select("*", { count: "exact" });
+    const { data: invoices } = await supabase.from("invoices").select("*");
+    const totalProducts = products?.length || 0;
+    const totalInvoices = invoices?.length || 0;
+    const pendingInvoices = invoices?.filter((inv) => inv.status !== "paid").length || 0;
+    const totalRevenue = invoices?.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0) || 0;
+    const totalStockValue = products?.reduce((sum, product) => sum + product.quantity * product.unit_price, 0) || 0;
+    setStats({ totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue });
+    
+    if (invoices && invoices.length > 0) {
+      const revenueByMonth = invoices.reduce((acc: any, inv) => {
+        const month = format(new Date(inv.issue_date), "MMM yyyy");
+        if (!acc[month]) acc[month] = 0;
+        acc[month] += Number(inv.total) || 0;
+        return acc;
+      }, {});
+      setRevenueData(Object.entries(revenueByMonth).map(([month, revenue]) => ({ month, revenue: revenue as number })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()).slice(-6));
+    }
+
+    const { data: outstanding } = await supabase.from("invoices").select("*").neq("status", "paid").order("due_date", { ascending: true }).limit(5);
+    setOutstandingInvoices(outstanding || []);
+    
+    setIsRefreshing(false);
+    toast.success("Dashboard refreshed");
+  };
+
+  const handleShareWhatsApp = () => {
+    const cs = settings.currency_symbol || "₹";
+    let message = `📊 *Business Summary*\n`;
+    message += `📅 ${format(new Date(), "dd MMM yyyy")}\n\n`;
+    message += `📦 Products: ${stats.totalProducts}\n`;
+    message += `💰 Stock Value: ${cs}${stats.totalStockValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    message += `📄 Pending Invoices: ${stats.pendingInvoices}\n`;
+    message += `✅ Total Revenue: ${cs}${stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}\n`;
+    
+    if (outstandingInvoices.length > 0) {
+      message += `\n⚠️ *Outstanding Invoices:*\n`;
+      outstandingInvoices.forEach((inv) => {
+        message += `• ${inv.customer_name} - ${cs}${Number(inv.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })} (Due: ${format(new Date(inv.due_date), "dd MMM")})\n`;
+      });
+    }
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
   const revenueChartConfig = {
     revenue: {
       label: "Revenue",
