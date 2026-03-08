@@ -183,6 +183,31 @@ const Profile = () => {
     }
   };
 
+  const fetchAccountStats = async () => {
+    try {
+      const [
+        { data: products }, { data: invoices }, { data: bills }, { data: clients }, { data: { user } }
+      ] = await Promise.all([
+        supabase.from("products").select("id", { count: "exact", head: false }),
+        supabase.from("invoices").select("id, total"),
+        supabase.from("bills").select("id, total"),
+        supabase.from("clients").select("id", { count: "exact", head: false }),
+        supabase.auth.getUser(),
+      ]);
+      setAccountStats({
+        totalProducts: products?.length || 0,
+        totalInvoices: invoices?.length || 0,
+        totalBills: bills?.length || 0,
+        totalClients: clients?.length || 0,
+        totalRevenue: invoices?.reduce((s, i) => s + (Number(i.total) || 0), 0) || 0,
+        totalExpenses: bills?.reduce((s, b) => s + (Number(b.total) || 0), 0) || 0,
+        memberSince: user?.created_at ? format(new Date(user.created_at), "dd MMM yyyy") : "",
+      });
+    } catch (e) {
+      console.error("Error fetching stats:", e);
+    }
+  };
+
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !profile) return;
