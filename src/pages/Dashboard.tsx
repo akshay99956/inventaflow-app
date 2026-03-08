@@ -682,7 +682,7 @@ const Dashboard = () => {
                     : 0;
                   const isOut = product.quantity === 0;
                   return (
-                    <div key={product.id} className="space-y-1.5">
+                    <div key={product.id} className="space-y-1.5 cursor-pointer hover:bg-muted/30 rounded-lg p-1.5 -mx-1.5 transition-colors" onClick={() => navigate(`/inventory/${product.id}`)}>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium truncate max-w-[60%]">{product.name}</span>
                         <Badge variant={isOut ? "destructive" : "secondary"} className="text-[10px] px-1.5 py-0">
