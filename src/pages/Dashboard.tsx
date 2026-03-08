@@ -163,7 +163,6 @@ const Dashboard = () => {
     // Top products (from all invoice items, but only matching invoices)
     const invoiceIds = new Set(invoices.map((inv) => inv.id));
     const filteredItems = allInvoiceItems.filter((item) => {
-      // invoice_items don't have issue_date, so we match by invoice_id
       return !dateRange.from || invoiceIds.has(item.invoice_id);
     });
     const productRevenue = filteredItems.reduce((acc: any, item) => {
@@ -175,6 +174,40 @@ const Dashboard = () => {
       .map(([name, revenue]) => ({ name, revenue: revenue as number }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
+
+    // Top selling items by quantity
+    const productQtySold = filteredItems.reduce((acc: any, item) => {
+      const name = (item.products as any)?.name || "Unknown";
+      if (!acc[name]) acc[name] = { qty: 0, revenue: 0 };
+      acc[name].qty += Number((item as any).quantity) || 1;
+      acc[name].revenue += Number(item.amount) || 0;
+      return acc;
+    }, {});
+    const topSellingItems = Object.entries(productQtySold)
+      .map(([name, data]: [string, any]) => ({ name, qty: data.qty, revenue: data.revenue }))
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 8);
+
+    // Stock value by category
+    const categoryStockMap: Record<string, { value: number; count: number }> = {};
+    allProducts.forEach((p) => {
+      const cat = p.category || "Uncategorized";
+      if (!categoryStockMap[cat]) categoryStockMap[cat] = { value: 0, count: 0 };
+      categoryStockMap[cat].value += p.quantity * p.unit_price;
+      categoryStockMap[cat].count += p.quantity;
+    });
+    const stockByCategory = Object.entries(categoryStockMap)
+      .map(([name, data]) => ({ name, value: data.value, count: data.count }))
+      .sort((a, b) => b.value - a.value);
+
+    // Category count for products
+    const uniqueCategories = new Set(allProducts.map((p) => p.category || "Uncategorized")).size;
+
+    // Avg order value
+    const avgOrderValue = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
+
+    // Profit margin
+    const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
 
     // Recent bills (filtered)
     const recentBills = [...bills]
@@ -201,7 +234,8 @@ const Dashboard = () => {
       totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
       totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
       recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
-      totalClientsCount: allClients.length, changes,
+      totalClientsCount: allClients.length, changes, topSellingItems,
+      stockByCategory, uniqueCategories, avgOrderValue, profitMargin,
     };
   }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
 
