@@ -382,7 +382,7 @@ const Dashboard = () => {
       {/* Bill-style Print Area */}
       <div id="dashboard-print-area" className="hidden print:block">
         <div className="max-w-[80mm] mx-auto font-mono text-[11px] leading-tight">
-          <CompanyBranding variant="print" />
+          <CompanyBranding />
           
           <div className="text-center border-b border-dashed border-foreground pb-2 mb-2">
             <p className="font-bold text-sm">BUSINESS SUMMARY</p>
