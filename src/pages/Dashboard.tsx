@@ -201,7 +201,7 @@ const Dashboard = () => {
       totalProducts, totalInvoices, pendingInvoices, totalRevenue, totalStockValue,
       totalBillsAmount, pendingBillsCount, profit, revenueData, topProducts,
       recentBills, expenseVsRevenue, recentPOs: pos.slice(0, 5),
-      totalClientsCount: allClients.length,
+      totalClientsCount: allClients.length, changes,
     };
   }, [allInvoices, allBills, allProducts, allInvoiceItems, allPOs, allClients, dateRange]);
 
