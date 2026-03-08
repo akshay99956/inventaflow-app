@@ -200,6 +200,15 @@ const PurchaseOrders = () => {
       await supabase.from("purchase_order_items").insert(poItemsData);
 
       toast.success(`${poNumber} created!`);
+
+      // Auto-share via WhatsApp if phone provided
+      if (supplierPhone.trim()) {
+        const msg = buildPOWhatsAppMessage(poNumber, supplierName.trim(), items, itemsSubtotal, itemsTax, itemsTotal, expectedDate);
+        const phone = supplierPhone.trim().replace(/\D/g, "");
+        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
+        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+      }
+
       setIsCreateOpen(false);
       resetForm();
       fetchOrders();
