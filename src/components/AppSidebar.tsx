@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Home, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart, ShoppingCart, UserCircle } from "lucide-react";
+import { Home, Package, FileText, TrendingUp, Receipt, LogOut, Settings, Users, PieChart, ShoppingCart, UserCircle, Zap, ClipboardList } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar } from "@/components/ui/sidebar";
@@ -23,9 +23,17 @@ const menuItems = [{
   url: "/clients",
   icon: Users
 }, {
+  title: "Quick Bill",
+  url: "/quick-bill",
+  icon: Zap
+}, {
   title: "Purchases",
   url: "/bills",
   icon: Receipt
+}, {
+  title: "Purchase Orders",
+  url: "/purchase-orders",
+  icon: ClipboardList
 }, {
   title: "Balance Sheet",
   url: "/balance-sheet",

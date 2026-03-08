@@ -28,6 +28,8 @@ import Clients from "./pages/Clients";
 import ProfitAnalytics from "./pages/ProfitAnalytics";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
+import QuickBill from "./pages/QuickBill";
+import PurchaseOrders from "./pages/PurchaseOrders";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 const AppLayout = ({
@@ -102,6 +104,16 @@ const App = () => (
             <Route path="/bills/new" element={<ProtectedRoute>
                   <AppLayout>
                     <BillCreate />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/quick-bill" element={<ProtectedRoute>
+                  <AppLayout>
+                    <QuickBill />
+                  </AppLayout>
+                </ProtectedRoute>} />
+            <Route path="/purchase-orders" element={<ProtectedRoute>
+                  <AppLayout>
+                    <PurchaseOrders />
                   </AppLayout>
                 </ProtectedRoute>} />
             <Route path="/balance-sheet" element={<ProtectedRoute>
