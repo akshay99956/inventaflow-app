@@ -49,6 +49,8 @@ const QuickPurchase = () => {
   const [pendingPOs, setPendingPOs] = useState<PendingPO[]>([]);
   const [receivingId, setReceivingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("order");
+  const [confirmReceiveId, setConfirmReceiveId] = useState<string | null>(null);
+  const [confirmPO, setConfirmPO] = useState<PendingPO | null>(null);
 
   useEffect(() => {
     fetchProducts();
