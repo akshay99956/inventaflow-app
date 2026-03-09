@@ -357,6 +357,7 @@ export type Database = {
           sku: string | null
           storage_location: string | null
           supplier_name: string | null
+          unit: string | null
           unit_price: number
           updated_at: string
           user_id: string
@@ -375,6 +376,7 @@ export type Database = {
           sku?: string | null
           storage_location?: string | null
           supplier_name?: string | null
+          unit?: string | null
           unit_price?: number
           updated_at?: string
           user_id: string
@@ -393,6 +395,7 @@ export type Database = {
           sku?: string | null
           storage_location?: string | null
           supplier_name?: string | null
+          unit?: string | null
           unit_price?: number
           updated_at?: string
           user_id?: string
