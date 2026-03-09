@@ -33,6 +33,8 @@ const productSchema = z.object({
   manufacturing_date: z.string().optional(),
   expiry_date: z.string().optional()
 });
+const UNITS = ['pc', 'kg', 'g', 'ltr', 'ml', 'box', 'pack', 'set', 'pair', 'dozen', 'meter', 'ft'] as const;
+
 type Product = {
   id: string;
   name: string;
@@ -47,6 +49,7 @@ type Product = {
   storage_location: string | null;
   manufacturing_date: string | null;
   expiry_date: string | null;
+  unit: string | null;
 };
 type PrintColumn = 'name' | 'sku' | 'quantity' | 'purchase_price' | 'unit_price' | 'profit' | 'total_value';
 const printColumnLabels: Record<PrintColumn, string> = {
@@ -82,7 +85,8 @@ const Inventory = () => {
     supplier_name: "",
     storage_location: "",
     manufacturing_date: "",
-    expiry_date: ""
+    expiry_date: "",
+    unit: "pc"
   });
   const fetchProducts = async () => {
     const {
@@ -210,7 +214,8 @@ const Inventory = () => {
       supplier_name: product.supplier_name || "",
       storage_location: product.storage_location || "",
       manufacturing_date: product.manufacturing_date || "",
-      expiry_date: product.expiry_date || ""
+      expiry_date: product.expiry_date || "",
+      unit: product.unit || "pc"
     });
     setIsDialogOpen(true);
   };
@@ -227,7 +232,8 @@ const Inventory = () => {
       supplier_name: "",
       storage_location: "",
       manufacturing_date: "",
-      expiry_date: ""
+      expiry_date: "",
+      unit: "pc"
     });
     setEditingProduct(null);
   };
@@ -461,9 +467,22 @@ const Inventory = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit of Measurement</Label>
+                <select
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-primary/20 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {UNITS.map((u) => (
+                    <option key={u} value={u}>{u.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity *</Label>
+                  <Label htmlFor="quantity">Quantity ({formData.unit}) *</Label>
                   <Input id="quantity" type="number" value={formData.quantity} onChange={(e) => setFormData({
                     ...formData,
                     quantity: Number(e.target.value)
@@ -756,7 +775,7 @@ const Inventory = () => {
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="text-right">
                         <p className={`text-base font-bold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                          {product.quantity}
+                          {product.quantity} <span className="text-xs font-normal text-muted-foreground">{product.unit || 'pc'}</span>
                         </p>
                         <p className="text-[10px] text-muted-foreground">in stock</p>
                       </div>
@@ -817,7 +836,7 @@ const Inventory = () => {
                         </Badge> : "-"}
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                      {product.quantity}
+                      {product.quantity} <span className="text-xs font-normal text-muted-foreground">{product.unit || 'pc'}</span>
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">₹{product.purchase_price.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>

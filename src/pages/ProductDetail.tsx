@@ -24,6 +24,7 @@ type Product = {
   storage_location: string | null;
   manufacturing_date: string | null;
   expiry_date: string | null;
+  unit: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -105,7 +106,7 @@ const ProductDetail = () => {
       {/* Key Stats */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {[
-          { title: "In Stock", value: product.quantity.toString(), icon: Package, color: isLowStock ? "text-destructive" : "text-primary", sub: `Threshold: ${product.low_stock_threshold}` },
+          { title: "In Stock", value: `${product.quantity} ${(product.unit || 'pc').toUpperCase()}`, icon: Package, color: isLowStock ? "text-destructive" : "text-primary", sub: `Threshold: ${product.low_stock_threshold}` },
           { title: "Sale Price", value: `${cs}${product.unit_price.toFixed(2)}`, icon: IndianRupee, color: "text-success", sub: `Buy: ${cs}${product.purchase_price.toFixed(2)}` },
           { title: "Profit/Unit", value: `${cs}${profitPerUnit.toFixed(2)}`, icon: TrendingUp, color: profitPerUnit >= 0 ? "text-info" : "text-destructive", sub: `${profitPct.toFixed(1)}% margin` },
           { title: "Stock Value", value: `${cs}${totalStockValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`, icon: BarChart3, color: "text-warning", sub: `Profit: ${cs}${totalProfitPotential.toLocaleString("en-IN", { maximumFractionDigits: 0 })}` },
@@ -134,7 +135,7 @@ const ProductDetail = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Current Stock</span>
-                <span className="font-bold">{product.quantity} units</span>
+                <span className="font-bold">{product.quantity} {(product.unit || 'pc').toUpperCase()}</span>
               </div>
               <Progress value={stockPct} className={`h-3 ${isLowStock ? "[&>div]:bg-destructive" : ""}`} />
               <p className="text-xs text-muted-foreground">
