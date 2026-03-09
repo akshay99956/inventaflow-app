@@ -467,9 +467,22 @@ const Inventory = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit of Measurement</Label>
+                <select
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-primary/20 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {UNITS.map((u) => (
+                    <option key={u} value={u}>{u.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity *</Label>
+                  <Label htmlFor="quantity">Quantity ({formData.unit}) *</Label>
                   <Input id="quantity" type="number" value={formData.quantity} onChange={(e) => setFormData({
                     ...formData,
                     quantity: Number(e.target.value)
