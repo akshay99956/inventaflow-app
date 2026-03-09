@@ -214,7 +214,8 @@ const Inventory = () => {
       supplier_name: product.supplier_name || "",
       storage_location: product.storage_location || "",
       manufacturing_date: product.manufacturing_date || "",
-      expiry_date: product.expiry_date || ""
+      expiry_date: product.expiry_date || "",
+      unit: product.unit || "pc"
     });
     setIsDialogOpen(true);
   };
