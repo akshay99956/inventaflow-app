@@ -775,7 +775,7 @@ const Inventory = () => {
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="text-right">
                         <p className={`text-base font-bold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                          {product.quantity}
+                          {product.quantity} <span className="text-xs font-normal text-muted-foreground">{product.unit || 'pc'}</span>
                         </p>
                         <p className="text-[10px] text-muted-foreground">in stock</p>
                       </div>
