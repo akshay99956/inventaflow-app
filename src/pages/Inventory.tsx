@@ -85,7 +85,8 @@ const Inventory = () => {
     supplier_name: "",
     storage_location: "",
     manufacturing_date: "",
-    expiry_date: ""
+    expiry_date: "",
+    unit: "pc"
   });
   const fetchProducts = async () => {
     const {
