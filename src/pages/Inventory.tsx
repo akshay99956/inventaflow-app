@@ -33,6 +33,8 @@ const productSchema = z.object({
   manufacturing_date: z.string().optional(),
   expiry_date: z.string().optional()
 });
+const UNITS = ['pc', 'kg', 'g', 'ltr', 'ml', 'box', 'pack', 'set', 'pair', 'dozen', 'meter', 'ft'] as const;
+
 type Product = {
   id: string;
   name: string;
@@ -47,6 +49,7 @@ type Product = {
   storage_location: string | null;
   manufacturing_date: string | null;
   expiry_date: string | null;
+  unit: string | null;
 };
 type PrintColumn = 'name' | 'sku' | 'quantity' | 'purchase_price' | 'unit_price' | 'profit' | 'total_value';
 const printColumnLabels: Record<PrintColumn, string> = {
