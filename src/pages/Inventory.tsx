@@ -836,7 +836,7 @@ const Inventory = () => {
                         </Badge> : "-"}
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${isLowStock(product) ? "text-destructive" : "text-primary"}`}>
-                      {product.quantity}
+                      {product.quantity} <span className="text-xs font-normal text-muted-foreground">{product.unit || 'pc'}</span>
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">₹{product.purchase_price.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-medium text-success">₹{product.unit_price.toFixed(2)}</TableCell>

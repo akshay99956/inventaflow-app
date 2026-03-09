@@ -135,7 +135,7 @@ const ProductDetail = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Current Stock</span>
-                <span className="font-bold">{product.quantity} units</span>
+                <span className="font-bold">{product.quantity} {(product.unit || 'pc').toUpperCase()}</span>
               </div>
               <Progress value={stockPct} className={`h-3 ${isLowStock ? "[&>div]:bg-destructive" : ""}`} />
               <p className="text-xs text-muted-foreground">
