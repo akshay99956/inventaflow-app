@@ -24,6 +24,7 @@ type Product = {
   storage_location: string | null;
   manufacturing_date: string | null;
   expiry_date: string | null;
+  unit: string | null;
   created_at: string;
   updated_at: string;
 };
