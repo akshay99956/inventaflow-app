@@ -285,6 +285,31 @@ const QuickBill = () => {
         />
       </div>
 
+      {/* Category Filters */}
+      {categories.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-hide">
+          <Button
+            variant={selectedCategory === "" ? "default" : "outline"}
+            size="sm"
+            className="h-7 text-xs whitespace-nowrap flex-shrink-0"
+            onClick={() => setSelectedCategory("")}
+          >
+            All
+          </Button>
+          {categories.map((cat) => (
+            <Button
+              key={cat}
+              variant={selectedCategory === cat ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs whitespace-nowrap flex-shrink-0"
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </Button>
+          ))}
+        </div>
+      )}
+
       {/* Product Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
         {filteredProducts.map((product) => {
