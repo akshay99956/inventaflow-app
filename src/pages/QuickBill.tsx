@@ -59,10 +59,19 @@ const QuickBill = () => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category && p.category.toLowerCase().includes(search.toLowerCase()))
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean) as string[])
+  ).sort();
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.category && p.category.toLowerCase().includes(search.toLowerCase()));
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
@@ -275,6 +284,31 @@ const QuickBill = () => {
           className="pl-10"
         />
       </div>
+
+      {/* Category Filters */}
+      {categories.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-hide">
+          <Button
+            variant={selectedCategory === "" ? "default" : "outline"}
+            size="sm"
+            className="h-7 text-xs whitespace-nowrap flex-shrink-0"
+            onClick={() => setSelectedCategory("")}
+          >
+            All
+          </Button>
+          {categories.map((cat) => (
+            <Button
+              key={cat}
+              variant={selectedCategory === cat ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs whitespace-nowrap flex-shrink-0"
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Product Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
