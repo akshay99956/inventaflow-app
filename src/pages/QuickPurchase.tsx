@@ -85,10 +85,19 @@ const QuickPurchase = () => {
     setPendingPOs((data as PendingPO[]) || []);
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category && p.category.toLowerCase().includes(search.toLowerCase()))
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean) as string[])
+  ).sort();
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.category && p.category.toLowerCase().includes(search.toLowerCase()));
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
