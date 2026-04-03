@@ -11,6 +11,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import DocumentPreview from "@/components/DocumentPreview";
 
 type Product = {
   id: string;
@@ -51,6 +52,16 @@ const QuickPurchase = () => {
   const [activeTab, setActiveTab] = useState("order");
   const [confirmReceiveId, setConfirmReceiveId] = useState<string | null>(null);
   const [confirmPO, setConfirmPO] = useState<PendingPO | null>(null);
+  const [previewData, setPreviewData] = useState<{
+    docNumber: string;
+    partyName: string;
+    partyPhone?: string;
+    date: string;
+    items: { name: string; qty: number; unitPrice: number; amount: number }[];
+    subtotal: number;
+    tax: number;
+    total: number;
+  } | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -171,15 +182,25 @@ const QuickPurchase = () => {
 
       await supabase.from("purchase_order_items").insert(poItems);
 
-      // WhatsApp share
-      if (supplierPhone.trim()) {
-        const msg = buildWhatsAppMessage(poNumber, supplierName.trim(), cart, subtotal, taxAmount, total);
-        const phone = supplierPhone.trim().replace(/\D/g, "");
-        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
-        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, "_blank");
-      }
-
       toast.success(`${poNumber} created!`);
+
+      // Show preview dialog
+      setPreviewData({
+        docNumber: poNumber,
+        partyName: supplierName.trim(),
+        partyPhone: supplierPhone.trim() || undefined,
+        date: new Date().toISOString().split("T")[0],
+        items: cart.map((c) => ({
+          name: c.product.name,
+          qty: c.qty,
+          unitPrice: c.product.purchase_price,
+          amount: c.qty * c.product.purchase_price,
+        })),
+        subtotal,
+        tax: taxAmount,
+        total,
+      });
+
       setCart([]);
       setSupplierName("");
       setSupplierPhone("");
@@ -626,6 +647,23 @@ const QuickPurchase = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* PO Preview after creation */}
+      {previewData && (
+        <DocumentPreview
+          open={!!previewData}
+          onOpenChange={(open) => { if (!open) setPreviewData(null); }}
+          type="purchase_order"
+          docNumber={previewData.docNumber}
+          partyName={previewData.partyName}
+          partyPhone={previewData.partyPhone}
+          date={previewData.date}
+          items={previewData.items}
+          subtotal={previewData.subtotal}
+          tax={previewData.tax}
+          total={previewData.total}
+        />
+      )}
     </div>
   );
 };

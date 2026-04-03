@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import DocumentPreview from "@/components/DocumentPreview";
 
 type Product = {
   id: string;
@@ -36,6 +37,16 @@ const QuickBill = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [previewData, setPreviewData] = useState<{
+    docNumber: string;
+    partyName: string;
+    partyPhone?: string;
+    date: string;
+    items: { name: string; qty: number; unitPrice: number; amount: number }[];
+    subtotal: number;
+    tax: number;
+    total: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -165,17 +176,24 @@ const QuickBill = () => {
           .eq("id", c.product.id);
       }
 
-      // Build WhatsApp message
-      const shareMsg = buildWhatsAppMessage(billNumber, customerName.trim(), cart, subtotal, taxAmount, total);
-
       toast.success(`Bill ${billNumber} created!`);
 
-      // Auto-share via WhatsApp if phone provided
-      if (customerPhone.trim()) {
-        const phone = customerPhone.trim().replace(/\D/g, "");
-        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
-        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(shareMsg)}`, "_blank");
-      }
+      // Show preview dialog
+      setPreviewData({
+        docNumber: billNumber,
+        partyName: customerName.trim(),
+        partyPhone: customerPhone.trim() || undefined,
+        date: new Date().toISOString().split("T")[0],
+        items: cart.map((c) => ({
+          name: c.product.name,
+          qty: c.qty,
+          unitPrice: c.product.unit_price,
+          amount: c.qty * c.product.unit_price,
+        })),
+        subtotal,
+        tax: taxAmount,
+        total,
+      });
 
       setCart([]);
       setCustomerName("");
@@ -407,6 +425,23 @@ const QuickBill = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bill Preview after creation */}
+      {previewData && (
+        <DocumentPreview
+          open={!!previewData}
+          onOpenChange={(open) => { if (!open) setPreviewData(null); }}
+          type="bill"
+          docNumber={previewData.docNumber}
+          partyName={previewData.partyName}
+          partyPhone={previewData.partyPhone}
+          date={previewData.date}
+          items={previewData.items}
+          subtotal={previewData.subtotal}
+          tax={previewData.tax}
+          total={previewData.total}
+        />
+      )}
     </div>
   );
 };
