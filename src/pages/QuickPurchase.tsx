@@ -647,6 +647,23 @@ const QuickPurchase = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* PO Preview after creation */}
+      {previewData && (
+        <DocumentPreview
+          open={!!previewData}
+          onOpenChange={(open) => { if (!open) setPreviewData(null); }}
+          type="purchase_order"
+          docNumber={previewData.docNumber}
+          partyName={previewData.partyName}
+          partyPhone={previewData.partyPhone}
+          date={previewData.date}
+          items={previewData.items}
+          subtotal={previewData.subtotal}
+          tax={previewData.tax}
+          total={previewData.total}
+        />
+      )}
     </div>
   );
 };
