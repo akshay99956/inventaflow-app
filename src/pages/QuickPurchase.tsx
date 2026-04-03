@@ -182,15 +182,25 @@ const QuickPurchase = () => {
 
       await supabase.from("purchase_order_items").insert(poItems);
 
-      // WhatsApp share
-      if (supplierPhone.trim()) {
-        const msg = buildWhatsAppMessage(poNumber, supplierName.trim(), cart, subtotal, taxAmount, total);
-        const phone = supplierPhone.trim().replace(/\D/g, "");
-        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
-        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, "_blank");
-      }
-
       toast.success(`${poNumber} created!`);
+
+      // Show preview dialog
+      setPreviewData({
+        docNumber: poNumber,
+        partyName: supplierName.trim(),
+        partyPhone: supplierPhone.trim() || undefined,
+        date: new Date().toISOString().split("T")[0],
+        items: cart.map((c) => ({
+          name: c.product.name,
+          qty: c.qty,
+          unitPrice: c.product.purchase_price,
+          amount: c.qty * c.product.purchase_price,
+        })),
+        subtotal,
+        tax: taxAmount,
+        total,
+      });
+
       setCart([]);
       setSupplierName("");
       setSupplierPhone("");
