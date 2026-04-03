@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import DocumentPreview from "@/components/DocumentPreview";
 
 type Product = {
   id: string;
