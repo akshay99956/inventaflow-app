@@ -176,17 +176,24 @@ const QuickBill = () => {
           .eq("id", c.product.id);
       }
 
-      // Build WhatsApp message
-      const shareMsg = buildWhatsAppMessage(billNumber, customerName.trim(), cart, subtotal, taxAmount, total);
-
       toast.success(`Bill ${billNumber} created!`);
 
-      // Auto-share via WhatsApp if phone provided
-      if (customerPhone.trim()) {
-        const phone = customerPhone.trim().replace(/\D/g, "");
-        const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
-        window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(shareMsg)}`, "_blank");
-      }
+      // Show preview dialog
+      setPreviewData({
+        docNumber: billNumber,
+        partyName: customerName.trim(),
+        partyPhone: customerPhone.trim() || undefined,
+        date: new Date().toISOString().split("T")[0],
+        items: cart.map((c) => ({
+          name: c.product.name,
+          qty: c.qty,
+          unitPrice: c.product.unit_price,
+          amount: c.qty * c.product.unit_price,
+        })),
+        subtotal,
+        tax: taxAmount,
+        total,
+      });
 
       setCart([]);
       setCustomerName("");
