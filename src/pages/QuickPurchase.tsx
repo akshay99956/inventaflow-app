@@ -52,6 +52,16 @@ const QuickPurchase = () => {
   const [activeTab, setActiveTab] = useState("order");
   const [confirmReceiveId, setConfirmReceiveId] = useState<string | null>(null);
   const [confirmPO, setConfirmPO] = useState<PendingPO | null>(null);
+  const [previewData, setPreviewData] = useState<{
+    docNumber: string;
+    partyName: string;
+    partyPhone?: string;
+    date: string;
+    items: { name: string; qty: number; unitPrice: number; amount: number }[];
+    subtotal: number;
+    tax: number;
+    total: number;
+  } | null>(null);
 
   useEffect(() => {
     fetchProducts();
