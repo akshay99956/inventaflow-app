@@ -779,6 +779,20 @@ const Settings = () => {
                   onCheckedChange={(checked) => handleSettingsChange("bill_due_alerts", checked)}
                 />
               </div>
+              <Separator />
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Notification Sounds</Label>
+                  <p className="text-xs text-muted-foreground">Play sound effects for success, error & alerts</p>
+                </div>
+                <Switch
+                  checked={isSoundEnabled()}
+                  onCheckedChange={(checked) => {
+                    setSoundEnabled(checked);
+                    if (checked) playSuccess();
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
