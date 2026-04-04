@@ -435,7 +435,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 mb-6 h-auto">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-9 mb-6 h-auto">
           <TabsTrigger value="company" className="text-xs md:text-sm py-2">
             <Building2 className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Company</span>
