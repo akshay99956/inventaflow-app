@@ -1125,6 +1125,10 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        {/* Data Management Tab */}
+        <TabsContent value="data">
+          <DataManagement />
+        </TabsContent>
       </Tabs>
     </div>
   );
