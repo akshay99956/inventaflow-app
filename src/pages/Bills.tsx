@@ -211,7 +211,7 @@ const Bills = () => {
     if (error) {
       toast.error("Failed to delete bill");
     } else {
-      toast.success("Bill deleted successfully");
+      toast.deleted("Bill deleted successfully");
     }
   };
 

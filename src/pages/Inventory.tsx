@@ -196,7 +196,7 @@ const Inventory = () => {
     if (error) {
       toast.error("Error deleting product");
     } else {
-      toast.success("Product deleted successfully");
+      toast.deleted("Product deleted successfully");
       fetchProducts();
     }
   };

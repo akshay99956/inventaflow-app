@@ -161,7 +161,7 @@ const Clients = () => {
     if (error) {
       toast.error("Error deleting client");
     } else {
-      toast.success("Client deleted successfully");
+      toast.deleted("Client deleted successfully");
     }
   };
 

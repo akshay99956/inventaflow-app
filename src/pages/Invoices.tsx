@@ -255,7 +255,7 @@ Thank you for your business! 🙏`;
     if (error) {
       toast.error("Failed to delete invoice");
     } else {
-      toast.success("Invoice deleted and stock restored");
+      toast.deleted("Invoice deleted and stock restored");
     }
   };
   const getStatusBadge = (status: string) => {

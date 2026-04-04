@@ -250,7 +250,7 @@ const QuickPurchase = () => {
         .update({ status: "pending" })
         .eq("id", poId);
 
-      toast.success("Receive undone — stock restored, bill deleted, PO back to pending");
+      toast.deleted("Receive undone — stock restored, bill deleted, PO back to pending");
       fetchPendingPOs();
       fetchProducts();
     } catch (err: any) {
