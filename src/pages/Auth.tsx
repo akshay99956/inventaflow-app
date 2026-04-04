@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { z } from "zod";
 import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, Shield, BarChart3, TrendingUp, Package, Users, Loader2, Mail, User, Building2, Phone, LockKeyhole, Sparkles, Zap, CheckCircle2, Check, X } from "lucide-react";
 

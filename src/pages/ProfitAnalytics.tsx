@@ -10,7 +10,7 @@ import { TrendingUp, TrendingDown, IndianRupee, Package, Download, Percent, BarC
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area, LineChart, Line, ReferenceLine } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useIsMobile } from "@/hooks/use-mobile";
 type Product = {
   id: string;

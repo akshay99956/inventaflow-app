@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Users, Search } from "lucide-react";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { z } from "zod";
 import { SwipeableCard } from "@/components/SwipeableCard";
 

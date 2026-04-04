@@ -14,7 +14,7 @@ import { Plus, Trash2, ArrowLeft, Check, ChevronsUpDown, Package, Search } from 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Switch } from "@/components/ui/switch";
