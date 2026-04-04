@@ -65,6 +65,51 @@ const QuickPurchase = () => {
     total: number;
   } | null>(null);
 
+  // Quick Add Product state
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: "", purchase_price: "", unit_price: "", category: "", unit: "pc" });
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+
+  const UNITS = ["kg", "ltr", "pc", "box", "pack", "set", "pair", "g", "ml", "dozen"];
+
+  const handleQuickAddProduct = async () => {
+    if (!newProduct.name.trim()) {
+      toast.error("Product name is required");
+      return;
+    }
+    setIsAddingProduct(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("products")
+        .insert({
+          user_id: user.id,
+          name: newProduct.name.trim(),
+          purchase_price: parseFloat(newProduct.purchase_price) || 0,
+          unit_price: parseFloat(newProduct.unit_price) || 0,
+          category: newProduct.category.trim() || null,
+          unit: newProduct.unit || "pc",
+          quantity: 0,
+        })
+        .select("id, name, unit_price, purchase_price, quantity, category")
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`${data.name} added!`);
+      setProducts((prev) => [...prev, data as Product].sort((a, b) => a.name.localeCompare(b.name)));
+      addToCart(data as Product);
+      setNewProduct({ name: "", purchase_price: "", unit_price: "", category: "", unit: "pc" });
+      setShowQuickAdd(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add product");
+    } finally {
+      setIsAddingProduct(false);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchPendingPOs();
