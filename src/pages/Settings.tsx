@@ -22,6 +22,7 @@ import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
+import { isSoundEnabled, setSoundEnabled, playSuccess } from "@/lib/soundUtils";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
