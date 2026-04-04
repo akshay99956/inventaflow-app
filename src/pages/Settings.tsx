@@ -15,8 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X,
   Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor,
-  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History
+  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History, Database
 } from "lucide-react";
+import DataManagement from "@/components/DataManagement";
 import { useTheme } from "next-themes";
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -434,7 +435,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 mb-6 h-auto">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-9 mb-6 h-auto">
           <TabsTrigger value="company" className="text-xs md:text-sm py-2">
             <Building2 className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Company</span>
@@ -466,6 +467,10 @@ const Settings = () => {
           <TabsTrigger value="appearance" className="text-xs md:text-sm py-2">
             <Palette className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Theme</span>
+          </TabsTrigger>
+          <TabsTrigger value="data" className="text-xs md:text-sm py-2">
+            <Database className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Data</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1119,6 +1124,10 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        {/* Data Management Tab */}
+        <TabsContent value="data">
+          <DataManagement />
         </TabsContent>
       </Tabs>
     </div>
