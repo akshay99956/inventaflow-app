@@ -212,7 +212,7 @@ const DocumentPreview = ({
           <Button variant="outline" size="sm" onClick={() => {
             const msg = buildWhatsAppMessage();
             navigator.clipboard.writeText(msg);
-            import("sonner").then(({ toast }) => toast.success("Copied to clipboard!"));
+            toast.success("Copied to clipboard!");
           }} className="flex-1">
             <Share2 className="h-4 w-4 mr-1" />
             Copy
