@@ -22,6 +22,7 @@ import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getSafeErrorMessage, logErrorInDev } from "@/lib/errorUtils";
+import { isSoundEnabled, setSoundEnabled, playSuccess } from "@/lib/soundUtils";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -776,6 +777,20 @@ const Settings = () => {
                 <Switch
                   checked={settings.bill_due_alerts}
                   onCheckedChange={(checked) => handleSettingsChange("bill_due_alerts", checked)}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label>Notification Sounds</Label>
+                  <p className="text-xs text-muted-foreground">Play sound effects for success, error & alerts</p>
+                </div>
+                <Switch
+                  checked={isSoundEnabled()}
+                  onCheckedChange={(checked) => {
+                    setSoundEnabled(checked);
+                    if (checked) playSuccess();
+                  }}
                 />
               </div>
             </CardContent>
