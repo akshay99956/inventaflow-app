@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, PackageCheck, Package } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, PackageCheck, Package, PlusCircle } from "lucide-react";
 import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
