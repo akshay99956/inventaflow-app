@@ -1,4 +1,24 @@
 // Web Audio API sound effects - no external files needed
+
+const SOUND_ENABLED_KEY = "notification_sounds_enabled";
+
+export function isSoundEnabled(): boolean {
+  try {
+    const val = localStorage.getItem(SOUND_ENABLED_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
+}
+
+export function setSoundEnabled(enabled: boolean) {
+  try {
+    localStorage.setItem(SOUND_ENABLED_KEY, String(enabled));
+  } catch {
+    // Storage not available
+  }
+}
+
 const audioCtx = () => {
   if (!(window as any).__audioCtx) {
     (window as any).__audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
