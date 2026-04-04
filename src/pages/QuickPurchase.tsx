@@ -481,14 +481,25 @@ const QuickPurchase = () => {
 
         {/* Order Tab - Product Grid */}
         <TabsContent value="order" className="space-y-3 mt-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 flex-shrink-0 border-dashed border-2 border-primary/40 text-primary hover:bg-primary/10"
+              onClick={() => setShowQuickAdd(true)}
+              title="Quick add new product"
+            >
+              <PlusCircle className="h-5 w-5" />
+            </Button>
           </div>
 
           {/* Category Filters */}
