@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Printer, Send, Share2, X, Receipt, ClipboardList } from "lucide-react";
