@@ -5,11 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, PackageCheck, Package } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, PackageCheck, Package, PlusCircle } from "lucide-react";
 import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import DocumentPreview from "@/components/DocumentPreview";
 
@@ -62,6 +64,51 @@ const QuickPurchase = () => {
     tax: number;
     total: number;
   } | null>(null);
+
+  // Quick Add Product state
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: "", purchase_price: "", unit_price: "", category: "", unit: "pc" });
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+
+  const UNITS = ["kg", "ltr", "pc", "box", "pack", "set", "pair", "g", "ml", "dozen"];
+
+  const handleQuickAddProduct = async () => {
+    if (!newProduct.name.trim()) {
+      toast.error("Product name is required");
+      return;
+    }
+    setIsAddingProduct(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("products")
+        .insert({
+          user_id: user.id,
+          name: newProduct.name.trim(),
+          purchase_price: parseFloat(newProduct.purchase_price) || 0,
+          unit_price: parseFloat(newProduct.unit_price) || 0,
+          category: newProduct.category.trim() || null,
+          unit: newProduct.unit || "pc",
+          quantity: 0,
+        })
+        .select("id, name, unit_price, purchase_price, quantity, category")
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`${data.name} added!`);
+      setProducts((prev) => [...prev, data as Product].sort((a, b) => a.name.localeCompare(b.name)));
+      addToCart(data as Product);
+      setNewProduct({ name: "", purchase_price: "", unit_price: "", category: "", unit: "pc" });
+      setShowQuickAdd(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add product");
+    } finally {
+      setIsAddingProduct(false);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -434,14 +481,25 @@ const QuickPurchase = () => {
 
         {/* Order Tab - Product Grid */}
         <TabsContent value="order" className="space-y-3 mt-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 flex-shrink-0 border-dashed border-2 border-primary/40 text-primary hover:bg-primary/10"
+              onClick={() => setShowQuickAdd(true)}
+              title="Quick add new product"
+            >
+              <PlusCircle className="h-5 w-5" />
+            </Button>
           </div>
 
           {/* Category Filters */}
@@ -698,6 +756,83 @@ const QuickPurchase = () => {
           total={previewData.total}
         />
       )}
+
+      {/* Quick Add Product Dialog */}
+      <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+        <DialogContent className="w-[95vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-primary" />
+              Quick Add Product
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Product Name *</Label>
+              <Input
+                placeholder="e.g. Rice Flour"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))}
+                autoFocus
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Purchase Price</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={newProduct.purchase_price}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, purchase_price: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Sell Price</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={newProduct.unit_price}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, unit_price: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Input
+                  placeholder="e.g. Grocery"
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Unit</Label>
+                <Select value={newProduct.unit} onValueChange={(v) => setNewProduct((p) => ({ ...p, unit: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map((u) => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowQuickAdd(false)}>Cancel</Button>
+            <Button
+              onClick={handleQuickAddProduct}
+              disabled={isAddingProduct || !newProduct.name.trim()}
+              className="gradient-cool text-primary-foreground"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              {isAddingProduct ? "Adding..." : "Add & Select"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
