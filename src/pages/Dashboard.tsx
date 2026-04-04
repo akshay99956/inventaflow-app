@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isAfter, isBefore, isEqual, parseISO } from "date-fns";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { Progress } from "@/components/ui/progress";

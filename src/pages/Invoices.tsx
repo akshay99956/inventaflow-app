@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Printer, Share2, FileText, IndianRupee, Clock, XCircle, Download, MoreHorizontal, Eye, Trash2, Edit2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { DocumentFilters, FilterState } from "@/components/DocumentFilters";
@@ -255,7 +255,7 @@ Thank you for your business! 🙏`;
     if (error) {
       toast.error("Failed to delete invoice");
     } else {
-      toast.success("Invoice deleted and stock restored");
+      toast.deleted("Invoice deleted and stock restored");
     }
   };
   const getStatusBadge = (status: string) => {

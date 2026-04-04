@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Printer, Share2, Receipt, IndianRupee, XCircle, CheckCircle, Download, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useNavigate } from "react-router-dom";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { DocumentFilters, FilterState } from "@/components/DocumentFilters";
@@ -211,7 +211,7 @@ const Bills = () => {
     if (error) {
       toast.error("Failed to delete bill");
     } else {
-      toast.success("Bill deleted successfully");
+      toast.deleted("Bill deleted successfully");
     }
   };
 

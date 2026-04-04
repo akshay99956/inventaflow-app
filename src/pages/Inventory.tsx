@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { parseProductCSV } from "@/lib/csvUtils";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { z } from "zod";
 import { SwipeableCard } from "@/components/SwipeableCard";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -196,7 +196,7 @@ const Inventory = () => {
     if (error) {
       toast.error("Error deleting product");
     } else {
-      toast.success("Product deleted successfully");
+      toast.deleted("Product deleted successfully");
       fetchProducts();
     }
   };

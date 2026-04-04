@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, Minus, ShoppingCart, Trash2, ClipboardList, Send, PackageCheck, Package } from "lucide-react";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -250,7 +250,7 @@ const QuickPurchase = () => {
         .update({ status: "pending" })
         .eq("id", poId);
 
-      toast.success("Receive undone — stock restored, bill deleted, PO back to pending");
+      toast.deleted("Receive undone — stock restored, bill deleted, PO back to pending");
       fetchPendingPOs();
       fetchProducts();
     } catch (err: any) {

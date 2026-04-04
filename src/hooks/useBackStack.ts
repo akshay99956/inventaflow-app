@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 
 /**
  * Hook that provides native-like back stack behavior:

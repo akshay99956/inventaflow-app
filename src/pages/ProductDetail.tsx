@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Package, IndianRupee, TrendingUp, Pencil, MapPin, Factory, Calendar, AlertTriangle, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
 
 type Product = {
