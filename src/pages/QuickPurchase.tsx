@@ -741,21 +741,82 @@ const QuickPurchase = () => {
       </Dialog>
 
       {/* PO Preview after creation */}
-      {previewData && (
-        <DocumentPreview
-          open={!!previewData}
-          onOpenChange={(open) => { if (!open) setPreviewData(null); }}
-          type="purchase_order"
-          docNumber={previewData.docNumber}
-          partyName={previewData.partyName}
-          partyPhone={previewData.partyPhone}
-          date={previewData.date}
-          items={previewData.items}
-          subtotal={previewData.subtotal}
-          tax={previewData.tax}
-          total={previewData.total}
-        />
-      )}
+      {/* Quick Add Product Dialog */}
+      <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
+        <DialogContent className="w-[95vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-primary" />
+              Quick Add Product
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Product Name *</Label>
+              <Input
+                placeholder="e.g. Rice Flour"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))}
+                autoFocus
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Purchase Price</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={newProduct.purchase_price}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, purchase_price: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Sell Price</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={newProduct.unit_price}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, unit_price: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Input
+                  placeholder="e.g. Grocery"
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Unit</Label>
+                <Select value={newProduct.unit} onValueChange={(v) => setNewProduct((p) => ({ ...p, unit: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map((u) => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowQuickAdd(false)}>Cancel</Button>
+            <Button
+              onClick={handleQuickAddProduct}
+              disabled={isAddingProduct || !newProduct.name.trim()}
+              className="gradient-cool text-primary-foreground"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              {isAddingProduct ? "Adding..." : "Add & Select"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
