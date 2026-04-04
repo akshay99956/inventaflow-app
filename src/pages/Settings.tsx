@@ -15,8 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X,
   Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor,
-  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History
+  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History, Database
 } from "lucide-react";
+import DataManagement from "@/components/DataManagement";
 import { useTheme } from "next-themes";
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
