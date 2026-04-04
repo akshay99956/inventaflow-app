@@ -468,6 +468,10 @@ const Settings = () => {
             <Palette className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Theme</span>
           </TabsTrigger>
+          <TabsTrigger value="data" className="text-xs md:text-sm py-2">
+            <Database className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Data</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Company Tab */}
