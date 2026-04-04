@@ -741,6 +741,22 @@ const QuickPurchase = () => {
       </Dialog>
 
       {/* PO Preview after creation */}
+      {previewData && (
+        <DocumentPreview
+          open={!!previewData}
+          onOpenChange={(open) => { if (!open) setPreviewData(null); }}
+          type="purchase_order"
+          docNumber={previewData.docNumber}
+          partyName={previewData.partyName}
+          partyPhone={previewData.partyPhone}
+          date={previewData.date}
+          items={previewData.items}
+          subtotal={previewData.subtotal}
+          tax={previewData.tax}
+          total={previewData.total}
+        />
+      )}
+
       {/* Quick Add Product Dialog */}
       <Dialog open={showQuickAdd} onOpenChange={setShowQuickAdd}>
         <DialogContent className="w-[95vw] max-w-sm">
