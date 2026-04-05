@@ -298,9 +298,9 @@ const QuickBill = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 md:pb-8">
+    <div className="p-4 md:p-8 pb-36 md:pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-foreground">Quick Bill</h1>
           <p className="text-xs md:text-sm text-muted-foreground">POS-style fast billing</p>
@@ -320,15 +320,26 @@ const QuickBill = () => {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search products..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search + Quick Add */}
+      <div className="flex gap-2 mb-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 flex-shrink-0 border-dashed border-2 border-primary/40 text-primary hover:bg-primary/10"
+          onClick={() => setShowQuickAdd(true)}
+          title="Quick add new product"
+        >
+          <PlusCircle className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* Category Filters */}
