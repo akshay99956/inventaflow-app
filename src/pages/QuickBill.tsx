@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Minus, ShoppingCart, Trash2, Receipt, X, Send } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Trash2, Receipt, X, Send, PlusCircle } from "lucide-react";
 import { toastWithSound as toast } from "@/lib/toastWithSound";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DocumentPreview from "@/components/DocumentPreview";
 
 type Product = {
