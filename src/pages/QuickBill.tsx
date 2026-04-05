@@ -256,11 +256,7 @@ const QuickBill = () => {
       setShowCart(false);
 
       // Refresh products
-      const { data: refreshed } = await supabase
-        .from("products")
-        .select("id, name, unit_price, purchase_price, quantity, category")
-        .order("name");
-      setProducts(refreshed || []);
+      await fetchProducts();
     } catch (error: any) {
       toast.error(error.message || "Failed to create bill");
     } finally {
