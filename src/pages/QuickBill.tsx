@@ -364,7 +364,7 @@ const QuickBill = () => {
       )}
 
       {/* Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-3">
         {filteredProducts.map((product) => {
           const inCart = getCartQty(product.id);
           return (
@@ -375,20 +375,20 @@ const QuickBill = () => {
               } ${product.quantity < 1 ? "opacity-50" : ""}`}
               onClick={() => addToCart(product)}
             >
-              <CardContent className="p-3">
-                <p className="font-semibold text-sm truncate">{product.name}</p>
+              <CardContent className="p-4">
+                <p className="font-semibold text-base truncate">{product.name}</p>
                 {product.category && (
-                  <p className="text-[10px] text-muted-foreground truncate">{product.category}</p>
+                  <p className="text-xs text-muted-foreground truncate">{product.category}</p>
                 )}
-                <p className="text-base font-bold text-primary mt-1">
+                <p className="text-lg font-bold text-primary mt-1">
                   {cs}{product.unit_price.toLocaleString("en-IN")}
                 </p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className={`text-[10px] ${product.quantity < 5 ? "text-destructive" : "text-muted-foreground"}`}>
+                  <span className={`text-xs ${product.quantity < 5 ? "text-destructive" : "text-muted-foreground"}`}>
                     Stock: {product.quantity}
                   </span>
                   {inCart > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5">
+                    <Badge variant="secondary" className="text-xs h-5">
                       ×{inCart}
                     </Badge>
                   )}
