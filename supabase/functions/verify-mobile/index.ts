@@ -208,42 +208,6 @@ Deno.serve(async (req) => {
         });
       }
 
-
-      // Get latest unexpired, unverified OTP for this user and mobile
-      const { data: otpRecords } = await adminClient
-        .from("otp_verifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("mobile", mobile)
-        .eq("verified", false)
-        .gte("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (!otpRecords || otpRecords.length === 0) {
-        return new Response(JSON.stringify({ error: "No valid OTP found. Please request a new one." }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const record = otpRecords[0];
-
-      // Compare hashes (stored value is a SHA-256 hash of the code)
-      const inputHash = await sha256Hex(otp);
-      let match = record.otp_code.length === inputHash.length;
-      for (let i = 0; i < inputHash.length && match; i++) {
-        if (record.otp_code[i] !== inputHash[i]) match = false;
-      }
-
-      if (!match) {
-        return new Response(JSON.stringify({ error: "Invalid OTP" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-
       // Mark OTP as verified
       await adminClient
         .from("otp_verifications")
@@ -258,11 +222,28 @@ Deno.serve(async (req) => {
 
       if (updateError) {
         console.error("Profile update error:", updateError);
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Code verified but profile update failed",
+        });
         return new Response(JSON.stringify({ error: "Failed to update mobile number" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      await logAudit(adminClient, req, {
+        user_id: user.id,
+        event: "otp_verified",
+        mobile,
+        success: true,
+        reason: "Mobile number verified",
+      });
+
+
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
