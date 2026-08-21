@@ -5,6 +5,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -63,15 +70,17 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Generate 6-digit OTP
-      const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      // Generate cryptographically random 6-digit OTP
+      const rand = new Uint32Array(1);
+      crypto.getRandomValues(rand);
+      const otpCode = String(100000 + (rand[0] % 900000));
 
-      // Store OTP in the locked-down table (no public SELECT - service role only)
-      // Plaintext storage is standard for OTP tables with strict access control
+      // Store only a SHA-256 hash of the OTP so a database/service-role compromise
+      // does not expose usable codes. The plaintext code is only sent over SMS.
       await adminClient.from("otp_verifications").insert({
         user_id: user.id,
         mobile,
-        otp_code: otpCode,
+        otp_code: await sha256Hex(otpCode),
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
         verified: false,
       });
@@ -114,17 +123,11 @@ Deno.serve(async (req) => {
 
       const record = otpRecords[0];
 
-      // Constant-time comparison to prevent timing attacks
-      if (record.otp_code.length !== otp.length) {
-        return new Response(JSON.stringify({ error: "Invalid OTP" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      let match = true;
-      for (let i = 0; i < otp.length; i++) {
-        if (record.otp_code[i] !== otp[i]) match = false;
+      // Compare hashes (stored value is a SHA-256 hash of the code)
+      const inputHash = await sha256Hex(otp);
+      let match = record.otp_code.length === inputHash.length;
+      for (let i = 0; i < inputHash.length && match; i++) {
+        if (record.otp_code[i] !== inputHash[i]) match = false;
       }
 
       if (!match) {
@@ -133,6 +136,7 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
 
       // Mark OTP as verified
       await adminClient
