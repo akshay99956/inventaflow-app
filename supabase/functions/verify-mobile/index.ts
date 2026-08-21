@@ -123,17 +123,11 @@ Deno.serve(async (req) => {
 
       const record = otpRecords[0];
 
-      // Constant-time comparison to prevent timing attacks
-      if (record.otp_code.length !== otp.length) {
-        return new Response(JSON.stringify({ error: "Invalid OTP" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      let match = true;
-      for (let i = 0; i < otp.length; i++) {
-        if (record.otp_code[i] !== otp[i]) match = false;
+      // Compare hashes (stored value is a SHA-256 hash of the code)
+      const inputHash = await sha256Hex(otp);
+      let match = record.otp_code.length === inputHash.length;
+      for (let i = 0; i < inputHash.length && match; i++) {
+        if (record.otp_code[i] !== inputHash[i]) match = false;
       }
 
       if (!match) {
@@ -142,6 +136,7 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
 
       // Mark OTP as verified
       await adminClient
