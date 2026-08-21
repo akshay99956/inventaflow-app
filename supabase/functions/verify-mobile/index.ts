@@ -12,6 +12,41 @@ async function sha256Hex(value: string): Promise<string> {
     .join("");
 }
 
+// Mask all but the last 4 digits so audit logs never store full phone numbers
+function maskMobile(mobile: string): string {
+  if (!mobile) return "";
+  return `${"*".repeat(Math.max(0, mobile.length - 4))}${mobile.slice(-4)}`;
+}
+
+function getClientIp(req: Request): string | null {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip");
+}
+
+type AuditEvent = "otp_generated" | "otp_verified" | "otp_failed" | "otp_rate_limited";
+
+async function logAudit(
+  // deno-lint-ignore no-explicit-any
+  adminClient: any,
+  req: Request,
+  entry: { user_id: string; event: AuditEvent; mobile?: string; success: boolean; reason?: string },
+) {
+  try {
+    await adminClient.from("otp_audit_logs").insert({
+      user_id: entry.user_id,
+      event: entry.event,
+      mobile_masked: entry.mobile ? maskMobile(entry.mobile) : null,
+      success: entry.success,
+      reason: entry.reason ?? null,
+      ip_address: getClientIp(req),
+      user_agent: req.headers.get("user-agent")?.slice(0, 500) ?? null,
+    });
+  } catch (e) {
+    console.error("Failed to write OTP audit log:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
