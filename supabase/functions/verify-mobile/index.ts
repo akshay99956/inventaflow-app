@@ -70,15 +70,17 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Generate 6-digit OTP
-      const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      // Generate cryptographically random 6-digit OTP
+      const rand = new Uint32Array(1);
+      crypto.getRandomValues(rand);
+      const otpCode = String(100000 + (rand[0] % 900000));
 
-      // Store OTP in the locked-down table (no public SELECT - service role only)
-      // Plaintext storage is standard for OTP tables with strict access control
+      // Store only a SHA-256 hash of the OTP so a database/service-role compromise
+      // does not expose usable codes. The plaintext code is only sent over SMS.
       await adminClient.from("otp_verifications").insert({
         user_id: user.id,
         mobile,
-        otp_code: otpCode,
+        otp_code: await sha256Hex(otpCode),
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
         verified: false,
       });
