@@ -291,6 +291,42 @@ export type Database = {
           },
         ]
       }
+      otp_audit_logs: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          ip_address: string | null
+          mobile_masked: string | null
+          reason: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          ip_address?: string | null
+          mobile_masked?: string | null
+          reason?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          ip_address?: string | null
+          mobile_masked?: string | null
+          reason?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       otp_verifications: {
         Row: {
           created_at: string
