@@ -12,6 +12,41 @@ async function sha256Hex(value: string): Promise<string> {
     .join("");
 }
 
+// Mask all but the last 4 digits so audit logs never store full phone numbers
+function maskMobile(mobile: string): string {
+  if (!mobile) return "";
+  return `${"*".repeat(Math.max(0, mobile.length - 4))}${mobile.slice(-4)}`;
+}
+
+function getClientIp(req: Request): string | null {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip");
+}
+
+type AuditEvent = "otp_generated" | "otp_verified" | "otp_failed" | "otp_rate_limited";
+
+async function logAudit(
+  // deno-lint-ignore no-explicit-any
+  adminClient: any,
+  req: Request,
+  entry: { user_id: string; event: AuditEvent; mobile?: string; success: boolean; reason?: string },
+) {
+  try {
+    await adminClient.from("otp_audit_logs").insert({
+      user_id: entry.user_id,
+      event: entry.event,
+      mobile_masked: entry.mobile ? maskMobile(entry.mobile) : null,
+      success: entry.success,
+      reason: entry.reason ?? null,
+      ip_address: getClientIp(req),
+      user_agent: req.headers.get("user-agent")?.slice(0, 500) ?? null,
+    });
+  } catch (e) {
+    console.error("Failed to write OTP audit log:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,6 +99,13 @@ Deno.serve(async (req) => {
         .gte("created_at", fifteenMinAgo);
 
       if (count !== null && count >= 3) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_rate_limited",
+          mobile,
+          success: false,
+          reason: "Rate limit exceeded (3 requests / 15 minutes)",
+        });
         return new Response(JSON.stringify({ error: "Too many OTP requests. Try again later." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -89,6 +131,14 @@ Deno.serve(async (req) => {
       // OTP is stored in the database and should be sent via SMS
       console.log(`OTP generated for user ${user.id} at ${new Date().toISOString()}`);
 
+      await logAudit(adminClient, req, {
+        user_id: user.id,
+        event: "otp_generated",
+        mobile,
+        success: true,
+        reason: "Verification code generated",
+      });
+
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -97,6 +147,13 @@ Deno.serve(async (req) => {
     } else if (action === "verify") {
       // Validate OTP format
       if (!otp || typeof otp !== "string" || !/^\d{6}$/.test(otp)) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Invalid code format",
+        });
         return new Response(JSON.stringify({ error: "Invalid OTP format" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -115,6 +172,13 @@ Deno.serve(async (req) => {
         .limit(1);
 
       if (!otpRecords || otpRecords.length === 0) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "No valid or unexpired code found",
+        });
         return new Response(JSON.stringify({ error: "No valid OTP found. Please request a new one." }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,12 +195,18 @@ Deno.serve(async (req) => {
       }
 
       if (!match) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Incorrect code entered",
+        });
         return new Response(JSON.stringify({ error: "Invalid OTP" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
 
       // Mark OTP as verified
       await adminClient
@@ -152,11 +222,28 @@ Deno.serve(async (req) => {
 
       if (updateError) {
         console.error("Profile update error:", updateError);
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Code verified but profile update failed",
+        });
         return new Response(JSON.stringify({ error: "Failed to update mobile number" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      await logAudit(adminClient, req, {
+        user_id: user.id,
+        event: "otp_verified",
+        mobile,
+        success: true,
+        reason: "Mobile number verified",
+      });
+
+
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
