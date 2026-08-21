@@ -115,10 +115,15 @@ const Settings = () => {
 
   const fetchSecurityInfo = async () => {
     try {
-      const [{ data: { user } }, { data: profileData }, { data: attempts }] = await Promise.all([
+      const [{ data: { user } }, { data: profileData }, { data: attempts }, { data: otpLogs }] = await Promise.all([
         supabase.auth.getUser(),
         supabase.from("profiles").select("pin_enabled").limit(1).maybeSingle(),
         supabase.from("pin_auth_attempts").select("created_at, success, email").order("created_at", { ascending: false }).limit(10),
+        supabase
+          .from("otp_audit_logs")
+          .select("created_at, event, success, reason, mobile_masked, ip_address")
+          .order("created_at", { ascending: false })
+          .limit(10),
       ]);
 
       if (user) {
@@ -132,6 +137,7 @@ const Settings = () => {
 
       setPinEnabled(profileData?.pin_enabled || false);
       setLoginAttempts(attempts || []);
+      setOtpAuditLogs(otpLogs || []);
     } catch (e) {
       logErrorInDev("SecurityInfo", e);
     }
