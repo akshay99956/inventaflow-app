@@ -1102,7 +1102,72 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* OTP Audit Trail */}
+          <Card>
+            <CardHeader className="px-4 md:px-6 py-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <History className="h-5 w-5 text-primary" />
+                Mobile Verification Audit Log
+              </CardTitle>
+              <CardDescription>
+                Verification codes generated, verified, and failed attempts — with device IP
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6">
+              {otpAuditLogs.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {otpAuditLogs.map((log, i) => (
+                    <div
+                      key={i}
+                      className={`p-2.5 rounded-lg border text-sm ${
+                        log.success
+                          ? "border-success/20 bg-success/5"
+                          : "border-destructive/20 bg-destructive/5"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {log.success ? (
+                            <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                          ) : (
+                            <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                          )}
+                          <span className="truncate font-medium">
+                            {log.event === "otp_generated"
+                              ? "Code sent"
+                              : log.event === "otp_verified"
+                              ? "Verified"
+                              : log.event === "otp_rate_limited"
+                              ? "Rate limited"
+                              : "Failed attempt"}
+                          </span>
+                          {log.mobile_masked && (
+                            <span className="text-xs text-muted-foreground truncate">
+                              {log.mobile_masked}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {format(new Date(log.created_at), "dd MMM, hh:mm a")}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span className="truncate">{log.reason || "-"}</span>
+                        {log.ip_address && <span className="shrink-0">IP {log.ip_address}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No mobile verification activity yet
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
+
 
         {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-4">
