@@ -99,6 +99,13 @@ Deno.serve(async (req) => {
         .gte("created_at", fifteenMinAgo);
 
       if (count !== null && count >= 3) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_rate_limited",
+          mobile,
+          success: false,
+          reason: "Rate limit exceeded (3 requests / 15 minutes)",
+        });
         return new Response(JSON.stringify({ error: "Too many OTP requests. Try again later." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -124,6 +131,14 @@ Deno.serve(async (req) => {
       // OTP is stored in the database and should be sent via SMS
       console.log(`OTP generated for user ${user.id} at ${new Date().toISOString()}`);
 
+      await logAudit(adminClient, req, {
+        user_id: user.id,
+        event: "otp_generated",
+        mobile,
+        success: true,
+        reason: "Verification code generated",
+      });
+
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -132,11 +147,67 @@ Deno.serve(async (req) => {
     } else if (action === "verify") {
       // Validate OTP format
       if (!otp || typeof otp !== "string" || !/^\d{6}$/.test(otp)) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Invalid code format",
+        });
         return new Response(JSON.stringify({ error: "Invalid OTP format" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      // Get latest unexpired, unverified OTP for this user and mobile
+      const { data: otpRecords } = await adminClient
+        .from("otp_verifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("mobile", mobile)
+        .eq("verified", false)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!otpRecords || otpRecords.length === 0) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "No valid or unexpired code found",
+        });
+        return new Response(JSON.stringify({ error: "No valid OTP found. Please request a new one." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const record = otpRecords[0];
+
+      // Compare hashes (stored value is a SHA-256 hash of the code)
+      const inputHash = await sha256Hex(otp);
+      let match = record.otp_code.length === inputHash.length;
+      for (let i = 0; i < inputHash.length && match; i++) {
+        if (record.otp_code[i] !== inputHash[i]) match = false;
+      }
+
+      if (!match) {
+        await logAudit(adminClient, req, {
+          user_id: user.id,
+          event: "otp_failed",
+          mobile,
+          success: false,
+          reason: "Incorrect code entered",
+        });
+        return new Response(JSON.stringify({ error: "Invalid OTP" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
 
       // Get latest unexpired, unverified OTP for this user and mobile
       const { data: otpRecords } = await adminClient
