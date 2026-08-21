@@ -81,6 +81,14 @@ const Settings = () => {
   const [exportingData, setExportingData] = useState(false);
   const [pinEnabled, setPinEnabled] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState<{ created_at: string; success: boolean; email: string }[]>([]);
+  const [otpAuditLogs, setOtpAuditLogs] = useState<{
+    created_at: string;
+    event: string;
+    success: boolean;
+    reason: string | null;
+    mobile_masked: string | null;
+    ip_address: string | null;
+  }[]>([]);
   const [profile, setProfile] = useState<CompanyProfile>({
     company_name: "",
     address: "",
