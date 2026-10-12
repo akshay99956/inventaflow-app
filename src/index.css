@@ -5,6 +5,47 @@
   -webkit-text-security: disc;
   text-security: disc;
 }
+
+/* Firefox/older browsers fallback: -webkit-text-security is unsupported there */
+@supports not (-webkit-text-security: disc) {
+  /* For text/password inputs: hide characters but keep the caret visible */
+  input.text-security-disc {
+    color: transparent;
+    caret-color: hsl(var(--foreground));
+    text-shadow: none;
+  }
+  /* For OTP slot divs: render a bullet in place of the digit */
+  div.text-security-disc {
+    font-size: 0 !important;
+  }
+  div.text-security-disc::after {
+    content: "•";
+    font-size: 1.125rem;
+    line-height: 1;
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Backdrop blur fallback for older Safari (needs -webkit- prefix) */
+.backdrop-blur {
+  -webkit-backdrop-filter: blur(8px);
+}
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px);
+}
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Small-viewport height fallback for older Safari (no svh support) */
+.h-svh {
+  height: 100vh;
+  height: 100svh;
+}
+.min-h-svh {
+  min-height: 100vh;
+  min-height: 100svh;
+}
 @tailwind components;
 @tailwind utilities;
 

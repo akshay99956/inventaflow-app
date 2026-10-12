@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  build: {
+    // Widened target for cross-browser compatibility (older Safari, Firefox ESR, etc.)
+    target: ["es2017", "edge88", "firefox78", "chrome87", "safari13"],
+    cssTarget: ["chrome87", "firefox78", "safari13", "edge88"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
