@@ -72,9 +72,9 @@ interface BrowserFeatureCheck {
 }
 
 const runBrowserCompatibilityChecks = (): BrowserFeatureCheck[] => {
-  const storageAvailable = (storage: Storage | undefined) => {
-    if (!storage) return false;
+  const storageAvailable = (storageName: "localStorage" | "sessionStorage") => {
     try {
+      const storage = window[storageName];
       const key = "__browser_compat_check__";
       storage.setItem(key, "1");
       storage.removeItem(key);
@@ -90,11 +90,11 @@ const runBrowserCompatibilityChecks = (): BrowserFeatureCheck[] => {
     : undefined;
 
   return [
-    { name: "Local storage", supported: typeof window !== "undefined" && storageAvailable(window.localStorage), essential: true, description: "Saves preferences and settings on this device." },
+    { name: "Local storage", supported: typeof window !== "undefined" && storageAvailable("localStorage"), essential: true, description: "Saves preferences and settings on this device." },
     { name: "Secure encryption", supported: typeof window !== "undefined" && Boolean(window.crypto?.subtle), essential: true, description: "Protects sensitive verification features." },
     { name: "CSS Grid layout", supported: cssSupports && CSS.supports("display", "grid"), essential: true, description: "Keeps screens and forms arranged correctly." },
     { name: "ResizeObserver", supported: typeof window !== "undefined" && "ResizeObserver" in window, essential: true, description: "Helps charts and responsive views adjust to screen size." },
-    { name: "Session storage", supported: typeof window !== "undefined" && storageAvailable(window.sessionStorage), essential: false, description: "Keeps temporary information during your visit." },
+    { name: "Session storage", supported: typeof window !== "undefined" && storageAvailable("sessionStorage"), essential: false, description: "Keeps temporary information during your visit." },
     { name: "Notification sounds", supported: Boolean(AudioContextConstructor), essential: false, description: "Allows optional sounds for app notifications." },
     { name: "Clipboard sharing", supported: typeof navigator !== "undefined" && Boolean(navigator.clipboard?.writeText), essential: false, description: "Allows copying invoice and purchase details." },
     { name: "Quick sharing", supported: typeof navigator !== "undefined" && typeof navigator.share === "function", essential: false, description: "Opens your device's share menu when available." },
