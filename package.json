@@ -10,6 +10,15 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "not dead",
+    "not IE 11",
+    "Safari >= 12",
+    "iOS >= 12",
+    "Firefox ESR"
+  ],
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@lovable.dev/cloud-auth-js": "^1.0.0",

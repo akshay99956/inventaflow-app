@@ -30,6 +30,10 @@ function playTone(frequency: number, duration: number, type: OscillatorType = "s
   if (!isSoundEnabled()) return;
   try {
     const ctx = audioCtx();
+    // Safari/Chrome autoplay policy: resume a suspended context (created before user gesture)
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
