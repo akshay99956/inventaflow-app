@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Building2, Phone, Mail, MapPin, Globe, FileText, Save, Loader2, Upload, Image, X,
   Bell, DollarSign, Navigation, Receipt, Settings2, Smartphone, Palette, Sun, Moon, Monitor,
-  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History, Database
+  Shield, LogOut, Clock, Download, Eye, Fingerprint, KeyRound, AlertTriangle, CheckCircle2, History, Database,
+  Laptop, RefreshCw
 } from "lucide-react";
 import DataManagement from "@/components/DataManagement";
 import { useTheme } from "next-themes";
@@ -63,6 +64,72 @@ const dateFormats = [
   { value: "YYYY-MM-DD", label: "YYYY-MM-DD (2024-12-31)" },
 ];
 
+interface BrowserFeatureCheck {
+  name: string;
+  supported: boolean;
+  essential: boolean;
+  description: string;
+}
+
+const runBrowserCompatibilityChecks = (): BrowserFeatureCheck[] => {
+  const storageAvailable = (storage: Storage | undefined) => {
+    if (!storage) return false;
+    try {
+      const key = "__browser_compat_check__";
+      storage.setItem(key, "1");
+      storage.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const cssSupports = typeof CSS !== "undefined" && typeof CSS.supports === "function";
+  const AudioContextConstructor = typeof window !== "undefined"
+    ? window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    : undefined;
+
+  return [
+    { name: "Local storage", supported: typeof window !== "undefined" && storageAvailable(window.localStorage), essential: true, description: "Saves preferences and settings on this device." },
+    { name: "Secure encryption", supported: typeof window !== "undefined" && Boolean(window.crypto?.subtle), essential: true, description: "Protects sensitive verification features." },
+    { name: "CSS Grid layout", supported: cssSupports && CSS.supports("display", "grid"), essential: true, description: "Keeps screens and forms arranged correctly." },
+    { name: "ResizeObserver", supported: typeof window !== "undefined" && "ResizeObserver" in window, essential: true, description: "Helps charts and responsive views adjust to screen size." },
+    { name: "Session storage", supported: typeof window !== "undefined" && storageAvailable(window.sessionStorage), essential: false, description: "Keeps temporary information during your visit." },
+    { name: "Notification sounds", supported: Boolean(AudioContextConstructor), essential: false, description: "Allows optional sounds for app notifications." },
+    { name: "Clipboard sharing", supported: typeof navigator !== "undefined" && Boolean(navigator.clipboard?.writeText), essential: false, description: "Allows copying invoice and purchase details." },
+    { name: "Quick sharing", supported: typeof navigator !== "undefined" && typeof navigator.share === "function", essential: false, description: "Opens your device's share menu when available." },
+    { name: "Modern screen sizing", supported: cssSupports && CSS.supports("height", "100dvh"), essential: false, description: "Improves screen sizing on mobile browsers." },
+    { name: "IntersectionObserver", supported: typeof window !== "undefined" && "IntersectionObserver" in window, essential: false, description: "Supports efficient loading and visibility checks." },
+  ];
+};
+
+const getBrowserName = () => {
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  if (/Edg\//i.test(ua)) return "Microsoft Edge";
+  if (/Firefox\//i.test(ua)) return "Mozilla Firefox";
+  if (/OPR\//i.test(ua)) return "Opera";
+  if (/Chrome\//i.test(ua)) return "Google Chrome";
+  if (/Safari\//i.test(ua)) return "Safari";
+  return "Unknown browser";
+};
+
+const getBrowserUpdateGuidance = (browserName: string) => {
+  const platform = typeof navigator !== "undefined" ? navigator.platform : "";
+  if (browserName === "Google Chrome") {
+    return /Android|iPhone|iPad/i.test(platform)
+      ? "Update Chrome from your device's app store, then reopen this page."
+      : "Open Chrome's menu, choose Help, then About Google Chrome to install updates.";
+  }
+  if (browserName === "Microsoft Edge") return "Open Edge's menu, choose Help and feedback, then About Microsoft Edge to install updates.";
+  if (browserName === "Mozilla Firefox") return "Open Firefox's menu, choose Help, then About Firefox to check for updates.";
+  if (browserName === "Safari") {
+    return /iPhone|iPad|iPod/i.test(platform)
+      ? "Install the latest iOS or iPadOS update in Settings > General > Software Update."
+      : "Install the latest Safari updates through your device's Software Update settings.";
+  }
+  return "Use your browser's Help or About menu to install the latest version, then reopen this page.";
+};
+
 const Settings = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -79,6 +146,7 @@ const Settings = () => {
   const [sessionInfo, setSessionInfo] = useState<{ email: string; lastSignIn: string; provider: string } | null>(null);
   const [signingOutAll, setSigningOutAll] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  const [browserChecks, setBrowserChecks] = useState<BrowserFeatureCheck[]>(() => runBrowserCompatibilityChecks());
   const [pinEnabled, setPinEnabled] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState<{ created_at: string; success: boolean; email: string }[]>([]);
   const [otpAuditLogs, setOtpAuditLogs] = useState<{
@@ -449,7 +517,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-9 mb-6 h-auto">
+        <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 mb-6 h-auto">
           <TabsTrigger value="company" className="text-xs md:text-sm py-2">
             <Building2 className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Company</span>
@@ -485,6 +553,10 @@ const Settings = () => {
           <TabsTrigger value="data" className="text-xs md:text-sm py-2">
             <Database className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Data</span>
+          </TabsTrigger>
+          <TabsTrigger value="browser" className="text-xs md:text-sm py-2">
+            <Laptop className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Browser</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1205,6 +1277,75 @@ const Settings = () => {
           </Card>
         </TabsContent>
         {/* Data Management Tab */}
+        <TabsContent value="browser" className="space-y-4">
+          {(() => {
+            const essentialFailures = browserChecks.filter((check) => check.essential && !check.supported).length;
+            const optionalFailures = browserChecks.filter((check) => !check.essential && !check.supported).length;
+            const browserName = getBrowserName();
+            const status = essentialFailures > 0
+              ? "Update recommended"
+              : optionalFailures > 0
+                ? "Some features unavailable"
+                : "All checks passed";
+            const statusVariant = essentialFailures > 0 ? "destructive" : optionalFailures > 0 ? "secondary" : "default";
+
+            return (
+              <>
+                <Card>
+                  <CardHeader className="px-4 md:px-6 py-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Laptop className="h-5 w-5 text-primary" />
+                      Browser Compatibility
+                    </CardTitle>
+                    <CardDescription>Check that your browser supports the features this app needs.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-4 md:px-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border/60 p-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{browserName}</p>
+                        <p className="text-xs text-muted-foreground">{browserChecks.filter((check) => check.supported).length} of {browserChecks.length} checks passed</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={statusVariant}>{status}</Badge>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => setBrowserChecks(runBrowserCompatibilityChecks())}>
+                          <RefreshCw className="h-4 w-4" />
+                          Check again
+                        </Button>
+                      </div>
+                    </div>
+
+                    {(essentialFailures > 0 || optionalFailures > 0) && (
+                      <div className={`rounded-lg border p-3 text-sm ${essentialFailures > 0 ? "border-destructive/30 bg-destructive/5" : "border-warning/30 bg-warning/5"}`}>
+                        <p className="font-medium">{essentialFailures > 0 ? "Your browser may be too old for some app features." : "Some optional browser features are unavailable."}</p>
+                        <p className="mt-1 text-muted-foreground">{getBrowserUpdateGuidance(browserName)}</p>
+                      </div>
+                    )}
+
+                    <div className="divide-y divide-border rounded-lg border border-border/60">
+                      {browserChecks.map((check) => (
+                        <div key={check.name} className="flex items-start justify-between gap-3 p-3">
+                          <div className="flex min-w-0 items-start gap-2.5">
+                            {check.supported
+                              ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                              : <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${check.essential ? "text-destructive" : "text-warning"}`} />}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium">{check.name}</p>
+                              <p className="text-xs text-muted-foreground">{check.description}</p>
+                            </div>
+                          </div>
+                          <Badge variant={check.supported ? "secondary" : check.essential ? "destructive" : "outline"} className="shrink-0">
+                            {check.supported ? "Available" : check.essential ? "Needed" : "Optional"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            );
+          })()}
+        </TabsContent>
+
         <TabsContent value="data">
           <DataManagement />
         </TabsContent>
