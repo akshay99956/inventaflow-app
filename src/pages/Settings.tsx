@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getBrowserName, getBrowserUpdateGuidance } from "@/lib/browserCompatibility";
+import { useBrowserCompatibility } from "@/contexts/BrowserCompatibilityContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,72 +66,6 @@ const dateFormats = [
   { value: "YYYY-MM-DD", label: "YYYY-MM-DD (2024-12-31)" },
 ];
 
-interface BrowserFeatureCheck {
-  name: string;
-  supported: boolean;
-  essential: boolean;
-  description: string;
-}
-
-const runBrowserCompatibilityChecks = (): BrowserFeatureCheck[] => {
-  const storageAvailable = (storageName: "localStorage" | "sessionStorage") => {
-    try {
-      const storage = window[storageName];
-      const key = "__browser_compat_check__";
-      storage.setItem(key, "1");
-      storage.removeItem(key);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const cssSupports = typeof CSS !== "undefined" && typeof CSS.supports === "function";
-  const AudioContextConstructor = typeof window !== "undefined"
-    ? window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    : undefined;
-
-  return [
-    { name: "Local storage", supported: typeof window !== "undefined" && storageAvailable("localStorage"), essential: true, description: "Saves preferences and settings on this device." },
-    { name: "Secure encryption", supported: typeof window !== "undefined" && Boolean(window.crypto?.subtle), essential: true, description: "Protects sensitive verification features." },
-    { name: "CSS Grid layout", supported: cssSupports && CSS.supports("display", "grid"), essential: true, description: "Keeps screens and forms arranged correctly." },
-    { name: "ResizeObserver", supported: typeof window !== "undefined" && "ResizeObserver" in window, essential: true, description: "Helps charts and responsive views adjust to screen size." },
-    { name: "Session storage", supported: typeof window !== "undefined" && storageAvailable("sessionStorage"), essential: false, description: "Keeps temporary information during your visit." },
-    { name: "Notification sounds", supported: Boolean(AudioContextConstructor), essential: false, description: "Allows optional sounds for app notifications." },
-    { name: "Clipboard sharing", supported: typeof navigator !== "undefined" && Boolean(navigator.clipboard?.writeText), essential: false, description: "Allows copying invoice and purchase details." },
-    { name: "Quick sharing", supported: typeof navigator !== "undefined" && typeof navigator.share === "function", essential: false, description: "Opens your device's share menu when available." },
-    { name: "Modern screen sizing", supported: cssSupports && CSS.supports("height", "100dvh"), essential: false, description: "Improves screen sizing on mobile browsers." },
-    { name: "IntersectionObserver", supported: typeof window !== "undefined" && "IntersectionObserver" in window, essential: false, description: "Supports efficient loading and visibility checks." },
-  ];
-};
-
-const getBrowserName = () => {
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  if (/Edg\//i.test(ua)) return "Microsoft Edge";
-  if (/Firefox\//i.test(ua)) return "Mozilla Firefox";
-  if (/OPR\//i.test(ua)) return "Opera";
-  if (/Chrome\//i.test(ua)) return "Google Chrome";
-  if (/Safari\//i.test(ua)) return "Safari";
-  return "Unknown browser";
-};
-
-const getBrowserUpdateGuidance = (browserName: string) => {
-  const platform = typeof navigator !== "undefined" ? navigator.platform : "";
-  if (browserName === "Google Chrome") {
-    return /Android|iPhone|iPad/i.test(platform)
-      ? "Update Chrome from your device's app store, then reopen this page."
-      : "Open Chrome's menu, choose Help, then About Google Chrome to install updates.";
-  }
-  if (browserName === "Microsoft Edge") return "Open Edge's menu, choose Help and feedback, then About Microsoft Edge to install updates.";
-  if (browserName === "Mozilla Firefox") return "Open Firefox's menu, choose Help, then About Firefox to check for updates.";
-  if (browserName === "Safari") {
-    return /iPhone|iPad|iPod/i.test(platform)
-      ? "Install the latest iOS or iPadOS update in Settings > General > Software Update."
-      : "Install the latest Safari updates through your device's Software Update settings.";
-  }
-  return "Use your browser's Help or About menu to install the latest version, then reopen this page.";
-};
-
 const Settings = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -146,7 +82,8 @@ const Settings = () => {
   const [sessionInfo, setSessionInfo] = useState<{ email: string; lastSignIn: string; provider: string } | null>(null);
   const [signingOutAll, setSigningOutAll] = useState(false);
   const [exportingData, setExportingData] = useState(false);
-  const [browserChecks, setBrowserChecks] = useState<BrowserFeatureCheck[]>(() => runBrowserCompatibilityChecks());
+  const { checks: browserChecks, refresh: refreshBrowserChecks } = useBrowserCompatibility();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pinEnabled, setPinEnabled] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState<{ created_at: string; success: boolean; email: string }[]>([]);
   const [otpAuditLogs, setOtpAuditLogs] = useState<{
@@ -516,7 +453,11 @@ const Settings = () => {
         <p className="text-sm md:text-base text-muted-foreground">Manage your app preferences and company profile</p>
       </div>
 
-      <Tabs defaultValue="company" className="w-full">
+      <Tabs value={searchParams.get("tab") || "company"} onValueChange={(tab) => setSearchParams(previous => {
+        const next = new URLSearchParams(previous);
+        next.set("tab", tab);
+        return next;
+      }, { replace: true })} className="w-full">
         <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 mb-6 h-auto">
           <TabsTrigger value="company" className="text-xs md:text-sm py-2">
             <Building2 className="h-4 w-4 mr-1 md:mr-2" />
@@ -1307,7 +1248,7 @@ const Settings = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={statusVariant}>{status}</Badge>
-                        <Button variant="outline" size="sm" className="gap-2" onClick={() => setBrowserChecks(runBrowserCompatibilityChecks())}>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={refreshBrowserChecks}>
                           <RefreshCw className="h-4 w-4" />
                           Check again
                         </Button>
@@ -1315,9 +1256,10 @@ const Settings = () => {
                     </div>
 
                     {(essentialFailures > 0 || optionalFailures > 0) && (
-                      <div className={`rounded-lg border p-3 text-sm ${essentialFailures > 0 ? "border-destructive/30 bg-destructive/5" : "border-warning/30 bg-warning/5"}`}>
+                      <div id="browser-update-guidance" className={`scroll-mt-20 rounded-lg border p-3 text-sm ${essentialFailures > 0 ? "border-destructive/30 bg-destructive/5" : "border-warning/30 bg-warning/5"}`}>
                         <p className="font-medium">{essentialFailures > 0 ? "Your browser may be too old for some app features." : "Some optional browser features are unavailable."}</p>
                         <p className="mt-1 text-muted-foreground">{getBrowserUpdateGuidance(browserName)}</p>
+                        <p className="mt-1 text-muted-foreground">If your browser is already updated, check browser permissions or try another browser. Some optional features are not available on every device.</p>
                       </div>
                     )}
 

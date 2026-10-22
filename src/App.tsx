@@ -14,6 +14,8 @@ import { useScrollPreservation } from "@/hooks/useScrollPreservation";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrowserCompatibilityProvider } from "@/contexts/BrowserCompatibilityContext";
+import { BrowserCompatibilityWarning } from "@/components/BrowserCompatibilityWarning";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -75,6 +77,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <BrowserCompatibilityProvider>
+          <BrowserCompatibilityWarning />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -160,6 +164,7 @@ const App = () => (
                 </ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </BrowserCompatibilityProvider>
         </BrowserRouter>
         </TooltipProvider>
       </SettingsProvider>
