@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { shouldShowBrowserWarning, type BrowserFeatureCheck } from "./browserCompatibility";
+import { shouldShowBrowserWarning } from "./browserCompatibility";
 
-const check = (name: string, supported: boolean, essential = true): BrowserFeatureCheck => ({ name, supported, essential, description: "" });
+const check = (name, supported, essential = true) => ({ name, supported, essential, description: "" });
 describe("browser warning rules", () => {
   test("unsupported essential features show a warning", () => {
     expect(shouldShowBrowserWarning([check("Local storage", false)], null)).toBe(true);
